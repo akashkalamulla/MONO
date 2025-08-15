@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+// Legacy ContentView - replaced by SplashView and MainView
+// Keeping for reference, but no longer used in the app
+
 struct ContentView: View {
     var body: some View {
         VStack {

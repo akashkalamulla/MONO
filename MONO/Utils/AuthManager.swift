@@ -98,7 +98,60 @@ class AuthManager: ObservableObject {
     func logout() {
         currentUser = nil
         isLoggedIn = false
-        clearLoginStatus()
+        UserDefaults.standard.removeObject(forKey: "currentUserID")
+        print("User logged out successfully")
+    }
+    
+    // MARK: - Profile Update
+    func updateUserProfile(username: String, name: String, email: String, newPassword: String? = nil) -> Bool {
+        guard let user = currentUser else {
+            print("No current user to update")
+            return false
+        }
+        
+        // Check for duplicate username/email (excluding current user)
+        let fetchRequest: NSFetchRequest<User> = User.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "(username == %@ OR email == %@) AND self != %@",
+            username, email, user
+        )
+        
+        do {
+            let existingUsers = try viewContext.fetch(fetchRequest)
+            if !existingUsers.isEmpty {
+                print("Username or email already exists")
+                return false
+            }
+        } catch {
+            print("Error checking for existing users: \(error)")
+            return false
+        }
+        
+        // Update user properties
+        user.username = username
+        user.name = name
+        user.email = email
+        
+        if let newPassword = newPassword, !newPassword.isEmpty {
+            user.password = newPassword
+        }
+        
+        // Save changes
+        do {
+            try viewContext.save()
+            currentUser = user // Refresh current user
+            print("Profile updated successfully")
+            return true
+        } catch {
+            print("Failed to update profile: \(error)")
+            return false
+        }
+    }
+    
+    // MARK: - Password Verification
+    func verifyCurrentPassword(_ password: String) -> Bool {
+        guard let user = currentUser else { return false }
+        return user.password == password
     }
     
     // MARK: - Helper Methods

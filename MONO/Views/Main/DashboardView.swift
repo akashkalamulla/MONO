@@ -10,6 +10,7 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @State private var showingLogoutAlert = false
+    @State private var showingProfile = false
     
     var body: some View {
         NavigationView {
@@ -43,11 +44,14 @@ struct DashboardView: View {
                     Spacer()
                     
                     // Bottom Tab Bar
-                    CustomTabBar()
+                    CustomTabBar(showingProfile: $showingProfile)
                 }
                 .background(Color(UIColor.systemGray6))
             }
             .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
         }
         .alert("Logout", isPresented: $showingLogoutAlert) {
             Button("Cancel", role: .cancel) { }
@@ -405,6 +409,7 @@ struct SpendingHistoryRow: View {
 // MARK: - Custom Tab Bar
 struct CustomTabBar: View {
     @State private var selectedTab = 0
+    @Binding var showingProfile: Bool
     
     var body: some View {
         HStack(spacing: 0) {
@@ -452,6 +457,7 @@ struct CustomTabBar: View {
                 color: .gray
             ) {
                 selectedTab = 4
+                showingProfile = true
             }
         }
         .padding(.horizontal, 16)

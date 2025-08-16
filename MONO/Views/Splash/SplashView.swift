@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SplashView: View {
     @State private var isLoading = true
-    @State private var showMainView = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -43,12 +42,8 @@ struct SplashView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     isLoading = false
-                    showMainView = true
                 }
             }
-        }
-        .fullScreenCover(isPresented: $showMainView) {
-            GetStartedView()
         }
     }
 }

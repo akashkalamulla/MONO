@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CAB13B512E504243005635AA /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CAB13B4F2E504243005635AA /* Model.xcdatamodeld */; };
+		CAB13B642E504EDF005635AA /* User+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13B632E504EDF005635AA /* User+CoreDataProperties.swift */; };
+		CAB13B652E504EDF005635AA /* User+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13B622E504EDF005635AA /* User+CoreDataClass.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CA5590E32E4F18BA00333127 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,9 @@
 		CA5590D52E4F18B800333127 /* MONO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MONO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA5590E22E4F18BA00333127 /* MONOTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MONOTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA5590EC2E4F18BA00333127 /* MONOUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MONOUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAB13B502E504243005635AA /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		CAB13B622E504EDF005635AA /* User+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "User+CoreDataClass.swift"; sourceTree = "<group>"; };
+		CAB13B632E504EDF005635AA /* User+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "User+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +84,9 @@
 		CA5590CC2E4F18B800333127 = {
 			isa = PBXGroup;
 			children = (
+				CAB13B622E504EDF005635AA /* User+CoreDataClass.swift */,
+				CAB13B632E504EDF005635AA /* User+CoreDataProperties.swift */,
+				CAB13B4F2E504243005635AA /* Model.xcdatamodeld */,
 				CA5590D72E4F18B800333127 /* MONO */,
 				CA5590E52E4F18BA00333127 /* MONOTests */,
 				CA5590EF2E4F18BA00333127 /* MONOUITests */,
@@ -236,6 +248,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAB13B512E504243005635AA /* Model.xcdatamodeld in Sources */,
+				CAB13B642E504EDF005635AA /* User+CoreDataProperties.swift in Sources */,
+				CAB13B652E504EDF005635AA /* User+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -550,6 +565,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		CAB13B4F2E504243005635AA /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				CAB13B502E504243005635AA /* Model.xcdatamodel */,
+			);
+			currentVersion = CAB13B502E504243005635AA /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = CA5590CD2E4F18B800333127 /* Project object */;
 }

@@ -264,29 +264,501 @@ struct ExpenseCategory: Identifiable {
     ]
 }
 
-// MARK: - Add Expense Detail View (Placeholder)
+// MARK: - Add Expense Detail View
 struct AddExpenseDetailView: View {
     let type: ExpenseType
     let category: ExpenseCategory
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var authManager: AuthManager
+    @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var expenseManager: ExpenseManager
+    
+    init(type: ExpenseType, category: ExpenseCategory) {
+        self.type = type
+        self.category = category
+        self._expenseManager = StateObject(wrappedValue: ExpenseManager(context: PersistenceController.shared.container.viewContext))
+    }
+    
+    // Form State
+    @State private var expenseName: String = ""
+    @State private var amount: String = ""
+    @State private var selectedDate = Date()
+    @State private var notes: String = ""
+    @State private var selectedLocation: String = ""
+    @State private var useCurrentLocation = false
+    @State private var reminderEnabled = false
+    @State private var reminderDate = Date()
+    
+    // UI State
+    @State private var showingDatePicker = false
+    @State private var showingLocationPicker = false
+    @State private var showingReminderPicker = false
+    @State private var isLoading = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    
+    // Location
+    @State private var currentLocationName = "Add location"
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header
+                HeaderView()
+                
+                // Form Content
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Name Field
+                        NameFieldSection()
+                        
+                        // Amount Field
+                        AmountFieldSection()
+                        
+                        // Date Field
+                        DateFieldSection()
+                        
+                        // Location Field
+                        LocationFieldSection()
+                        
+                        // Notes Field
+                        NotesFieldSection()
+                        
+                        // Reminder Field
+                        ReminderFieldSection()
+                        
+                        // Save Button
+                        SaveButtonSection()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 40)
+                }
+                .background(Color(UIColor.systemGray6))
+            }
+            .navigationBarHidden(true)
+        }
+        .alert("Expense", isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+        .onAppear {
+            setupDefaults()
+        }
+    }
+    
+    // MARK: - Header View
+    @ViewBuilder
+    private func HeaderView() -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                Text("Add \(type.rawValue)")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Button(action: {
+                    // More options
+                }) {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
+        }
+        .background(Color(hex: "#438883"))
+    }
+    
+    // MARK: - Name Field Section
+    @ViewBuilder
+    private func NameFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("NAME")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+            
+            HStack(spacing: 12) {
+                // Category Icon
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(category.color.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: category.icon)
+                            .font(.system(size: 18))
+                            .foregroundColor(category.color)
+                    )
+                
+                // Name Field with Dropdown
+                HStack {
+                    TextField("Enter expense name", text: $expenseName)
+                        .font(.system(size: 16))
+                        .foregroundColor(.primary)
+                    
+                    Button(action: {
+                        // Show dropdown with suggestions
+                    }) {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Amount Field Section
+    @ViewBuilder
+    private func AmountFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("AMOUNT")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+            
+            HStack {
+                TextField("$ 0.00", text: $amount)
+                    .font(.system(size: 16))
+                    .keyboardType(.decimalPad)
+                    .foregroundColor(.primary)
+                
+                if !amount.isEmpty {
+                    Button("Clear") {
+                        amount = ""
+                    }
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#438883"))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.white)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Date Field Section
+    @ViewBuilder
+    private func DateFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("DATE")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+            
+            Button(action: {
+                showingDatePicker = true
+            }) {
+                HStack {
+                    Text(formatDate(selectedDate))
+                        .font(.system(size: 16))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "calendar")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .sheet(isPresented: $showingDatePicker) {
+            DatePickerSheet(selectedDate: $selectedDate)
+        }
+    }
+    
+    // MARK: - Location Field Section
+    @ViewBuilder
+    private func LocationFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("LOCATION")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+            
+            Button(action: {
+                showingLocationPicker = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.gray)
+                    
+                    Text(selectedLocation.isEmpty ? "Add location" : selectedLocation)
+                        .font(.system(size: 16))
+                        .foregroundColor(selectedLocation.isEmpty ? .gray : .primary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .sheet(isPresented: $showingLocationPicker) {
+            LocationPickerSheet(
+                selectedLocation: $selectedLocation,
+                useCurrentLocation: $useCurrentLocation
+            )
+        }
+    }
+    
+    // MARK: - Notes Field Section
+    @ViewBuilder
+    private func NotesFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("NOTES (OPTIONAL)")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+            
+            TextField("Add notes...", text: $notes, axis: .vertical)
+                .font(.system(size: 16))
+                .lineLimit(3...6)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Reminder Field Section
+    @ViewBuilder
+    private func ReminderFieldSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("REMINDER")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.gray)
+                    .textCase(.uppercase)
+                
+                Spacer()
+                
+                Toggle("", isOn: $reminderEnabled)
+                    .labelsHidden()
+            }
+            
+            if reminderEnabled {
+                Button(action: {
+                    showingReminderPicker = true
+                }) {
+                    HStack {
+                        Text(formatDateTime(reminderDate))
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "bell")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                }
+                .sheet(isPresented: $showingReminderPicker) {
+                    ReminderPickerSheet(reminderDate: $reminderDate)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Save Button Section
+    @ViewBuilder
+    private func SaveButtonSection() -> some View {
+        Button(action: {
+            saveExpense()
+        }) {
+            HStack {
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                        .foregroundColor(.white)
+                }
+                Text("Save \(type.rawValue)")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(isFormValid ? Color(hex: "#438883") : Color.gray)
+            .cornerRadius(12)
+        }
+        .disabled(!isFormValid || isLoading)
+        .padding(.horizontal, 20)
+    }
+    
+    // MARK: - Helper Methods
+    private var isFormValid: Bool {
+        !expenseName.isEmpty && !amount.isEmpty && Double(amount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)) != nil
+    }
+    
+    private func setupDefaults() {
+        expenseName = category.name
+        if type == .expenses {
+            reminderDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? Date()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private func formatDateTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy 'at' h:mm a"
+        return formatter.string(from: date)
+    }
+    
+    private func saveExpense() {
+        guard isFormValid,
+              let user = authManager.currentUser,
+              let amountDouble = Double(amount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)) else {
+            return
+        }
+        
+        isLoading = true
+        
+        // Get location coordinates if using current location
+        Task {
+            var latitude: Double? = nil
+            var longitude: Double? = nil
+            var locationName = selectedLocation
+            
+            if useCurrentLocation {
+                if let coordinates = await LocationHelper.getCurrentCoordinates() {
+                    latitude = coordinates.latitude
+                    longitude = coordinates.longitude
+                }
+                locationName = await LocationHelper.getCurrentLocationName()
+            }
+            
+            await MainActor.run {
+                let success = expenseManager.addExpense(
+                    name: expenseName,
+                    amount: amountDouble,
+                    type: type.rawValue,
+                    category: category.name,
+                    categoryIcon: category.icon,
+                    categoryColor: category.color.description,
+                    date: selectedDate,
+                    location: locationName.isEmpty ? nil : locationName,
+                    latitude: latitude,
+                    longitude: longitude,
+                    notes: notes.isEmpty ? nil : notes,
+                    reminderDate: reminderEnabled ? reminderDate : nil,
+                    user: user
+                )
+                
+                isLoading = false
+                
+                if success {
+                    alertMessage = "\(type.rawValue) saved successfully!"
+                    showingAlert = true
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        dismiss()
+                    }
+                } else {
+                    alertMessage = "Failed to save \(type.rawValue.lowercased()). Please try again."
+                    showingAlert = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Supporting Views
+struct DatePickerSheet: View {
+    @Binding var selectedDate: Date
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             VStack {
-                Text("Add \(type.rawValue)")
-                    .font(.title2)
+                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                    .datePickerStyle(.wheel)
                     .padding()
-                
-                Text("Category: \(category.name)")
-                    .font(.headline)
-                    .padding()
-                
-                Text("Expense detail form will be implemented here")
-                    .foregroundColor(.gray)
                 
                 Spacer()
             }
-            .navigationTitle("Add \(type.rawValue)")
+            .navigationTitle("Select Date")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -296,7 +768,131 @@ struct AddExpenseDetailView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct LocationPickerSheet: View {
+    @Binding var selectedLocation: String
+    @Binding var useCurrentLocation: Bool
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var searchText = ""
+    @State private var currentLocationName = "Current Location"
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                // Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    
+                    TextField("Search location", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+                .padding(.top)
+                
+                List {
+                    // Current Location
+                    Button(action: {
+                        selectedLocation = currentLocationName
+                        useCurrentLocation = true
+                        dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "location.fill")
+                                .foregroundColor(.blue)
+                            
+                            VStack(alignment: .leading) {
+                                Text("Use Current Location")
+                                    .foregroundColor(.primary)
+                                Text(currentLocationName)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    
+                    // Sample Locations
+                    ForEach(sampleLocations.filter { searchText.isEmpty || $0.lowercased().contains(searchText.lowercased()) }, id: \.self) { location in
+                        Button(action: {
+                            selectedLocation = location
+                            useCurrentLocation = false
+                            dismiss()
+                        }) {
+                            HStack {
+                                Image(systemName: "mappin.circle.fill")
+                                    .foregroundColor(.red)
+                                
+                                Text(location)
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Select Location")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    private let sampleLocations = [
+        "Home",
+        "Office",
+        "Grocery Store",
+        "Mall",
+        "Restaurant",
+        "Gas Station",
+        "Pharmacy",
+        "Bank"
+    ]
+}
+
+struct ReminderPickerSheet: View {
+    @Binding var reminderDate: Date
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                DatePicker("Reminder Date & Time", selection: $reminderDate, displayedComponents: [.date, .hourAndMinute])
+                    .datePickerStyle(.wheel)
+                    .padding()
+                
+                Spacer()
+            }
+            .navigationTitle("Set Reminder")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
                         dismiss()
                     }
                 }

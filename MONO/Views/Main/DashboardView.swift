@@ -11,6 +11,7 @@ struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @State private var showingLogoutAlert = false
     @State private var showingProfile = false
+    @State private var showingAddExpense = false
     
     var body: some View {
         NavigationView {
@@ -44,7 +45,10 @@ struct DashboardView: View {
                     Spacer()
                     
                     // Bottom Tab Bar
-                    CustomTabBar(showingProfile: $showingProfile)
+                    CustomTabBar(
+                        showingProfile: $showingProfile,
+                        showingAddExpense: $showingAddExpense
+                    )
                 }
                 .background(Color(UIColor.systemGray6))
             }
@@ -52,6 +56,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showingProfile) {
             ProfileView()
+        }
+        .sheet(isPresented: $showingAddExpense) {
+            AddExpenseView()
         }
         .alert("Logout", isPresented: $showingLogoutAlert) {
             Button("Cancel", role: .cancel) { }
@@ -410,6 +417,7 @@ struct SpendingHistoryRow: View {
 struct CustomTabBar: View {
     @State private var selectedTab = 0
     @Binding var showingProfile: Bool
+    @Binding var showingAddExpense: Bool
     
     var body: some View {
         HStack(spacing: 0) {
@@ -439,6 +447,7 @@ struct CustomTabBar: View {
                 isCenter: true
             ) {
                 selectedTab = 2
+                showingAddExpense = true
             }
             
             TabBarItem(

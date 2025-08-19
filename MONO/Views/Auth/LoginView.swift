@@ -2,149 +2,180 @@
 //  LoginView.swift
 //  MONO
 //
-//  Created by Akash01 on 2025-08-16.
+//  Created by Akash01 on 2025-08-19.
 //
 
 import SwiftUI
 
 struct LoginView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    @EnvironmentObject var authManager: AuthManager
-    
-    @State private var emailOrUsername = ""
+    @EnvironmentObject private var authManager: AuthenticationManager
+    @State private var email = ""
     @State private var password = ""
-    @State private var showAlert = false
-    @State private var showRegistration = false
-    @Binding var isPresented: Bool
+    @State private var showPassword = false
+    @State private var showRegister = false
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: 30) {
                     // Header
-                    VStack(spacing: 16) {
+                    VStack(spacing: 8) {
                         Text("Welcome Back")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(Color(hex: "#438883"))
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.monoPrimary)
                         
-                        Text("Sign in to your MONO account")
+                        Text("Sign in to your account")
                             .font(.system(size: 16))
                             .foregroundColor(.gray)
                     }
                     .padding(.top, 60)
-                    .padding(.horizontal, 32)
                     
-                    // Form
+                    // Login Form
                     VStack(spacing: 20) {
-                        CustomTextField(title: "Email or Username", text: $emailOrUsername, keyboardType: .emailAddress)
+                        // Email Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Email")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.monoPrimary)
+                            
+                            TextField("Enter your email", text: $email)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                        }
                         
-                        CustomTextField(title: "Password", text: $password, isSecure: true)
+                        // Password Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Password")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.monoPrimary)
+                            
+                            HStack {
+                                if showPassword {
+                                    TextField("Enter your password", text: $password)
+                                } else {
+                                    SecureField("Enter your password", text: $password)
+                                }
+                                
+                                Button(action: {
+                                    showPassword.toggle()
+                                }) {
+                                    Image(systemName: showPassword ? "eye.slash" : "eye")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .textFieldStyle(CustomTextFieldStyle())
+                        }
                         
                         // Forgot Password
                         HStack {
                             Spacer()
                             Button(action: {
-                                // TODO: Implement forgot password
+                                // Handle forgot password
+                                print("Forgot password tapped")
                             }) {
                                 Text("Forgot Password?")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(Color(hex: "#438883"))
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.monoPrimary)
                             }
                         }
                     }
-                    .padding(.top, 40)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, 30)
+                    
+                    // Error Message
+                    if let errorMessage = authManager.errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 14))
+                            .foregroundColor(.red)
+                            .padding(.horizontal, 30)
+                    }
                     
                     // Login Button
                     Button(action: {
-                        loginUser()
+                        authManager.login(email: email, password: password)
                     }) {
-                        if authManager.isLoading {
-                            HStack {
+                        HStack {
+                            if authManager.isLoading {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     .scaleEffect(0.8)
-                                Text("Signing In...")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
                             }
-                        } else {
-                            Text("Sign In")
+                            
+                            Text(authManager.isLoading ? "Signing In..." : "Sign In")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
                         }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            isFormValid ? Color.monoPrimary : Color.gray
+                        )
+                        .cornerRadius(25)
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color(hex: "#438883"))
-                    .cornerRadius(25)
-                    .padding(.horizontal, 32)
-                    .padding(.top, 30)
-                    .disabled(authManager.isLoading)
+                    .disabled(!isFormValid || authManager.isLoading)
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding(.horizontal, 30)
                     
-                    // Register Link
+                    // Sign Up Link
                     HStack(spacing: 4) {
                         Text("Don't have an account?")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                         
                         Button(action: {
-                            showRegistration = true
+                            showRegister = true
                         }) {
                             Text("Sign Up")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Color(hex: "#438883"))
+                                .foregroundColor(.monoPrimary)
                         }
                     }
-                    .padding(.top, 20)
-                    
-                    Spacer()
+                    .padding(.bottom, 40)
                 }
             }
             .background(Color(UIColor.systemGray6))
-            .navigationBarHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.monoPrimary)
+                }
+            }
         }
-        .alert("Login Error", isPresented: $showAlert) {
-            Button("OK") { }
-        } message: {
-            Text(authManager.errorMessage)
+        .sheet(isPresented: $showRegister) {
+            RegisterView()
         }
-        .sheet(isPresented: $showRegistration) {
-            RegistrationView()
-                .environmentObject(authManager)
-        }
-        .onChange(of: authManager.isLoggedIn) { isLoggedIn in
-            print("Login state changed: \(isLoggedIn)")
-            if isLoggedIn {
-                print("User logged in successfully, closing login view")
-                isPresented = false
+        .onChange(of: authManager.isAuthenticated) {
+            if authManager.isAuthenticated {
+                dismiss()
             }
         }
     }
     
-    private func loginUser() {
-        guard !emailOrUsername.isEmpty else {
-            authManager.errorMessage = "Please enter your email or username"
-            showAlert = true
-            return
-        }
-        
-        guard !password.isEmpty else {
-            authManager.errorMessage = "Please enter your password"
-            showAlert = true
-            return
-        }
-        
-        authManager.loginUser(emailOrUsername: emailOrUsername, password: password) { success in
-            if !success {
-                showAlert = true
-            }
-        }
+    private var isFormValid: Bool {
+        !email.isEmpty && email.contains("@") && password.count >= 6
+    }
+}
+
+// MARK: - Custom Text Field Style
+struct CustomTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.white)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
     }
 }
 
 #Preview {
-    PreviewWrapper {
-        LoginView(isPresented: .constant(true))
-    }
+    LoginView()
+        .environmentObject(AuthenticationManager())
 }

@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct GetStartedView: View {
+    @EnvironmentObject private var authManager: AuthenticationManager
     @State private var showLogin = false
-    @EnvironmentObject var authManager: AuthManager
+    @State private var showRegister = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -41,7 +42,7 @@ struct GetStartedView: View {
             VStack(spacing: 20) {
                 // Get Started button
                 Button(action: {
-                    showLogin = true
+                    showRegister = true
                 }) {
                     Text("Get Started")
                         .font(.system(size: 16, weight: .semibold))
@@ -77,14 +78,15 @@ struct GetStartedView: View {
         .ignoresSafeArea()
         .navigationBarHidden(true)
         .sheet(isPresented: $showLogin) {
-            LoginView(isPresented: $showLogin)
-                .environmentObject(authManager)
+            LoginView()
+        }
+        .sheet(isPresented: $showRegister) {
+            RegisterView()
         }
     }
 }
 
 #Preview {
-    PreviewWrapper {
-        GetStartedView()
-    }
+    GetStartedView()
+        .environmentObject(AuthenticationManager())
 }

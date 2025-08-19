@@ -1,20 +1,21 @@
-//
-//  MONOApp.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-15.
-//
-
 import SwiftUI
+import CoreData
 
 @main
 struct MONOApp: App {
-    let persistenceController = PersistenceController.shared
-
+    @StateObject private var authManager = AuthenticationManager()
+    let persistenceController = CoreDataStack.shared
+    
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            if authManager.isAuthenticated {
+                AuthenticatedView(authManager: authManager)
+                    .environment(\.managedObjectContext, persistenceController.context)
+            } else {
+                SplashView()
+                    .environmentObject(authManager)
+                    .environment(\.managedObjectContext, persistenceController.context)
+            }
         }
     }
 }

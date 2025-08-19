@@ -1,0 +1,64 @@
+{
+  "configurations" : [
+
+  ],
+  "entities" : [
+    {
+      "attributeType" : {
+        "attributeName" : "dateCreated",
+        "attributeType" : "Date"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "email",
+        "attributeType" : "String"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "firstName",
+        "attributeType" : "String"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "id",
+        "attributeType" : "UUID"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "isLoggedIn",
+        "attributeType" : "Boolean"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "lastName",
+        "attributeType" : "String"
+      },
+      "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "phoneNumber",
+        "attributeType" : "String"
+      },
+      "name" : "UserEntity"
+    }
+  ],
+  "fetchRequests" : [
+
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 0,
+    "patch" : 0
+  }
+}

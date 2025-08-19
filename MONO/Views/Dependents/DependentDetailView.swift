@@ -11,6 +11,7 @@ struct DependentDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     let dependent: Dependent
     @ObservedObject var dependentManager: DependentManager
+    let currentUser: User
     @State private var showingEditView = false
     @State private var showingDeleteAlert = false
     
@@ -152,7 +153,7 @@ struct DependentDetailView: View {
             )
         }
         .sheet(isPresented: $showingEditView) {
-            EditDependentView(dependent: dependent, dependentManager: dependentManager)
+            EditDependentView(dependent: dependent, dependentManager: dependentManager, currentUser: currentUser)
         }
         .alert(isPresented: $showingDeleteAlert) {
             Alert(
@@ -173,12 +174,12 @@ struct DependentDetailView: View {
     }
     
     private func toggleActiveStatus() {
-        _ = dependentManager.toggleDependentStatus(dependent)
+        dependentManager.toggleDependentStatus(dependent, for: currentUser.id)
         // Note: In a real app, you'd refresh the view or use @State to track changes
     }
     
     private func deleteDependent() {
-        _ = dependentManager.deleteDependent(dependent)
+        dependentManager.deleteDependent(dependent, for: currentUser.id)
         presentationMode.wrappedValue.dismiss()
     }
 }
@@ -236,12 +237,19 @@ struct InfoRow: View {
         relationship: "Child",
         dateOfBirth: Calendar.current.date(byAdding: .year, value: -8, to: Date()) ?? Date(),
         phoneNumber: "555-0123",
-        email: "emma@example.com",
-        userId: UUID()
+        email: "emma@example.com"
     )
     
-    return DependentDetailView(
+    let sampleUser = User(
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+        phoneNumber: "555-0123"
+    )
+    
+    DependentDetailView(
         dependent: sampleDependent,
-        dependentManager: DependentManager()
+        dependentManager: DependentManager(),
+        currentUser: sampleUser
     )
 }

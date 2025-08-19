@@ -123,17 +123,12 @@ struct AddDependentView: View {
             relationship: relationship,
             dateOfBirth: dateOfBirth,
             phoneNumber: phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines),
-            email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-            userId: currentUser.id
+            email: email.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if dependentManager.addDependent(dependent) {
-                dependentManager.loadDependents(for: currentUser.id)
-                alertMessage = "Dependent added successfully!"
-            } else {
-                alertMessage = "Failed to add dependent. Please try again."
-            }
+            dependentManager.addDependent(dependent, for: currentUser.id)
+            alertMessage = "Dependent added successfully!"
             isLoading = false
             showingAlert = true
         }

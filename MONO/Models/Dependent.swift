@@ -1,14 +1,7 @@
-//
-//  Dependent.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-19.
-//
-
 import Foundation
 import CoreData
 
-// MARK: - Dependent Data Model
+// Dependent model represents a family member or person you're responsible for
 struct Dependent: Identifiable, Codable {
     let id: UUID
     var firstName: String
@@ -19,92 +12,23 @@ struct Dependent: Identifiable, Codable {
     var email: String
     var isActive: Bool
     var dateAdded: Date
-    var userId: UUID // Reference to the user who added this dependent
-    
-    init(firstName: String, lastName: String, relationship: String, dateOfBirth: Date, phoneNumber: String = "", email: String = "", userId: UUID) {
-        self.id = UUID()
-        self.firstName = firstName
-        self.lastName = lastName
-        self.relationship = relationship
-        self.dateOfBirth = dateOfBirth
-        self.phoneNumber = phoneNumber
-        self.email = email
-        self.isActive = true
-        self.dateAdded = Date()
-        self.userId = userId
-    }
     
     var fullName: String {
-        "\(firstName) \(lastName)"
+        return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
     }
     
     var age: Int {
         let calendar = Calendar.current
-        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: Date())
+        let now = Date()
+        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: now)
         return ageComponents.year ?? 0
     }
     
     var initials: String {
         "\(firstName.prefix(1))\(lastName.prefix(1))".uppercased()
     }
-}
-
-// MARK: - Dependent Manager
-class DependentManager: ObservableObject {
-    @Published var dependents: [Dependent] = []
-    private let coreDataStack = CoreDataStack.shared
     
-    init() {
-        loadDependents()
-    }
-    
-    // MARK: - Core Data Operations (Temporary in-memory implementation)
-    
-    func loadDependents(for userId: UUID? = nil) {
-        // Temporary: Load from in-memory storage
-        // TODO: Implement Core Data loading once entity is properly generated
-        DispatchQueue.main.async {
-            // For now, keep existing in-memory dependents or create sample data
-            print("Loading dependents for user: \(userId?.uuidString ?? "all")")
-        }
-    }
-    
-    func addDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Add to in-memory storage
-        DispatchQueue.main.async {
-            self.dependents.append(dependent)
-        }
-        return true
-    }
-    
-    func updateDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Update in-memory storage
-        DispatchQueue.main.async {
-            if let index = self.dependents.firstIndex(where: { $0.id == dependent.id }) {
-                self.dependents[index] = dependent
-            }
-        }
-        return true
-    }
-    
-    func deleteDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Delete from in-memory storage
-        DispatchQueue.main.async {
-            self.dependents.removeAll { $0.id == dependent.id }
-        }
-        return true
-    }
-    
-    func toggleDependentStatus(_ dependent: Dependent) -> Bool {
-        var updatedDependent = dependent
-        updatedDependent.isActive.toggle()
-        return updateDependent(updatedDependent)
-    }
-}
-
-// MARK: - Helper Extensions
-extension Dependent {
-    init(id: UUID, firstName: String, lastName: String, relationship: String, dateOfBirth: Date, phoneNumber: String, email: String, isActive: Bool, dateAdded: Date, userId: UUID) {
+    init(id: UUID = UUID(), firstName: String, lastName: String, relationship: String, dateOfBirth: Date, phoneNumber: String = "", email: String = "", isActive: Bool = true, dateAdded: Date = Date()) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
@@ -114,6 +38,114 @@ extension Dependent {
         self.email = email
         self.isActive = isActive
         self.dateAdded = dateAdded
-        self.userId = userId
+    }
+}
+
+// Manages all dependent-related operations and data
+@MainActor
+class DependentManager: ObservableObject {
+    @Published var dependents: [Dependent] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private let coreDataStack: CoreDataStack
+    private var context: NSManagedObjectContext {
+        return coreDataStack.context
+    }
+    
+    init(coreDataStack: CoreDataStack = CoreDataStack.shared) {
+        self.coreDataStack = coreDataStack
+    }
+    
+    func loadDependents(for userId: UUID) {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let dependentEntities = DependentEntity.fetchDependentsForUser(userId, in: context)
+            self.dependents = dependentEntities.map { $0.toDependent() }
+            isLoading = false
+        } catch {
+            errorMessage = "Failed to load dependents: \(error.localizedDescription)"
+            isLoading = false
+        }
+    }
+    
+    func addDependent(_ dependent: Dependent, for userId: UUID) {
+        do {
+            let _ = DependentEntity(context: context, from: dependent, userId: userId)
+            try context.save()
+            loadDependents(for: userId)
+        } catch {
+            errorMessage = "Failed to add dependent: \(error.localizedDescription)"
+        }
+    }
+    
+    func updateDependent(_ dependent: Dependent, for userId: UUID) {
+        do {
+            let request: NSFetchRequest<DependentEntity> = DependentEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", dependent.id as CVarArg)
+            
+            if let dependentEntity = try context.fetch(request).first {
+                dependentEntity.update(from: dependent)
+                try context.save()
+                loadDependents(for: userId)
+            }
+        } catch {
+            errorMessage = "Failed to update dependent: \(error.localizedDescription)"
+        }
+    }
+    
+    func deleteDependent(_ dependent: Dependent, for userId: UUID) {
+        do {
+            let request: NSFetchRequest<DependentEntity> = DependentEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", dependent.id as CVarArg)
+            
+            if let dependentEntity = try context.fetch(request).first {
+                context.delete(dependentEntity)
+                try context.save()
+                loadDependents(for: userId)
+            }
+        } catch {
+            errorMessage = "Failed to delete dependent: \(error.localizedDescription)"
+        }
+    }
+    
+    func toggleDependentStatus(_ dependent: Dependent, for userId: UUID) {
+        var updatedDependent = dependent
+        updatedDependent.isActive.toggle()
+        updateDependent(updatedDependent, for: userId)
+    }
+    
+    var activeDependents: [Dependent] {
+        return dependents.filter { $0.isActive }
+    }
+    
+    var inactiveDependents: [Dependent] {
+        return dependents.filter { !$0.isActive }
+    }
+    
+    var totalDependents: Int {
+        return dependents.count
+    }
+    
+    var activeDependentsCount: Int {
+        return activeDependents.count
+    }
+    
+    func searchDependents(_ searchText: String, for userId: UUID) -> [Dependent] {
+        if searchText.isEmpty {
+            return dependents
+        }
+        
+        return dependents.filter { dependent in
+            dependent.fullName.localizedCaseInsensitiveContains(searchText) ||
+            dependent.relationship.localizedCaseInsensitiveContains(searchText) ||
+            dependent.email.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    func getDependentsByRelationship(_ relationship: String, for userId: UUID) -> [Dependent] {
+        return dependents.filter { $0.relationship == relationship }
     }
 }

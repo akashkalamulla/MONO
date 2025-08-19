@@ -1,10 +1,3 @@
-//
-//  DependentsView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-19.
-//
-
 import SwiftUI
 
 struct DependentsView: View {
@@ -40,7 +33,9 @@ struct DependentsView: View {
                     // Dependents List
                     List {
                         ForEach(filteredDependents) { dependent in
-                            DependentRowView(dependent: dependent, dependentManager: dependentManager)
+                            if let currentUser = authManager.currentUser {
+                                DependentRowView(dependent: dependent, dependentManager: dependentManager, currentUser: currentUser)
+                            }
                         }
                         .onDelete(perform: deleteDependent)
                     }
@@ -69,18 +64,17 @@ struct DependentsView: View {
     private func deleteDependent(at offsets: IndexSet) {
         for index in offsets {
             let dependent = filteredDependents[index]
-            _ = dependentManager.deleteDependent(dependent)
             if let currentUser = authManager.currentUser {
-                dependentManager.loadDependents(for: currentUser.id)
+                dependentManager.deleteDependent(dependent, for: currentUser.id)
             }
         }
     }
 }
 
-// MARK: - Dependent Row View
 struct DependentRowView: View {
     let dependent: Dependent
     @ObservedObject var dependentManager: DependentManager
+    let currentUser: User
     @State private var showingDetail = false
     
     var body: some View {
@@ -136,12 +130,11 @@ struct DependentRowView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showingDetail) {
-            DependentDetailView(dependent: dependent, dependentManager: dependentManager)
+            DependentDetailView(dependent: dependent, dependentManager: dependentManager, currentUser: currentUser)
         }
     }
 }
 
-// MARK: - Empty State View
 struct EmptyDependentsView: View {
     let onAddDependent: () -> Void
     

@@ -11,6 +11,7 @@ struct EditDependentView: View {
     @Environment(\.presentationMode) var presentationMode
     let dependent: Dependent
     @ObservedObject var dependentManager: DependentManager
+    let currentUser: User
     
     @State private var firstName: String
     @State private var lastName: String
@@ -25,9 +26,10 @@ struct EditDependentView: View {
     
     let relationships = ["Child", "Spouse", "Parent", "Sibling", "Grandparent", "Grandchild", "Other"]
     
-    init(dependent: Dependent, dependentManager: DependentManager) {
+    init(dependent: Dependent, dependentManager: DependentManager, currentUser: User) {
         self.dependent = dependent
         self.dependentManager = dependentManager
+        self.currentUser = currentUser
         
         _firstName = State(initialValue: dependent.firstName)
         _lastName = State(initialValue: dependent.lastName)
@@ -165,11 +167,8 @@ struct EditDependentView: View {
         updatedDependent.isActive = isActive
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if dependentManager.updateDependent(updatedDependent) {
-                alertMessage = "Dependent updated successfully!"
-            } else {
-                alertMessage = "Failed to update dependent. Please try again."
-            }
+            dependentManager.updateDependent(updatedDependent, for: currentUser.id)
+            alertMessage = "Dependent updated successfully!"
             isLoading = false
             showingAlert = true
         }
@@ -183,12 +182,19 @@ struct EditDependentView: View {
         relationship: "Child",
         dateOfBirth: Calendar.current.date(byAdding: .year, value: -8, to: Date()) ?? Date(),
         phoneNumber: "555-0123",
-        email: "emma@example.com",
-        userId: UUID()
+        email: "emma@example.com"
     )
     
-    return EditDependentView(
+    let sampleUser = User(
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+        phoneNumber: "555-0123"
+    )
+    
+    EditDependentView(
         dependent: sampleDependent,
-        dependentManager: DependentManager()
+        dependentManager: DependentManager(),
+        currentUser: sampleUser
     )
 }

@@ -51,6 +51,76 @@
         "attributeType" : "String"
       },
       "name" : "UserEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "dateAdded",
+        "attributeType" : "Date"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "dateOfBirth",
+        "attributeType" : "Date"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "email",
+        "attributeType" : "String"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "firstName",
+        "attributeType" : "String"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "id",
+        "attributeType" : "UUID"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "isActive",
+        "attributeType" : "Boolean"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "lastName",
+        "attributeType" : "String"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "phoneNumber",
+        "attributeType" : "String"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "relationship",
+        "attributeType" : "String"
+      },
+      "name" : "DependentEntity"
+    },
+    {
+      "attributeType" : {
+        "attributeName" : "userId",
+        "attributeType" : "UUID"
+      },
+      "name" : "DependentEntity"
     }
   ],
   "fetchRequests" : [

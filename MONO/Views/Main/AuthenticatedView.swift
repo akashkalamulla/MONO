@@ -9,13 +9,20 @@ import SwiftUI
 
 struct AuthenticatedView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @StateObject private var dependentManager = DependentManager()
     
     var body: some View {
         TabView {
-            DashboardView(authManager: authManager)
+            DashboardView(authManager: authManager, dependentManager: dependentManager)
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("Home")
+                }
+            
+            DependentsView(dependentManager: dependentManager, authManager: authManager)
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                    Text("Dependents")
                 }
             
             TransactionsView()
@@ -43,6 +50,7 @@ struct AuthenticatedView: View {
 // MARK: - Dashboard View
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @ObservedObject var dependentManager: DependentManager
     
     var body: some View {
         NavigationView {
@@ -116,6 +124,37 @@ struct DashboardView: View {
                     .cornerRadius(20)
                     .padding(.horizontal)
                     
+                    // Dependents Summary (if any)
+                    if !dependentManager.dependents.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Dependents")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.monoPrimary)
+                                
+                                Spacer()
+                                
+                                Text("\(dependentManager.dependents.filter { $0.isActive }.count)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.monoPrimary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.monoPrimary.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
+                            .padding(.horizontal)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(dependentManager.dependents.filter { $0.isActive }.prefix(5)) { dependent in
+                                        DependentSummaryCard(dependent: dependent)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+                    
                     // Quick Actions
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Quick Actions")
@@ -137,9 +176,9 @@ struct DashboardView: View {
                             )
                             
                             QuickActionButton(
-                                icon: "chart.bar.fill",
-                                title: "View Report",
-                                action: { /* View report */ }
+                                icon: "person.2.badge.plus",
+                                title: "Add Dependent",
+                                action: { /* Add dependent */ }
                             )
                         }
                         .padding(.horizontal)
@@ -150,6 +189,11 @@ struct DashboardView: View {
                 .padding(.top)
             }
             .navigationBarHidden(true)
+        }
+        .onAppear {
+            if let currentUser = authManager.currentUser {
+                dependentManager.loadDependents(for: currentUser.id)
+            }
         }
     }
 }
@@ -339,10 +383,45 @@ struct ProfileOption: View {
     }
 }
 
+// MARK: - Dependent Summary Card
+struct DependentSummaryCard: View {
+    let dependent: Dependent
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Circle()
+                .fill(Color.monoPrimary.opacity(0.2))
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Text(dependent.initials)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.monoPrimary)
+                )
+            
+            VStack(spacing: 2) {
+                Text(dependent.firstName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.monoPrimary)
+                    .lineLimit(1)
+                
+                Text(dependent.relationship)
+                    .font(.system(size: 10))
+                    .foregroundColor(.gray)
+            }
+        }
+        .frame(width: 80)
+        .padding(.vertical, 8)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
+    }
+}
+
 #Preview {
     let authManager = AuthenticationManager()
     authManager.currentUser = User(firstName: "John", lastName: "Doe", email: "john@example.com")
     authManager.isAuthenticated = true
     
     return AuthenticatedView(authManager: authManager)
+        .environmentObject(AuthenticationManager())
 }

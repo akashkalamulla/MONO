@@ -47,13 +47,14 @@ struct DependentsView: View {
                     .listStyle(PlainListStyle())
                 }
             }
-            .navigationTitle("Dependents")
+            .navigationTitle("My Dependent")
             .navigationBarItems(
-                trailing: Button(action: { showingAddDependent = true }) {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.monoPrimary)
-                }
+                trailing: dependentManager.dependents.isEmpty ? 
+                    AnyView(Button(action: { showingAddDependent = true }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .foregroundColor(.monoPrimary)
+                    }) : AnyView(EmptyView())
             )
         }
         .sheet(isPresented: $showingAddDependent) {
@@ -61,7 +62,7 @@ struct DependentsView: View {
         }
         .onAppear {
             if let currentUser = authManager.currentUser {
-                dependentManager.loadDependents(for: currentUser.id)
+                dependentManager.loadDependent(for: currentUser.id)
             }
         }
     }
@@ -71,7 +72,7 @@ struct DependentsView: View {
             let dependent = filteredDependents[index]
             _ = dependentManager.deleteDependent(dependent)
             if let currentUser = authManager.currentUser {
-                dependentManager.loadDependents(for: currentUser.id)
+                dependentManager.loadDependent(for: currentUser.id)
             }
         }
     }
@@ -149,16 +150,16 @@ struct EmptyDependentsView: View {
         VStack(spacing: 24) {
             Spacer()
             
-            Image(systemName: "person.2.fill")
+            Image(systemName: "person.fill")
                 .font(.system(size: 80))
                 .foregroundColor(.gray.opacity(0.5))
             
             VStack(spacing: 8) {
-                Text("No Dependents Yet")
+                Text("No Dependent Yet")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.monoPrimary)
                 
-                Text("Add family members to manage their expenses")
+                Text("Add one family member to manage their expenses")
                     .font(.system(size: 16))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
@@ -168,7 +169,7 @@ struct EmptyDependentsView: View {
             Button(action: onAddDependent) {
                 HStack {
                     Image(systemName: "plus")
-                    Text("Add First Dependent")
+                    Text("Add Your Dependent")
                 }
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.white)
@@ -193,7 +194,7 @@ struct SearchBar: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
             
-            TextField("Search dependents...", text: $text)
+            TextField("Search dependent...", text: $text)
                 .textFieldStyle(PlainTextFieldStyle())
             
             if !text.isEmpty {

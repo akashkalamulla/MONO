@@ -124,23 +124,25 @@ struct DashboardView: View {
                     .cornerRadius(20)
                     .padding(.horizontal)
                     
-                    // Dependents Summary (if any)
+                    // Dependent Summary (if any)
                     if !dependentManager.dependents.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Dependents")
+                                Text("My Dependent")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.monoPrimary)
                                 
                                 Spacer()
                                 
-                                Text("\(dependentManager.dependents.filter { $0.isActive }.count)")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.monoPrimary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.monoPrimary.opacity(0.1))
-                                    .cornerRadius(8)
+                                if dependentManager.dependent?.isActive == true {
+                                    Text("Active")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.green)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.green.opacity(0.1))
+                                        .cornerRadius(8)
+                                }
                             }
                             .padding(.horizontal)
                             
@@ -192,7 +194,7 @@ struct DashboardView: View {
         }
         .onAppear {
             if let currentUser = authManager.currentUser {
-                dependentManager.loadDependents(for: currentUser.id)
+                dependentManager.loadDependent(for: currentUser.id)
             }
         }
     }

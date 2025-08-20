@@ -39,6 +39,27 @@ class CoreDataStack: ObservableObject {
         }
     }
     
+    // MARK: - Data Cleanup
+    
+    func cleanupOrphanedDependents() {
+        let context = persistentContainer.viewContext
+        let request: NSFetchRequest<DependentEntity> = DependentEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "user == nil")
+        
+        do {
+            let orphanedDependents = try context.fetch(request)
+            for dependent in orphanedDependents {
+                context.delete(dependent)
+            }
+            if !orphanedDependents.isEmpty {
+                save()
+                print("Cleaned up \(orphanedDependents.count) orphaned dependents")
+            }
+        } catch {
+            print("Error cleaning up orphaned dependents: \(error)")
+        }
+    }
+    
     // MARK: - User Management
     
     func createUser(firstName: String, lastName: String, email: String, phoneNumber: String?) -> UserEntity {

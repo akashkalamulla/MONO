@@ -129,7 +129,7 @@ struct AddDependentView: View {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if dependentManager.addDependent(dependent) {
-                dependentManager.loadDependents(for: currentUser.id)
+                dependentManager.loadDependent(for: currentUser.id)
                 alertMessage = "Dependent added successfully!"
             } else {
                 alertMessage = "Failed to add dependent. Please try again."

@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="DependentEntity" representedClassName="DependentEntity" syncable="YES" codeGenerationType="class">
-        <attribute name="contactNumber" optional="YES" attributeType="String"/>
-        <attribute name="dateCreated" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="dateOfBirth" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="emergencyContact" optional="YES" attributeType="String"/>
-        <attribute name="firstName" attributeType="String"/>
-        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="lastName" attributeType="String"/>
-        <attribute name="relationship" attributeType="String"/>
-        <relationship name="user" optional="YES" toMany="NO" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="dependent" inverseEntity="UserEntity"/>
-    </entity>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
         <attribute name="dateCreated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="email" optional="YES" attributeType="String"/>
@@ -19,6 +8,5 @@
         <attribute name="isLoggedIn" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="lastName" optional="YES" attributeType="String"/>
         <attribute name="phoneNumber" optional="YES" attributeType="String"/>
-        <relationship name="dependent" optional="YES" toMany="NO" deletionRule="Cascade" destinationEntity="DependentEntity" inverseName="user" inverseEntity="DependentEntity"/>
     </entity>
 </model>

@@ -146,4 +146,57 @@ class CoreDataStack: ObservableObject {
             return false
         }
     }
+    
+    // MARK: - Income Management
+    
+    func addIncome(
+        source: String,
+        category: String,
+        categoryIcon: String,
+        categoryColor: String,
+        amount: Double,
+        dateReceived: Date,
+        description: String?,
+        notes: String?,
+        isRecurring: Bool,
+        recurringFrequency: String?,
+        user: UserEntity
+    ) -> Bool {
+        
+        let income = NSEntityDescription.insertNewObject(forEntityName: "IncomeEntity", into: context) as! NSManagedObject
+        income.setValue(UUID(), forKey: "id")
+        income.setValue(source, forKey: "source")
+        income.setValue(category, forKey: "category")
+        income.setValue(categoryIcon, forKey: "categoryIcon")
+        income.setValue(categoryColor, forKey: "categoryColor")
+        income.setValue(amount, forKey: "amount")
+        income.setValue(dateReceived, forKey: "dateReceived")
+        income.setValue(Date(), forKey: "dateCreated")
+        income.setValue(description, forKey: "incomeDescription")
+        income.setValue(notes, forKey: "notes")
+        income.setValue(isRecurring, forKey: "isRecurring")
+        income.setValue(recurringFrequency, forKey: "recurringFrequency")
+        income.setValue(user, forKey: "user")
+        
+        do {
+            try context.save()
+            return true
+        } catch {
+            print("Error saving income: \(error)")
+            return false
+        }
+    }
+    
+    func fetchIncomes(for user: UserEntity) -> [NSManagedObject] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "IncomeEntity")
+        request.predicate = NSPredicate(format: "user == %@", user)
+        request.sortDescriptors = [NSSortDescriptor(key: "dateReceived", ascending: false)]
+        
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("Error fetching incomes: \(error)")
+            return []
+        }
+    }
 }

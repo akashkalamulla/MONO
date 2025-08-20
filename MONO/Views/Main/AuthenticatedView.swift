@@ -51,6 +51,8 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
+    @State private var showingAddIncome = false
+    @State private var showingIncomeList = false
     
     var body: some View {
         NavigationView {
@@ -94,12 +96,19 @@ struct DashboardView: View {
                         
                         HStack(spacing: 20) {
                             VStack {
-                                Text("Income")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.white.opacity(0.7))
-                                Text("$3,250.00")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
+                                Button(action: {
+                                    showingIncomeList = true
+                                }) {
+                                    VStack {
+                                        Text("Income")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white.opacity(0.7))
+                                        Text("$3,250.00")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             
                             VStack {
@@ -168,7 +177,9 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "plus.circle.fill",
                                 title: "Add Income",
-                                action: { /* Add income */ }
+                                action: { 
+                                    showingAddIncome = true
+                                }
                             )
                             
                             QuickActionButton(
@@ -196,6 +207,13 @@ struct DashboardView: View {
             if let currentUser = authManager.currentUser {
                 dependentManager.loadDependent(for: currentUser.id)
             }
+        }
+        .sheet(isPresented: $showingAddIncome) {
+            SimpleAddIncomeView()
+        }
+        .sheet(isPresented: $showingIncomeList) {
+            IncomeListView()
+                .environmentObject(authManager)
         }
     }
 }

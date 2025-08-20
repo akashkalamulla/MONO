@@ -51,6 +51,7 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
+    @State private var showAddIncomeView = false
     
     var body: some View {
         NavigationView {
@@ -166,7 +167,9 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "plus.circle.fill",
                                 title: "Add Income",
-                                action: { /* Add income */ }
+                                action: { 
+                                    showAddIncomeView = true
+                                }
                             )
                             
                             QuickActionButton(
@@ -194,6 +197,9 @@ struct DashboardView: View {
             if let currentUser = authManager.currentUser {
                 dependentManager.loadDependents(for: currentUser.id)
             }
+        }
+        .sheet(isPresented: $showAddIncomeView) {
+            IncomeCategoriesView()
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import SwiftUI
 
 // MARK: - Income Category Model
 struct IncomeCategory: Identifiable, Codable {
@@ -14,6 +15,11 @@ struct IncomeCategory: Identifiable, Codable {
     let name: String
     let icon: String
     let color: String // Store as hex string for Core Data compatibility
+    
+    // Add this computed property for SwiftUI Color
+    var swiftUIColor: Color {
+        return Color(hex: color)
+    }
     
     static let defaultCategories: [IncomeCategory] = [
         IncomeCategory(id: "salary", name: "Salary", icon: "dollarsign.circle.fill", color: "#4CAF50"),

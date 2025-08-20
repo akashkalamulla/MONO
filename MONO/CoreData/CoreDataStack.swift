@@ -125,4 +125,57 @@ class CoreDataStack: ObservableObject {
             return false
         }
     }
+    
+    // MARK: - Income Management
+    
+    func createIncome(
+        amount: Double,
+        category: IncomeCategory,
+        description: String?,
+        date: Date,
+        isRecurring: Bool,
+        recurrenceFrequency: RecurrenceFrequency?,
+        user: UserEntity
+    ) -> IncomeEntity {
+        let income = IncomeEntity(context: context)
+        income.id = UUID()
+        income.amount = amount
+        income.categoryId = category.id
+        income.categoryName = category.name
+        income.categoryIcon = category.icon
+        income.categoryColor = category.color
+        income.incomeDescription = description
+        income.date = date
+        income.isRecurring = isRecurring
+        income.recurrenceFrequency = recurrenceFrequency?.rawValue
+        income.createdAt = Date()
+        income.updatedAt = Date()
+        income.user = user
+        
+        save()
+        return income
+    }
+    
+    func fetchIncomes(for user: UserEntity) -> [IncomeEntity] {
+        let request: NSFetchRequest<IncomeEntity> = IncomeEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "user == %@", user)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \IncomeEntity.date, ascending: false)]
+        
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("Error fetching incomes: \(error)")
+            return []
+        }
+    }
+    
+    func deleteIncome(_ income: IncomeEntity) {
+        context.delete(income)
+        save()
+    }
+    
+    func updateIncome(_ income: IncomeEntity) {
+        income.updatedAt = Date()
+        save()
+    }
 }

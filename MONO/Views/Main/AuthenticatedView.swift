@@ -51,6 +51,7 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
+    @State private var showIncomeView = false
     
     var body: some View {
         NavigationView {
@@ -166,7 +167,7 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "plus.circle.fill",
                                 title: "Add Income",
-                                action: { /* Add income functionality */ }
+                                action: { showIncomeView = true }
                             )
                             
                             QuickActionButton(

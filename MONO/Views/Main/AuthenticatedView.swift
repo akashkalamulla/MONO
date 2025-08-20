@@ -51,7 +51,6 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
-    @State private var showAddIncomeView = false
     
     var body: some View {
         NavigationView {
@@ -95,10 +94,10 @@ struct DashboardView: View {
                         
                         HStack(spacing: 20) {
                             VStack {
-                                Text("Income")
+                                Text("Savings")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white.opacity(0.7))
-                                Text("$3,250.00")
+                                Text("$2,847.50")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -167,9 +166,7 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "plus.circle.fill",
                                 title: "Add Income",
-                                action: { 
-                                    showAddIncomeView = true
-                                }
+                                action: { /* Add income functionality */ }
                             )
                             
                             QuickActionButton(
@@ -197,9 +194,6 @@ struct DashboardView: View {
             if let currentUser = authManager.currentUser {
                 dependentManager.loadDependents(for: currentUser.id)
             }
-        }
-        .sheet(isPresented: $showAddIncomeView) {
-            IncomeCategoriesView()
         }
     }
 }
@@ -245,7 +239,7 @@ struct TransactionsView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.monoPrimary)
                 
-                Text("Track your income and expenses")
+                Text("Track your expenses and budget")
                     .font(.system(size: 16))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

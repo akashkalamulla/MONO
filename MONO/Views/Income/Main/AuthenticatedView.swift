@@ -200,29 +200,11 @@ struct DashboardView: View {
         .sheet(isPresented: $showIncomeView) {
             NavigationView {
                 SimpleIncomeEntry()
-                    .navigationTitle("Add Income")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") {
-                                showIncomeView = false
-                            }
-                        }
-                    }
             }
         }
         .sheet(isPresented: $showExpenseView) {
             NavigationView {
                 SimpleExpenseEntry()
-                    .navigationTitle("Add Expense")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") {
-                                showExpenseView = false
-                            }
-                        }
-                    }
             }
         }
     }

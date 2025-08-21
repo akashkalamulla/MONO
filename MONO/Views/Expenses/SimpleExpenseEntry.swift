@@ -28,8 +28,7 @@ struct SimpleExpenseEntry: View {
     let reminderFrequencies = ["Once", "Monthly", "Yearly"]
     
     var body: some View {
-        NavigationView {
-            ScrollView {
+        ScrollView {
             VStack(spacing: 24) {
                 // Amount Input
                 VStack(alignment: .leading, spacing: 8) {
@@ -217,7 +216,6 @@ struct SimpleExpenseEntry: View {
         } message: {
             Text(alertMessage)
         }
-    }
     }
     
     private func saveExpense() {

@@ -22,12 +22,11 @@ struct SimpleIncomeEntry: View {
     let frequencies = ["Weekly", "Bi-weekly", "Monthly", "Yearly"]
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                // Amount Input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Amount")
-                        .font(.headline)
+        VStack(spacing: 24) {
+            // Amount Input
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Amount")
+                    .font(.headline)
                     
                     HStack {
                         Text("Rs.")
@@ -147,7 +146,6 @@ struct SimpleIncomeEntry: View {
             } message: {
                 Text(alertMessage)
             }
-        }
     }
     
     private func saveIncome() {

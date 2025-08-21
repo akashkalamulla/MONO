@@ -7,14 +7,21 @@
 
 import SwiftUI
 import Charts
+import CoreData
 
 struct StatisticsView: View {
-    @State private var selectedPeriod = "Day"
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @State private var selectedPeriod = "Month"
     @State private var selectedType = "Expense"
     @State private var chartData: [ChartDataPoint] = []
     @State private var topSpending: [TopSpendingItem] = []
-    @State private var totalAmount: Double = 1230
+    @State private var totalAmount: Double = 0
+    @State private var currentUser: NSManagedObject?
     
+    @State private var incomes: [NSManagedObject] = []
+    @State private var expenses: [NSManagedObject] = []
+
     let periods = ["Day", "Week", "Month", "Year"]
     let types = ["Income", "Expense"]
     
@@ -34,7 +41,207 @@ struct StatisticsView: View {
             .background(Color.gray.opacity(0.05))
         }
         .onAppear {
+            loadCurrentUser()
             loadInitialData()
+        }
+        .onChange(of: selectedPeriod) { 
+            loadRealData()
+        }
+        .onChange(of: selectedType) { 
+            loadRealData()
+        }
+    }
+    
+    private func loadCurrentUser() {
+        // Try to get current user from Core Data
+        let request: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "UserEntity")
+        request.predicate = NSPredicate(format: "isLoggedIn == %@", NSNumber(value: true))
+        request.fetchLimit = 1
+        
+        do {
+            let users = try viewContext.fetch(request)
+            currentUser = users.first
+        } catch {
+            print("Error fetching current user: \(error)")
+            currentUser = nil
+        }
+    }
+    
+    private func loadRealData() {
+        guard let user = currentUser else {
+            updateChartData() // Fallback to sample data
+            return
+        }
+        
+        let (startDate, endDate) = getDateRange(for: selectedPeriod)
+        
+        // Fetch incomes
+        let incomeRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "IncomeEntity")
+        incomeRequest.predicate = NSPredicate(format: "user == %@ AND date >= %@ AND date <= %@", user, startDate as NSDate, endDate as NSDate)
+        incomeRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        // Fetch expenses  
+        let expenseRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "ExpenseEntity")
+        expenseRequest.predicate = NSPredicate(format: "user == %@ AND date >= %@ AND date <= %@", user, startDate as NSDate, endDate as NSDate)
+        expenseRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        do {
+            let fetchedIncomes = try viewContext.fetch(incomeRequest)
+            let fetchedExpenses = try viewContext.fetch(expenseRequest)
+            
+            if selectedType == "Income" {
+                generateChartDataFromIncomes(fetchedIncomes)
+                generateTopSpendingFromIncomes(fetchedIncomes)
+            } else {
+                generateChartDataFromExpenses(fetchedExpenses)
+                generateTopSpendingFromExpenses(fetchedExpenses)
+            }
+        } catch {
+            print("Error fetching real data: \(error)")
+            updateChartData() // Fallback to sample data
+        }
+    }
+    
+    private func getDateRange(for period: String) -> (Date, Date) {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        switch period {
+        case "Day":
+            let startOfDay = calendar.startOfDay(for: now)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+            return (startOfDay, endOfDay)
+            
+        case "Week":
+            let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
+            let endOfWeek = calendar.date(byAdding: .weekOfYear, value: 1, to: startOfWeek)!
+            return (startOfWeek, endOfWeek)
+            
+        case "Month":
+            let startOfMonth = calendar.dateInterval(of: .month, for: now)?.start ?? now
+            let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+            return (startOfMonth, endOfMonth)
+            
+        case "Year":
+            let startOfYear = calendar.dateInterval(of: .year, for: now)?.start ?? now
+            let endOfYear = calendar.date(byAdding: .year, value: 1, to: startOfYear)!
+            return (startOfYear, endOfYear)
+            
+        default:
+            return getDateRange(for: "Month")
+        }
+    }
+    
+    private func generateChartDataFromIncomes(_ incomes: [NSManagedObject]) {
+        chartData = incomes.compactMap { income in
+            guard let date = income.value(forKey: "date") as? Date,
+                  let amount = income.value(forKey: "amount") as? Double else {
+                return nil
+            }
+            return ChartDataPoint(date: date, amount: amount)
+        }
+        
+        if chartData.isEmpty {
+            chartData = generateSampleData(for: selectedPeriod, type: selectedType)
+        }
+        
+        totalAmount = chartData.reduce(0) { $0 + $1.amount }
+    }
+    
+    private func generateChartDataFromExpenses(_ expenses: [NSManagedObject]) {
+        chartData = expenses.compactMap { expense in
+            guard let date = expense.value(forKey: "date") as? Date,
+                  let amount = expense.value(forKey: "amount") as? Double else {
+                return nil
+            }
+            return ChartDataPoint(date: date, amount: amount)
+        }
+        
+        if chartData.isEmpty {
+            chartData = generateSampleData(for: selectedPeriod, type: selectedType)
+        }
+        
+        totalAmount = chartData.reduce(0) { $0 + $1.amount }
+    }
+    
+    private func generateTopSpendingFromIncomes(_ incomes: [NSManagedObject]) {
+        topSpending = incomes.compactMap { income in
+            guard let amount = income.value(forKey: "amount") as? Double,
+                  let date = income.value(forKey: "date") as? Date,
+                  let categoryName = income.value(forKey: "categoryName") as? String else {
+                return nil
+            }
+            
+            let categoryIcon = income.value(forKey: "categoryIcon") as? String ?? "dollarsign.circle.fill"
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            
+            return TopSpendingItem(
+                id: UUID(),
+                name: categoryName,
+                date: formatter.string(from: date),
+                amount: amount,
+                icon: categoryIcon,
+                color: .green,
+                isIncome: true
+            )
+        }.sorted { $0.amount > $1.amount }
+        
+        if topSpending.isEmpty {
+            topSpending = generateTopSpending(for: selectedType)
+        }
+    }
+    
+    private func generateTopSpendingFromExpenses(_ expenses: [NSManagedObject]) {
+        topSpending = expenses.compactMap { expense in
+            guard let amount = expense.value(forKey: "amount") as? Double,
+                  let date = expense.value(forKey: "date") as? Date,
+                  let category = expense.value(forKey: "category") as? String else {
+                return nil
+            }
+            
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            
+            // Map expense category to icon and color
+            let (icon, color) = getExpenseCategoryIconAndColor(for: category)
+            
+            return TopSpendingItem(
+                id: UUID(),
+                name: category,
+                date: formatter.string(from: date),
+                amount: amount,
+                icon: icon,
+                color: color,
+                isIncome: false
+            )
+        }.sorted { $0.amount > $1.amount }
+        
+        if topSpending.isEmpty {
+            topSpending = generateTopSpending(for: selectedType)
+        }
+    }
+    
+    private func getExpenseCategoryIconAndColor(for category: String) -> (String, Color) {
+        switch category.lowercased() {
+        case "food & dining", "food":
+            return ("fork.knife", .orange)
+        case "transportation", "transport":
+            return ("car.fill", .blue)
+        case "housing":
+            return ("house.fill", .green)
+        case "utilities":
+            return ("bolt.fill", .yellow)
+        case "shopping":
+            return ("bag.fill", .purple)
+        case "healthcare":
+            return ("cross.fill", .red)
+        case "entertainment":
+            return ("tv.fill", .pink)
+        case "education":
+            return ("book.fill", .indigo)
+        default:
+            return ("ellipsis.circle.fill", .gray)
         }
     }
     
@@ -204,14 +411,13 @@ struct StatisticsView: View {
     }
     
     private func updateChartData() {
-        // Generate sample data based on selected period and type
         chartData = generateSampleData(for: selectedPeriod, type: selectedType)
         topSpending = generateTopSpending(for: selectedType)
-        totalAmount = chartData.max(by: { $0.amount < $1.amount })?.amount ?? 0
+        totalAmount = chartData.max(by: { $0.amount < $1.amount })?.amount ?? 1230
     }
     
     private func loadInitialData() {
-        updateChartData()
+        loadRealData()
     }
     
     private func getMonthLabels() -> [String] {
@@ -400,6 +606,8 @@ struct TopSpendingRow: View {
     }
 }
 
-#Preview {
-    StatisticsView()
+struct StatisticsView_Previews: PreviewProvider {
+    static var previews: some View {
+        StatisticsView()
+    }
 }

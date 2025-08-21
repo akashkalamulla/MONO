@@ -19,22 +19,22 @@ struct AuthenticatedView: View {
                     Text("Home")
                 }
             
+            IncomeListView()
+                .tabItem {
+                    Image(systemName: "plus.circle.fill")
+                    Text("Income")
+                }
+            
+            ExpenseListView()
+                .tabItem {
+                    Image(systemName: "minus.circle.fill")
+                    Text("Expenses")
+                }
+            
             DependentsView(dependentManager: dependentManager, authManager: authManager)
                 .tabItem {
                     Image(systemName: "person.2.fill")
                     Text("Dependents")
-                }
-            
-            TransactionsView()
-                .tabItem {
-                    Image(systemName: "list.bullet")
-                    Text("Transactions")
-                }
-            
-            BudgetView()
-                .tabItem {
-                    Image(systemName: "chart.pie.fill")
-                    Text("Budget")
                 }
             
             ProfileView(authManager: authManager)
@@ -52,6 +52,7 @@ struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
     @State private var showIncomeView = false
+    @State private var showExpenseView = false
     
     var body: some View {
         NavigationView {
@@ -173,7 +174,7 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "minus.circle.fill",
                                 title: "Add Expense",
-                                action: { /* Add expense */ }
+                                action: { showExpenseView = true }
                             )
                             
                             QuickActionButton(
@@ -205,6 +206,20 @@ struct DashboardView: View {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Cancel") {
                                 showIncomeView = false
+                            }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showExpenseView) {
+            NavigationView {
+                SimpleExpenseEntry()
+                    .navigationTitle("Add Expense")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showExpenseView = false
                             }
                         }
                     }

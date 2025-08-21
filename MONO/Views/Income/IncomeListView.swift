@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct IncomeListView: View {
     @State private var incomes: [IncomeEntity] = []

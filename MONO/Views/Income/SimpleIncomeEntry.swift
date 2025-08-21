@@ -9,12 +9,15 @@ import SwiftUI
 
 struct SimpleIncomeEntry: View {
     @Environment(\.presentationMode) var presentationMode
+    @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var amount: String = ""
     @State private var description: String = ""
     @State private var selectedCategory = "Salary"
     @State private var selectedDate = Date()
     @State private var isRecurring = false
     @State private var selectedFrequency = "Monthly"
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
     
     let categories = ["Salary", "Freelance", "Business", "Investment", "Rental", "Other"]
     let frequencies = ["Weekly", "Bi-weekly", "Monthly", "Yearly"]
@@ -129,17 +132,71 @@ struct SimpleIncomeEntry: View {
             .disabled(amount.isEmpty)
         }
         .padding()
+        .alert("Income Saved", isPresented: $showingAlert) {
+            Button("OK") {
+                presentationMode.wrappedValue.dismiss()
+            }
+        } message: {
+            Text(alertMessage)
+        }
     }
     
     private func saveIncome() {
-        // Here you would save to Core Data
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        // Validate amount
+        guard let amountValue = Double(amount), amountValue > 0 else {
+            alertMessage = "Please enter a valid amount"
+            showingAlert = true
+            return
+        }
         
-        let recurringInfo = isRecurring ? " - Recurring: \(selectedFrequency)" : " - One-time"
-        print("Saving income: Rs.\(amount) - \(selectedCategory) - \(formatter.string(from: selectedDate))\(recurringInfo) - \(description)")
+        // Get current user
+        guard let currentUser = coreDataStack.fetchCurrentUser() else {
+            alertMessage = "Error: No user logged in"
+            showingAlert = true
+            return
+        }
         
-        presentationMode.wrappedValue.dismiss()
+        // Find the selected category
+        let incomeCategory = IncomeCategory.defaultCategories.first { $0.name == selectedCategory } ?? IncomeCategory.defaultCategories[0]
+        
+        // Convert frequency string to enum
+        let frequency: RecurrenceFrequency? = isRecurring ? convertStringToFrequency(selectedFrequency) : nil
+        
+        // Save to Core Data
+        do {
+            let _ = coreDataStack.createIncome(
+                amount: amountValue,
+                category: incomeCategory,
+                description: description.isEmpty ? nil : description,
+                date: selectedDate,
+                isRecurring: isRecurring,
+                recurrenceFrequency: frequency,
+                user: currentUser
+            )
+            
+            let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
+            alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) saved successfully\(recurringInfo)!"
+            showingAlert = true
+            
+        } catch {
+            alertMessage = "Error saving income: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    
+    private func convertStringToFrequency(_ frequency: String) -> RecurrenceFrequency {
+        switch frequency {
+        case "Weekly":
+            return .weekly
+        case "Bi-weekly":
+            return .biweekly
+        case "Monthly":
+            return .monthly
+        case "Yearly":
+            return .yearly
+        default:
+            return .monthly
+        }
     }
 }
 

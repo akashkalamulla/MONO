@@ -27,7 +27,7 @@ struct SimpleIncomeEntry: View {
                     .font(.headline)
                 
                 HStack {
-                    Text("$")
+                    Text("Rs.")
                         .font(.title2)
                         .foregroundColor(.gray)
                     
@@ -137,7 +137,7 @@ struct SimpleIncomeEntry: View {
         formatter.dateStyle = .medium
         
         let recurringInfo = isRecurring ? " - Recurring: \(selectedFrequency)" : " - One-time"
-        print("Saving income: $\(amount) - \(selectedCategory) - \(formatter.string(from: selectedDate))\(recurringInfo) - \(description)")
+        print("Saving income: Rs.\(amount) - \(selectedCategory) - \(formatter.string(from: selectedDate))\(recurringInfo) - \(description)")
         
         presentationMode.wrappedValue.dismiss()
     }

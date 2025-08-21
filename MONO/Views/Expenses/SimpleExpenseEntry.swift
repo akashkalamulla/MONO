@@ -28,7 +28,8 @@ struct SimpleExpenseEntry: View {
     let reminderFrequencies = ["Once", "Monthly", "Yearly"]
     
     var body: some View {
-        ScrollView {
+        NavigationView {
+            ScrollView {
             VStack(spacing: 24) {
                 // Amount Input
                 VStack(alignment: .leading, spacing: 8) {
@@ -201,6 +202,14 @@ struct SimpleExpenseEntry: View {
             }
             .padding()
         }
+        .navigationTitle("Add Expense")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
         .alert("Expense Saved", isPresented: $showingAlert) {
             Button("OK") {
                 presentationMode.wrappedValue.dismiss()
@@ -208,6 +217,7 @@ struct SimpleExpenseEntry: View {
         } message: {
             Text(alertMessage)
         }
+    }
     }
     
     private func saveExpense() {
@@ -253,6 +263,8 @@ struct SimpleExpenseEntry: View {
     }
 }
 
-#Preview {
-    SimpleExpenseEntry()
+struct SimpleExpenseEntry_Previews: PreviewProvider {
+    static var previews: some View {
+        SimpleExpenseEntry()
+    }
 }

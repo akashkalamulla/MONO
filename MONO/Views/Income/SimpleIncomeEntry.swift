@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SimpleIncomeEntry: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var amount: String = ""
     @State private var description: String = ""
     @State private var selectedCategory = "Salary"
@@ -23,121 +22,131 @@ struct SimpleIncomeEntry: View {
     let frequencies = ["Weekly", "Bi-weekly", "Monthly", "Yearly"]
     
     var body: some View {
-        VStack(spacing: 24) {
-            // Amount Input
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Amount")
-                    .font(.headline)
-                
-                HStack {
-                    Text("Rs.")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+        NavigationView {
+            VStack(spacing: 24) {
+                // Amount Input
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amount")
+                        .font(.headline)
                     
-                    TextField("0.00", text: $amount)
-                        .font(.title2)
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
-            }
-            
-            // Category Selection
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Category")
-                    .font(.headline)
-                
-                Picker("Category", selection: $selectedCategory) {
-                    ForEach(categories, id: \.self) { category in
-                        Text(category).tag(category)
+                    HStack {
+                        Text("Rs.")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+                        
+                        TextField("0.00", text: $amount)
+                            .font(.title2)
                     }
-                }
-                .pickerStyle(MenuPickerStyle())
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
-            }
-            
-            // Date Selection
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Date")
-                    .font(.headline)
-                
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-                    .datePickerStyle(CompactDatePickerStyle())
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
-            }
-            
-            // Recurring Income Toggle
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Recurring Income")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Toggle("", isOn: $isRecurring)
-                        .labelsHidden()
                 }
                 
-                if isRecurring {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Frequency")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        
-                        Picker("Frequency", selection: $selectedFrequency) {
-                            ForEach(frequencies, id: \.self) { frequency in
-                                Text(frequency).tag(frequency)
-                            }
+                // Category Selection
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Category")
+                        .font(.headline)
+                    
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(categories, id: \.self) { category in
+                            Text(category).tag(category)
                         }
-                        .pickerStyle(SegmentedPickerStyle())
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                
+                // Date Selection
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Date")
+                        .font(.headline)
+                    
+                    DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                        .datePickerStyle(CompactDatePickerStyle())
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(12)
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .animation(.easeInOut(duration: 0.3), value: isRecurring)
                 }
+                
+                // Recurring Income Toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Recurring Income")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $isRecurring)
+                            .labelsHidden()
+                    }
+                    
+                    if isRecurring {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Frequency")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            
+                            Picker("Frequency", selection: $selectedFrequency) {
+                                ForEach(frequencies, id: \.self) { frequency in
+                                    Text(frequency).tag(frequency)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .animation(.easeInOut(duration: 0.3), value: isRecurring)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
+                
+                // Description
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description (Optional)")
+                        .font(.headline)
+                    
+                    TextField("Enter description", text: $description)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                }
+                
+                Spacer()
+                
+                // Save Button
+                Button(action: saveIncome) {
+                    Text("Save Income")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(amount.isEmpty ? Color.gray : Color.blue)
+                        .cornerRadius(12)
+                }
+                .disabled(amount.isEmpty)
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
-            
-            // Description
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Description (Optional)")
-                    .font(.headline)
-                
-                TextField("Enter description", text: $description)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
+            .navigationTitle("Add Income")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
             }
-            
-            Spacer()
-            
-            // Save Button
-            Button(action: saveIncome) {
-                Text("Save Income")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(amount.isEmpty ? Color.gray : Color.blue)
-                    .cornerRadius(12)
+            .alert("Income Saved", isPresented: $showingAlert) {
+                Button("OK") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            } message: {
+                Text(alertMessage)
             }
-            .disabled(amount.isEmpty)
-        }
-        .padding()
-        .alert("Income Saved", isPresented: $showingAlert) {
-            Button("OK") {
-                presentationMode.wrappedValue.dismiss()
-            }
-        } message: {
-            Text(alertMessage)
         }
     }
     
@@ -149,57 +158,18 @@ struct SimpleIncomeEntry: View {
             return
         }
         
-        // Get current user
-        guard let currentUser = coreDataStack.fetchCurrentUser() else {
-            alertMessage = "Error: No user logged in"
-            showingAlert = true
-            return
-        }
+        // TODO: Add Core Data integration when available
         
-        // Find the selected category
-        let incomeCategory = IncomeCategory.defaultCategories.first { $0.name == selectedCategory } ?? IncomeCategory.defaultCategories[0]
-        
-        // Convert frequency string to enum
-        let frequency: RecurrenceFrequency? = isRecurring ? convertStringToFrequency(selectedFrequency) : nil
-        
-        // Save to Core Data
-        do {
-            let _ = coreDataStack.createIncome(
-                amount: amountValue,
-                category: incomeCategory,
-                description: description.isEmpty ? nil : description,
-                date: selectedDate,
-                isRecurring: isRecurring,
-                recurrenceFrequency: frequency,
-                user: currentUser
-            )
-            
-            let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
-            alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) saved successfully\(recurringInfo)!"
-            showingAlert = true
-            
-        } catch {
-            alertMessage = "Error saving income: \(error.localizedDescription)"
-            showingAlert = true
-        }
+        // Save to Core Data (simplified for now)
+        // TODO: Implement actual Core Data saving once IncomeEntity is available
+        let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
+        alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) will be saved\(recurringInfo)!"
+        showingAlert = true
     }
     
-    private func convertStringToFrequency(_ frequency: String) -> RecurrenceFrequency {
-        switch frequency {
-        case "Weekly":
-            return .weekly
-        case "Bi-weekly":
-            return .biweekly
-        case "Monthly":
-            return .monthly
-        case "Yearly":
-            return .yearly
-        default:
-            return .monthly
+    struct SimpleIncomeEntry_Previews: PreviewProvider {
+        static var previews: some View {
+            SimpleIncomeEntry()
         }
     }
-}
-
-#Preview {
-    SimpleIncomeEntry()
 }

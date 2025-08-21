@@ -31,10 +31,10 @@ struct AuthenticatedView: View {
                     Text("Expenses")
                 }
             
-            DependentsView(dependentManager: dependentManager, authManager: authManager)
+            StatisticsView()
                 .tabItem {
-                    Image(systemName: "person.2.fill")
-                    Text("Dependents")
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Text("Statistics")
                 }
             
             ProfileView(authManager: authManager)

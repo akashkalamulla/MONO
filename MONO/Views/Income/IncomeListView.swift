@@ -31,7 +31,7 @@ struct IncomeListView: View {
                 }
             }
             .sheet(isPresented: $showingAddIncome) {
-                IncomeCategoriesView()
+                SimpleIncomeEntry()
             }
             .onAppear {
                 loadIncomes()

@@ -196,6 +196,20 @@ struct DashboardView: View {
                 dependentManager.loadDependents(for: currentUser.id)
             }
         }
+        .sheet(isPresented: $showIncomeView) {
+            NavigationView {
+                SimpleIncomeEntry()
+                    .navigationTitle("Add Income")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showIncomeView = false
+                            }
+                        }
+                    }
+            }
+        }
     }
 }
 
@@ -417,6 +431,8 @@ struct DependentSummaryCard: View {
         .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
     }
 }
+
+
 
 #Preview {
     let authManager = AuthenticationManager()

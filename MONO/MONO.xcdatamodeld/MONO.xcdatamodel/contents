@@ -6,18 +6,18 @@
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="expenseDescription" optional="YES" attributeType="String"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="isPaymentReminder" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isRecurring" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isReminderActive" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isPaymentReminder" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isRecurring" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isReminderActive" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastReminderSent" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="recurringFrequency" optional="YES" attributeType="String"/>
         <attribute name="reminderDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="reminderDayOfMonth" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="reminderFrequency" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity"/>
+        <attribute name="userID" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="expenses" inverseEntity="UserEntity"/>
     </entity>
     <entity name="IncomeEntity" representedClassName="IncomeEntity" syncable="YES" codeGenerationType="class">
         <attribute name="amount" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -42,7 +42,7 @@
         <attribute name="isLoggedIn" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="lastName" optional="YES" attributeType="String"/>
         <attribute name="phoneNumber" optional="YES" attributeType="String"/>
-        <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseEntity"/>
+        <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExpenseEntity" inverseName="user" inverseEntity="ExpenseEntity"/>
         <relationship name="incomes" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="IncomeEntity" inverseName="user" inverseEntity="IncomeEntity"/>
     </entity>
 </model>

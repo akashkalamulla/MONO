@@ -293,14 +293,37 @@ struct ProfileView: View {
             VStack(spacing: 30) {
                 // Profile Header
                 VStack(spacing: 16) {
-                    Circle()
-                        .fill(Color.monoPrimary.opacity(0.2))
-                        .frame(width: 100, height: 100)
-                        .overlay(
-                            Text(authManager.currentUser?.firstName.prefix(1) ?? "U")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.monoPrimary)
-                        )
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.monoPrimary.opacity(0.8),
+                                        Color.monoPrimary.opacity(0.6)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+                            .shadow(color: Color.monoPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
+                        
+                        if let imageData = authManager.currentUser?.profileImageData,
+                           let uiImage = UIImage(data: imageData) {
+                            // Display user's profile image
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                                .shadow(color: Color.monoPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
+                        } else {
+                            // Default static profile icon
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 40, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                    }
                     
                     VStack(spacing: 4) {
                         Text(authManager.currentUser?.fullName ?? "Unknown User")

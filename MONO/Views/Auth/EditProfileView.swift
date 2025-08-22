@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct EditProfileView: View {
     @ObservedObject var authManager: AuthenticationManager
@@ -15,12 +16,19 @@ struct EditProfileView: View {
     @State private var lastName: String
     @State private var phoneNumber: String
     @State private var isLoading = false
+    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var selectedImageData: Data? = nil
+    @State private var showImagePicker = false
     
     init(authManager: AuthenticationManager) {
         self.authManager = authManager
         self._firstName = State(initialValue: authManager.currentUser?.firstName ?? "")
         self._lastName = State(initialValue: authManager.currentUser?.lastName ?? "")
         self._phoneNumber = State(initialValue: authManager.currentUser?.phoneNumber ?? "")
+        // Load existing profile image if available
+        if let imageData = authManager.currentUser?.profileImageData {
+            self._selectedImageData = State(initialValue: imageData)
+        }
     }
     
     var body: some View {
@@ -29,21 +37,69 @@ struct EditProfileView: View {
                 VStack(spacing: 25) {
                     // Profile Avatar
                     VStack(spacing: 16) {
-                        Circle()
-                            .fill(Color.monoPrimary.opacity(0.2))
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                Text(firstName.prefix(1).uppercased())
-                                    .font(.system(size: 40, weight: .bold))
-                                    .foregroundColor(.monoPrimary)
-                            )
-                        
                         Button(action: {
-                            // Handle photo change
+                            showImagePicker = true
                         }) {
-                            Text("Change Photo")
-                                .font(.system(size: 14, weight: .medium))
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color.monoPrimary.opacity(0.8),
+                                                Color.monoPrimary.opacity(0.6)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 120, height: 120)
+                                    .shadow(color: Color.monoPrimary.opacity(0.3), radius: 10, x: 0, y: 5)
+                                
+                                if let imageData = selectedImageData,
+                                   let uiImage = UIImage(data: imageData) {
+                                    // Display selected/saved image
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 120, height: 120)
+                                        .clipShape(Circle())
+                                        .shadow(color: Color.monoPrimary.opacity(0.3), radius: 10, x: 0, y: 5)
+                                } else {
+                                    // Default static profile icon
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 50, weight: .medium))
+                                        .foregroundColor(.white)
+                                }
+                                
+                                // Camera icon overlay
+                                VStack {
+                                    Spacer()
+                                    HStack {
+                                        Spacer()
+                                        Circle()
+                                            .fill(Color.monoPrimary)
+                                            .frame(width: 32, height: 32)
+                                            .overlay(
+                                                Image(systemName: "camera.fill")
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(.white)
+                                            )
+                                            .offset(x: -8, y: -8)
+                                    }
+                                }
+                                .frame(width: 120, height: 120)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        VStack(spacing: 8) {
+                            Text("Profile Picture")
+                                .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.monoPrimary)
+                            
+                            Text("Tap to change photo")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.gray)
                         }
                     }
                     .padding(.top, 20)
@@ -141,12 +197,21 @@ struct EditProfileView: View {
                 }
             }
         }
+        .photosPicker(isPresented: $showImagePicker, selection: $selectedItem, matching: .images)
+        .onChange(of: selectedItem) { newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    selectedImageData = data
+                }
+            }
+        }
     }
     
     private var hasChanges: Bool {
         firstName != (authManager.currentUser?.firstName ?? "") ||
         lastName != (authManager.currentUser?.lastName ?? "") ||
-        phoneNumber != (authManager.currentUser?.phoneNumber ?? "")
+        phoneNumber != (authManager.currentUser?.phoneNumber ?? "") ||
+        selectedImageData != authManager.currentUser?.profileImageData
     }
     
     private func saveProfile() {
@@ -157,7 +222,8 @@ struct EditProfileView: View {
             authManager.updateUserProfile(
                 firstName: firstName,
                 lastName: lastName,
-                phoneNumber: phoneNumber.isEmpty ? nil : phoneNumber
+                phoneNumber: phoneNumber.isEmpty ? nil : phoneNumber,
+                profileImageData: selectedImageData
             )
             
             isLoading = false

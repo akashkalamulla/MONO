@@ -15,6 +15,7 @@ struct User: Identifiable {
     var lastName: String
     var email: String
     var phoneNumber: String?
+    var profileImageData: Data?
     var dateCreated: Date
     var isLoggedIn: Bool
     
@@ -28,6 +29,12 @@ struct User: Identifiable {
         self.lastName = userEntity.lastName ?? ""
         self.email = userEntity.email ?? ""
         self.phoneNumber = userEntity.phoneNumber
+        // Load profile image from UserDefaults as a temporary solution
+        if let email = userEntity.email {
+            self.profileImageData = UserDefaults.standard.data(forKey: "profileImage_\(email)")
+        } else {
+            self.profileImageData = nil
+        }
         self.dateCreated = userEntity.dateCreated ?? Date()
         self.isLoggedIn = userEntity.isLoggedIn
     }
@@ -38,6 +45,7 @@ struct User: Identifiable {
         self.lastName = lastName
         self.email = email
         self.phoneNumber = phoneNumber
+        self.profileImageData = nil
         self.dateCreated = Date()
         self.isLoggedIn = false
     }
@@ -197,7 +205,7 @@ class AuthenticationManager: ObservableObject {
     
     // MARK: - User Profile Updates
     
-    func updateUserProfile(firstName: String, lastName: String, phoneNumber: String?) {
+    func updateUserProfile(firstName: String, lastName: String, phoneNumber: String?, profileImageData: Data? = nil) {
         guard let currentUser = currentUser else { return }
         
         // Find user in Core Data and update
@@ -205,6 +213,11 @@ class AuthenticationManager: ObservableObject {
             userEntity.firstName = firstName
             userEntity.lastName = lastName
             userEntity.phoneNumber = phoneNumber
+            
+            // Save profile image to UserDefaults as temporary solution
+            if let imageData = profileImageData {
+                UserDefaults.standard.set(imageData, forKey: "profileImage_\(currentUser.email)")
+            }
             
             coreDataStack.save()
             

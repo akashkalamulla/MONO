@@ -1,0 +1,183 @@
+//
+//  BiometricAuthManager.swift
+//  MONO
+//
+//  Created by Akash01 on 2025-08-22.
+//
+
+import Foundation
+import LocalAuthentication
+import SwiftUI
+
+class BiometricAuthManager: ObservableObject {
+    static let shared = BiometricAuthManager()
+    
+    @Published var isBiometricEnabled: Bool = false
+    @Published var biometricType: LABiometryType = .none
+    @Published var isAvailable: Bool = false
+    @Published var errorMessage: String = ""
+    
+    private let context = LAContext()
+    private let userDefaults = UserDefaults.standard
+    private let biometricEnabledKey = "BiometricAuthEnabled"
+    
+    init() {
+        checkBiometricAvailability()
+        loadBiometricPreference()
+    }
+    
+    // MARK: - Biometric Availability Check
+    func checkBiometricAvailability() {
+        var error: NSError?
+        
+        // Check if biometric authentication is available
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            isAvailable = true
+            biometricType = context.biometryType
+        } else {
+            isAvailable = false
+            biometricType = .none
+            
+            if let error = error {
+                switch error.code {
+                case LAError.biometryNotAvailable.rawValue:
+                    errorMessage = "Biometric authentication is not available on this device"
+                case LAError.biometryNotEnrolled.rawValue:
+                    errorMessage = "No biometric data is enrolled. Please set up Face ID or Touch ID in Settings"
+                case LAError.biometryLockout.rawValue:
+                    errorMessage = "Biometric authentication is locked. Please use passcode to unlock"
+                default:
+                    errorMessage = "Biometric authentication is not available"
+                }
+            }
+        }
+    }
+    
+    // MARK: - Biometric Type Description
+    var biometricTypeDescription: String {
+        switch biometricType {
+        case .faceID:
+            return "Face ID"
+        case .touchID:
+            return "Touch ID"
+        case .opticID:
+            return "Optic ID"
+        case .none:
+            return "Biometric Authentication"
+        @unknown default:
+            return "Biometric Authentication"
+        }
+    }
+    
+    var biometricIcon: String {
+        switch biometricType {
+        case .faceID:
+            return "faceid"
+        case .touchID:
+            return "touchid"
+        case .opticID:
+            return "opticid"
+        case .none:
+            return "lock.fill"
+        @unknown default:
+            return "lock.fill"
+        }
+    }
+    
+    // MARK: - Enable/Disable Biometric Authentication
+    func enableBiometricAuth(completion: @escaping (Bool, String?) -> Void) {
+        guard isAvailable else {
+            completion(false, errorMessage)
+            return
+        }
+        
+        authenticateUser(reason: "Enable \(biometricTypeDescription) to securely access your account") { [weak self] success, error in
+            DispatchQueue.main.async {
+                if success {
+                    self?.isBiometricEnabled = true
+                    self?.saveBiometricPreference(enabled: true)
+                    completion(true, nil)
+                } else {
+                    completion(false, error)
+                }
+            }
+        }
+    }
+    
+    func disableBiometricAuth() {
+        isBiometricEnabled = false
+        saveBiometricPreference(enabled: false)
+    }
+    
+    // MARK: - Authentication
+    func authenticateUser(reason: String, completion: @escaping (Bool, String?) -> Void) {
+        let context = LAContext()
+        context.localizedFallbackTitle = "Use Passcode"
+        
+        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
+            DispatchQueue.main.async {
+                if success {
+                    completion(true, nil)
+                } else {
+                    if let error = error as? LAError {
+                        let errorMessage = self.getErrorMessage(for: error)
+                        completion(false, errorMessage)
+                    } else {
+                        completion(false, "Authentication failed")
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Error Handling
+    private func getErrorMessage(for error: LAError) -> String {
+        switch error.code {
+        case LAError.userCancel:
+            return "Authentication was cancelled"
+        case LAError.userFallback:
+            return "User chose to use passcode"
+        case LAError.systemCancel:
+            return "Authentication was cancelled by system"
+        case LAError.passcodeNotSet:
+            return "Passcode is not set on the device"
+        case LAError.biometryNotAvailable:
+            return "Biometric authentication is not available"
+        case LAError.biometryNotEnrolled:
+            return "Biometric authentication is not set up"
+        case LAError.biometryLockout:
+            return "Biometric authentication is locked"
+        case LAError.authenticationFailed:
+            return "Authentication failed"
+        case LAError.appCancel:
+            return "Authentication was cancelled by app"
+        case LAError.invalidContext:
+            return "Authentication context is invalid"
+        case LAError.notInteractive:
+            return "Authentication is not interactive"
+        default:
+            return "Authentication failed with unknown error"
+        }
+    }
+    
+    // MARK: - UserDefaults Management
+    private func saveBiometricPreference(enabled: Bool) {
+        userDefaults.set(enabled, forKey: biometricEnabledKey)
+    }
+    
+    private func loadBiometricPreference() {
+        isBiometricEnabled = userDefaults.bool(forKey: biometricEnabledKey)
+    }
+    
+    // MARK: - Quick Authentication Check
+    func authenticateForQuickAccess(completion: @escaping (Bool) -> Void) {
+        guard isBiometricEnabled && isAvailable else {
+            completion(false)
+            return
+        }
+        
+        authenticateUser(reason: "Authenticate to access your account") { success, _ in
+            completion(success)
+        }
+    }
+}

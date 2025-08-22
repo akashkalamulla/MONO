@@ -287,6 +287,7 @@ struct ProfileView: View {
     @ObservedObject var authManager: AuthenticationManager
     @State private var showEditProfile = false
     @State private var showDebugView = false
+    @State private var showPrivacySecurity = false
     
     var body: some View {
         NavigationView {
@@ -342,7 +343,9 @@ struct ProfileView: View {
                         showEditProfile = true
                     }
                     ProfileOption(icon: "bell.fill", title: "Notifications") { }
-                    ProfileOption(icon: "lock.fill", title: "Privacy & Security") { }
+                    ProfileOption(icon: "lock.fill", title: "Privacy & Security") {
+                        showPrivacySecurity = true
+                    }
                     ProfileOption(icon: "questionmark.circle.fill", title: "Help & Support") { }
                     
                     #if DEBUG
@@ -384,6 +387,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showDebugView) {
             CoreDataDebugView()
+        }
+        .sheet(isPresented: $showPrivacySecurity) {
+            PrivacySecurityView()
         }
     }
 }

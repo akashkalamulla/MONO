@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import LocalAuthentication
 
 // MARK: - User Data Transfer Object
 struct User: Identifiable {
@@ -59,6 +60,7 @@ class AuthenticationManager: ObservableObject {
     @Published var errorMessage: String?
     
     private let coreDataStack = CoreDataStack.shared
+    private let biometricManager = BiometricAuthManager.shared
     
     init() {
         checkForLoggedInUser()
@@ -66,9 +68,19 @@ class AuthenticationManager: ObservableObject {
     
     // Check if there's a logged-in user when the app starts
     private func checkForLoggedInUser() {
+        print("🔐 [AuthManager] Checking for logged-in user...")
+        
         if let userEntity = coreDataStack.fetchCurrentUser() {
-            self.currentUser = User(from: userEntity)
-            self.isAuthenticated = true
+            let user = User(from: userEntity)
+            self.currentUser = user
+            print("🔐 [AuthManager] Found logged-in user: \(user.email)")
+            
+            // For testing Face ID, always require re-authentication
+            // In a production app, you might want to auto-authenticate for convenience
+            self.isAuthenticated = false
+            print("🔐 [AuthManager] User found but not authenticated - will show login with Face ID option")
+        } else {
+            print("🔐 [AuthManager] No logged-in user found")
         }
     }
     
@@ -223,6 +235,62 @@ class AuthenticationManager: ObservableObject {
             
             // Update current user state
             self.currentUser = User(from: userEntity)
+        }
+    }
+    
+    // Add biometric authentication method
+    private func authenticateWithBiometrics(completion: @escaping (Bool) -> Void) {
+        biometricManager.authenticateUser(reason: "Authenticate to access your account") { success, error in
+            if let error = error {
+                print("Biometric authentication error: \(error)")
+            }
+            completion(success)
+        }
+    }
+    
+    // MARK: - Biometric Login Method
+    func loginWithBiometric() {
+        print("🔐 [AuthManager] loginWithBiometric called")
+        
+        // First try to find a currently logged in user
+        if let userEntity = coreDataStack.fetchCurrentUser() {
+            print("🔐 [AuthManager] Found currently logged in user: \(userEntity.email ?? "unknown")")
+            
+            // Update UI state
+            self.currentUser = User(from: userEntity)
+            self.isAuthenticated = true
+            self.errorMessage = nil
+            
+            print("🔐 [AuthManager] Biometric login successful")
+            return
+        }
+        
+        // If no currently logged in user, find the most recent user
+        let request: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserEntity.dateCreated, ascending: false)]
+        request.fetchLimit = 1
+        
+        do {
+            let users = try coreDataStack.context.fetch(request)
+            if let userEntity = users.first {
+                print("🔐 [AuthManager] Found most recent user for biometric login: \(userEntity.email ?? "unknown")")
+                
+                // Login the user
+                coreDataStack.loginUser(userEntity)
+                
+                // Update UI state
+                self.currentUser = User(from: userEntity)
+                self.isAuthenticated = true
+                self.errorMessage = nil
+                
+                print("🔐 [AuthManager] Biometric login successful")
+            } else {
+                print("🔐 [AuthManager] No users found for biometric login")
+                self.errorMessage = "No user account found for biometric authentication"
+            }
+        } catch {
+            print("🔐 [AuthManager] Error fetching user for biometric login: \(error)")
+            self.errorMessage = "Error accessing user account"
         }
     }
 }

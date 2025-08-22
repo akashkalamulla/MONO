@@ -1,15 +1,10 @@
-//
-//  SplashView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-15.
-//
-
 import SwiftUI
 
 struct SplashView: View {
+    @EnvironmentObject private var authManager: AuthenticationManager
     @State private var isLoading = true
-    @State private var showMainView = false
+    @State private var showGetStarted = false
+    @State private var showLogin = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -43,12 +38,24 @@ struct SplashView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     isLoading = false
-                    showMainView = true
+                    
+                    // Check if user needs to see get started or login
+                    if authManager.currentUser != nil {
+                        // User exists but not authenticated - show login
+                        showLogin = true
+                    } else {
+                        // No user - show get started
+                        showGetStarted = true
+                    }
                 }
             }
         }
-        .fullScreenCover(isPresented: $showMainView) {
+        .fullScreenCover(isPresented: $showGetStarted) {
             GetStartedView()
+        }
+        .fullScreenCover(isPresented: $showLogin) {
+            LoginView()
+                .environmentObject(authManager)
         }
     }
 }

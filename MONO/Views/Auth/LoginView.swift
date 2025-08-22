@@ -1,14 +1,8 @@
-//
-//  LoginView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-19.
-//
-
 import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthenticationManager
+    @StateObject private var biometricManager = BiometricAuthManager.shared
     @State private var email = ""
     @State private var password = ""
     @State private var showPassword = false
@@ -30,6 +24,63 @@ struct LoginView: View {
                             .foregroundColor(.gray)
                     }
                     .padding(.top, 60)
+                    
+                    // Face ID Login Section (show if Face ID is available and enabled)
+                    if biometricManager.isAvailable && biometricManager.isBiometricEnabled {
+                        VStack(spacing: 16) {
+                            Button(action: {
+                                authenticateWithFaceID()
+                            }) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: biometricManager.biometricIcon)
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.white)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Sign in with \(biometricManager.biometricTypeDescription)")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        
+                                        if biometricManager.isSimulator {
+                                            Text("(Simulator Mode)")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.white.opacity(0.8))
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [.blue, .blue.opacity(0.8)]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(16)
+                            }
+                            .padding(.horizontal, 30)
+                            
+                            // Or divider
+                            HStack {
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .foregroundColor(.gray.opacity(0.3))
+                                
+                                Text("or")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 16)
+                                
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .foregroundColor(.gray.opacity(0.3))
+                            }
+                            .padding(.horizontal, 30)
+                        }
+                    }
                     
                     // Login Form
                     VStack(spacing: 20) {
@@ -157,6 +208,24 @@ struct LoginView: View {
     
     private var isFormValid: Bool {
         !email.isEmpty && email.contains("@") && password.count >= 6
+    }
+    
+    // MARK: - Face ID Authentication
+    private func authenticateWithFaceID() {
+        print("🔐 [LoginView] Face ID button tapped")
+        
+        biometricManager.authenticateUser(reason: "Sign in to your account with \(biometricManager.biometricTypeDescription)") { success, error in
+            DispatchQueue.main.async {
+                if success {
+                    print("🔐 [LoginView] Face ID authentication successful")
+                    // Sign in with the last logged-in user
+                    authManager.loginWithBiometric()
+                } else {
+                    print("🔐 [LoginView] Face ID authentication failed: \(error ?? "Unknown error")")
+                    authManager.errorMessage = error ?? "Biometric authentication failed"
+                }
+            }
+        }
     }
 }
 

@@ -24,7 +24,15 @@ struct PrivacySecurityView: View {
                     Text("Biometric Authentication")
                 } footer: {
                     if biometricManager.isAvailable {
-                        Text("Use \(biometricManager.biometricTypeDescription) to quickly and securely access your account.")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Use \(biometricManager.biometricTypeDescription) to quickly and securely access your account.")
+                            
+                            #if targetEnvironment(simulator)
+                            Text("⚠️ Simulator Mode: Face ID simulation enabled for testing")
+                                .foregroundColor(.orange)
+                                .font(.caption)
+                            #endif
+                        }
                     } else {
                         Text(biometricManager.errorMessage)
                             .foregroundColor(.red)
@@ -94,9 +102,21 @@ struct BiometricAuthenticationRow: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(biometricManager.biometricTypeDescription)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                HStack {
+                    Text(biometricManager.biometricTypeDescription)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    #if targetEnvironment(simulator)
+                    Text("(Simulator)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(4)
+                    #endif
+                }
                 
                 Text(biometricManager.isAvailable ? "Secure and convenient access" : "Not available")
                     .font(.system(size: 14))

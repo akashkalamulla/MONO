@@ -21,6 +21,15 @@ class BiometricAuthManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let biometricEnabledKey = "BiometricAuthEnabled"
     
+    // Simulator support for testing
+    var isSimulator: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
+    
     init() {
         checkBiometricAvailability()
         loadBiometricPreference()
@@ -34,6 +43,13 @@ class BiometricAuthManager: ObservableObject {
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             isAvailable = true
             biometricType = context.biometryType
+            errorMessage = ""
+        } else if isSimulator {
+            // In simulator, even if canEvaluatePolicy fails, we can still simulate Face ID
+            print("🔐 [BiometricAuth] Simulator detected - Face ID simulation will be available")
+            isAvailable = true
+            biometricType = .faceID
+            errorMessage = ""
         } else {
             isAvailable = false
             biometricType = .none
@@ -111,11 +127,25 @@ class BiometricAuthManager: ObservableObject {
     
     // MARK: - Authentication
     func authenticateUser(reason: String, completion: @escaping (Bool, String?) -> Void) {
+        // Use the real LocalAuthentication framework even in simulator
         let context = LAContext()
         context.localizedFallbackTitle = "Use Passcode"
         
+        // Add simulator-specific logging
+        if isSimulator {
+            print("🔐 [BiometricAuth] Simulator detected - triggering Face ID authentication")
+            print("🔐 [BiometricAuth] Reason: \(reason)")
+        }
+        
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
             DispatchQueue.main.async {
+                if self.isSimulator {
+                    print("🔐 [BiometricAuth] Authentication result - Success: \(success)")
+                    if let error = error {
+                        print("🔐 [BiometricAuth] Error: \(error.localizedDescription)")
+                    }
+                }
+                
                 if success {
                     completion(true, nil)
                 } else {
@@ -142,12 +172,21 @@ class BiometricAuthManager: ObservableObject {
         case LAError.passcodeNotSet:
             return "Passcode is not set on the device"
         case LAError.biometryNotAvailable:
+            if isSimulator {
+                return "Face ID not available in simulator. Go to Device > Face ID > Enrolled in simulator menu"
+            }
             return "Biometric authentication is not available"
         case LAError.biometryNotEnrolled:
+            if isSimulator {
+                return "Face ID not enrolled in simulator. Go to Device > Face ID > Enrolled in simulator menu"
+            }
             return "Biometric authentication is not set up"
         case LAError.biometryLockout:
             return "Biometric authentication is locked"
         case LAError.authenticationFailed:
+            if isSimulator {
+                return "Face ID failed. In simulator, go to Device > Face ID > Matching Face to simulate success"
+            }
             return "Authentication failed"
         case LAError.appCancel:
             return "Authentication was cancelled by app"

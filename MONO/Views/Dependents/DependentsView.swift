@@ -136,7 +136,9 @@ struct DependentRowView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showingDetail) {
-            DependentDetailView(dependent: dependent, dependentManager: dependentManager)
+            Text("Dependent Details Coming Soon")
+                .font(.headline)
+                .padding()
         }
     }
 }

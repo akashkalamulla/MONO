@@ -52,53 +52,167 @@ struct Dependent: Identifiable, Codable {
 // MARK: - Dependent Manager
 class DependentManager: ObservableObject {
     @Published var dependents: [Dependent] = []
-    private let coreDataStack = CoreDataStack.shared
+    private let userDefaults = UserDefaults.standard
+    private let dependentsKey = "SavedDependents"
     
     init() {
         loadDependents()
     }
     
-    // MARK: - Core Data Operations (Temporary in-memory implementation)
+    // MARK: - Persistent Storage Operations
     
     func loadDependents(for userId: UUID? = nil) {
-        // Temporary: Load from in-memory storage
-        // TODO: Implement Core Data loading once entity is properly generated
-        DispatchQueue.main.async {
-            // For now, keep existing in-memory dependents or create sample data
-            print("Loading dependents for user: \(userId?.uuidString ?? "all")")
+        guard let userId = userId else {
+            // Load all dependents if no specific user ID is provided
+            loadAllDependents()
+            return
+        }
+        
+        if let data = userDefaults.data(forKey: dependentsKey),
+           let allDependents = try? JSONDecoder().decode([Dependent].self, from: data) {
+            let userDependents = allDependents.filter { $0.userId == userId }
+            
+            DispatchQueue.main.async {
+                self.dependents = userDependents
+                print("Loaded \(userDependents.count) dependents for user: \(userId)")
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.dependents = []
+                print("No dependents found for user: \(userId)")
+            }
+        }
+    }
+    
+    private func loadAllDependents() {
+        if let data = userDefaults.data(forKey: dependentsKey),
+           let allDependents = try? JSONDecoder().decode([Dependent].self, from: data) {
+            DispatchQueue.main.async {
+                self.dependents = allDependents
+                print("Loaded \(allDependents.count) total dependents")
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.dependents = []
+                print("No dependents found")
+            }
         }
     }
     
     func addDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Add to in-memory storage
-        DispatchQueue.main.async {
-            self.dependents.append(dependent)
+        do {
+            // Load existing dependents
+            var allDependents: [Dependent] = []
+            if let data = userDefaults.data(forKey: dependentsKey),
+               let existingDependents = try? JSONDecoder().decode([Dependent].self, from: data) {
+                allDependents = existingDependents
+            }
+            
+            // Add new dependent
+            allDependents.append(dependent)
+            
+            // Save updated list
+            let data = try JSONEncoder().encode(allDependents)
+            userDefaults.set(data, forKey: dependentsKey)
+            userDefaults.synchronize()
+            
+            DispatchQueue.main.async {
+                self.dependents.append(dependent)
+            }
+            
+            print("Successfully added dependent: \(dependent.fullName)")
+            return true
+        } catch {
+            print("Failed to add dependent: \(error)")
+            return false
         }
-        return true
     }
     
     func updateDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Update in-memory storage
-        DispatchQueue.main.async {
-            if let index = self.dependents.firstIndex(where: { $0.id == dependent.id }) {
-                self.dependents[index] = dependent
+        do {
+            // Load existing dependents
+            guard let data = userDefaults.data(forKey: dependentsKey),
+                  var allDependents = try? JSONDecoder().decode([Dependent].self, from: data) else {
+                return false
             }
+            
+            // Find and update the dependent
+            if let index = allDependents.firstIndex(where: { $0.id == dependent.id }) {
+                allDependents[index] = dependent
+                
+                // Save updated list
+                let updatedData = try JSONEncoder().encode(allDependents)
+                userDefaults.set(updatedData, forKey: dependentsKey)
+                userDefaults.synchronize()
+                
+                DispatchQueue.main.async {
+                    if let localIndex = self.dependents.firstIndex(where: { $0.id == dependent.id }) {
+                        self.dependents[localIndex] = dependent
+                    }
+                }
+                
+                print("Successfully updated dependent: \(dependent.fullName)")
+                return true
+            }
+            return false
+        } catch {
+            print("Failed to update dependent: \(error)")
+            return false
         }
-        return true
     }
     
     func deleteDependent(_ dependent: Dependent) -> Bool {
-        // Temporary: Delete from in-memory storage
-        DispatchQueue.main.async {
-            self.dependents.removeAll { $0.id == dependent.id }
+        do {
+            // Load existing dependents
+            guard let data = userDefaults.data(forKey: dependentsKey),
+                  var allDependents = try? JSONDecoder().decode([Dependent].self, from: data) else {
+                return false
+            }
+            
+            // Remove the dependent
+            allDependents.removeAll { $0.id == dependent.id }
+            
+            // Save updated list
+            let updatedData = try JSONEncoder().encode(allDependents)
+            userDefaults.set(updatedData, forKey: dependentsKey)
+            userDefaults.synchronize()
+            
+            DispatchQueue.main.async {
+                self.dependents.removeAll { $0.id == dependent.id }
+            }
+            
+            print("Successfully deleted dependent: \(dependent.fullName)")
+            return true
+        } catch {
+            print("Failed to delete dependent: \(error)")
+            return false
         }
-        return true
     }
     
     func toggleDependentStatus(_ dependent: Dependent) -> Bool {
         var updatedDependent = dependent
         updatedDependent.isActive.toggle()
         return updateDependent(updatedDependent)
+    }
+    
+    // MARK: - Helper Methods
+    
+    func getDependents(for userId: UUID) -> [Dependent] {
+        if let data = userDefaults.data(forKey: dependentsKey),
+           let allDependents = try? JSONDecoder().decode([Dependent].self, from: data) {
+            return allDependents.filter { $0.userId == userId }
+        }
+        return []
+    }
+    
+    func clearAllDependents() {
+        userDefaults.removeObject(forKey: dependentsKey)
+        userDefaults.synchronize()
+        
+        DispatchQueue.main.async {
+            self.dependents = []
+        }
+        print("Cleared all dependents")
     }
 }
 

@@ -5,6 +5,7 @@
 //  Created by Akash01 on 2025-08-19.
 //
 
+import Foundation
 import SwiftUI
 
 struct AuthenticatedView: View {
@@ -53,6 +54,9 @@ struct DashboardView: View {
     @ObservedObject var dependentManager: DependentManager
     @State private var showIncomeView = false
     @State private var showExpenseView = false
+    @State private var showAddDependent = false
+    @State private var selectedDependent: Dependent?
+    @State private var showDependentDetail = false
     
     var body: some View {
         NavigationView {
@@ -129,30 +133,50 @@ struct DashboardView: View {
                     // Dependents Summary (if any)
                     if !dependentManager.dependents.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Dependents")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.monoPrimary)
-                                
-                                Spacer()
-                                
-                                Text("\(dependentManager.dependents.filter { $0.isActive }.count)")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.monoPrimary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.monoPrimary.opacity(0.1))
-                                    .cornerRadius(8)
-                            }
-                            .padding(.horizontal)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(dependentManager.dependents.filter { $0.isActive }.prefix(5)) { dependent in
-                                        DependentSummaryCard(dependent: dependent)
+                            if dependentManager.dependents.filter({ $0.isActive }).isEmpty {
+                                VStack(spacing: 8) {
+                                    Text("No dependents added yet")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gray)
+                                    
+                                    Button("Add First Dependent") {
+                                        showAddDependent = true
                                     }
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.monoPrimary)
+                                }
+                                .padding()
+                            } else {
+                                HStack {
+                                    Text("Recent Dependents")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.gray)
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(dependentManager.dependents.filter { $0.isActive }.count)")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.monoPrimary)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.monoPrimary.opacity(0.1))
+                                        .cornerRadius(8)
                                 }
                                 .padding(.horizontal)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        ForEach(dependentManager.dependents.filter { $0.isActive }.prefix(5)) { dependent in
+                                            DependentSummaryCard(dependent: dependent) {
+                                                print("🔄 [DashboardView] Tapping dependent: \(dependent.firstName)")
+                                                selectedDependent = dependent
+                                                showDependentDetail = true
+                                                print("🔄 [DashboardView] showDependentDetail set to: \(showDependentDetail)")
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
                             }
                         }
                     }
@@ -180,7 +204,7 @@ struct DashboardView: View {
                             QuickActionButton(
                                 icon: "person.2.badge.plus",
                                 title: "Add Dependent",
-                                action: { /* Add dependent */ }
+                                action: { showAddDependent = true }
                             )
                         }
                         .padding(.horizontal)
@@ -197,6 +221,18 @@ struct DashboardView: View {
                 dependentManager.loadDependents(for: currentUser.id)
             }
         }
+        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
+            if isAuthenticated, let currentUser = authManager.currentUser {
+                print("🔄 [AuthenticatedView] User authenticated, loading dependents for user: \(currentUser.id)")
+                dependentManager.loadDependents(for: currentUser.id)
+            }
+        }
+        .onChange(of: authManager.currentUser?.id) { _, userId in
+            if let userId = userId {
+                print("🔄 [AuthenticatedView] Current user changed, loading dependents for user: \(userId)")
+                dependentManager.loadDependents(for: userId)
+            }
+        }
         .sheet(isPresented: $showIncomeView) {
             NavigationView {
                 SimpleIncomeEntry()
@@ -205,6 +241,34 @@ struct DashboardView: View {
         .sheet(isPresented: $showExpenseView) {
             NavigationView {
                 SimpleExpenseEntry()
+            }
+        }
+        .sheet(isPresented: $showAddDependent) {
+            AddDependentView(dependentManager: dependentManager, authManager: authManager)
+        }
+        .sheet(isPresented: $showDependentDetail) {
+            NavigationView {
+                if let selectedDependent = selectedDependent {
+                    DependentDetailView(
+                        dependent: selectedDependent,
+                        dependentManager: dependentManager
+                    )
+                } else {
+                    // Create a test dependent for debugging
+                    let testDependent = Dependent(
+                        firstName: "Test",
+                        lastName: "User",
+                        relationship: "Child",
+                        dateOfBirth: Calendar.current.date(byAdding: .year, value: -10, to: Date()) ?? Date(),
+                        phoneNumber: "123-456-7890",
+                        email: "test@example.com",
+                        userId: UUID()
+                    )
+                    DependentDetailView(
+                        dependent: testDependent,
+                        dependentManager: dependentManager
+                    )
+                }
             }
         }
     }
@@ -433,6 +497,8 @@ struct ProfileOption: View {
 // MARK: - Dependent Summary Card
 struct DependentSummaryCard: View {
     let dependent: Dependent
+    let onTap: () -> Void
+    @State private var isPressed = false
     
     var body: some View {
         VStack(spacing: 8) {
@@ -460,7 +526,16 @@ struct DependentSummaryCard: View {
         .padding(.vertical, 8)
         .background(Color.white)
         .cornerRadius(12)
-        .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
+        .shadow(color: .gray.opacity(isPressed ? 0.2 : 0.1), radius: isPressed ? 5 : 3, x: 0, y: isPressed ? 3 : 1)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .onTapGesture {
+            print("🔄 [DependentCard] Tapped dependent: \(dependent.firstName)")
+            onTap()
+        }
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 

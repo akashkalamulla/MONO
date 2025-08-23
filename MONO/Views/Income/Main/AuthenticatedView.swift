@@ -288,6 +288,7 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @State private var showDebugView = false
     @State private var showPrivacySecurity = false
+    @State private var showHelpSupport = false
     
     var body: some View {
         NavigationView {
@@ -346,7 +347,9 @@ struct ProfileView: View {
                     ProfileOption(icon: "lock.fill", title: "Privacy & Security") {
                         showPrivacySecurity = true
                     }
-                    ProfileOption(icon: "questionmark.circle.fill", title: "Help & Support") { }
+                    ProfileOption(icon: "questionmark.circle.fill", title: "Help & Support") {
+                        showHelpSupport = true
+                    }
                     
                     #if DEBUG
                     ProfileOption(icon: "hammer.fill", title: "Debug Core Data") {
@@ -390,6 +393,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showPrivacySecurity) {
             PrivacySecurityView()
+        }
+        .sheet(isPresented: $showHelpSupport) {
+            HelpSupportView()
         }
     }
 }

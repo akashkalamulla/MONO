@@ -134,7 +134,7 @@ class CoreDataStack: ObservableObject {
         description: String?,
         date: Date,
         isRecurring: Bool,
-        recurrenceFrequency: RecurrenceFrequency?,
+        recurrenceFrequency: String?,
         user: UserEntity
     ) -> IncomeEntity {
         let income = IncomeEntity(context: context)
@@ -147,7 +147,7 @@ class CoreDataStack: ObservableObject {
         income.incomeDescription = description
         income.date = date
         income.isRecurring = isRecurring
-        income.recurrenceFrequency = recurrenceFrequency?.rawValue
+        income.recurrenceFrequency = recurrenceFrequency
         income.createdAt = Date()
         income.updatedAt = Date()
         income.user = user
@@ -181,18 +181,33 @@ class CoreDataStack: ObservableObject {
     
     // MARK: - Expense Management
     
+    // Fetch expenses for a specific dependent
+    func fetchExpenses(for dependentID: UUID) -> [NSManagedObject] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "ExpenseEntity")
+        request.predicate = NSPredicate(format: "dependentID == %@", dependentID as CVarArg)
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("Error fetching expenses for dependent: \(error)")
+            return []
+        }
+    }
+    
     func createExpense(
         amount: Double,
         category: ExpenseCategory,
         description: String?,
         date: Date,
         isRecurring: Bool,
-        recurrenceFrequency: RecurrenceFrequency?,
+        recurrenceFrequency: String?,  // Changed to String? to avoid import issues
         hasPaymentReminder: Bool,
         reminderDate: Date?,
         reminderDayOfMonth: Int32?,
         reminderFrequency: String?,
-        user: UserEntity
+        user: UserEntity,
+        dependentID: UUID? = nil
     ) -> ExpenseEntity {
         let expense = ExpenseEntity(context: context)
         expense.id = UUID()
@@ -201,7 +216,7 @@ class CoreDataStack: ObservableObject {
         expense.expenseDescription = description
         expense.date = date
         expense.isRecurring = isRecurring
-        expense.recurringFrequency = recurrenceFrequency?.rawValue // Core Data model uses 'recurringFrequency'
+        expense.recurringFrequency = recurrenceFrequency // Core Data model uses 'recurringFrequency'
         expense.isPaymentReminder = hasPaymentReminder // Core Data model uses 'isPaymentReminder'
         expense.reminderDate = reminderDate
         expense.reminderDayOfMonth = Int16(reminderDayOfMonth ?? 0) // Core Data uses Int16
@@ -209,9 +224,27 @@ class CoreDataStack: ObservableObject {
         expense.isReminderActive = hasPaymentReminder
         expense.lastReminderSent = nil
         expense.userID = user.id ?? UUID()
+        expense.setValue(dependentID, forKey: "dependentID")  // Set the dependent ID using KVC
         expense.createdAt = Date()
         expense.updatedAt = Date()
         expense.user = user
+        
+        // Set the dependent relationship if a dependent ID is provided
+        if let dependentID = dependentID {
+            // Find the dependent entity by ID - this will work once DependentEntity is created
+            do {
+                let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "DependentEntity")
+                fetchRequest.predicate = NSPredicate(format: "id == %@", dependentID as CVarArg)
+                fetchRequest.fetchLimit = 1
+                
+                let results = try context.fetch(fetchRequest)
+                if let dependentEntity = results.first {
+                    expense.setValue(dependentEntity, forKey: "dependent")
+                }
+            } catch {
+                print("Error fetching dependent: \(error)")
+            }
+        }
         
         save()
         return expense

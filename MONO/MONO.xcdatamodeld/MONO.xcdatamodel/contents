@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="DependentEntity" representedClassName="DependentEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="dataAdded" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dateOfBirth" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="email" attributeType="String"/>
+        <attribute name="firstName" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isActive" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastName" attributeType="String"/>
+        <attribute name="phoneNumber" attributeType="String"/>
+        <attribute name="relationship" attributeType="String"/>
+        <attribute name="userID" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="expenses" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseEntity" inverseName="dependent" inverseEntity="ExpenseEntity"/>
+    </entity>
     <entity name="ExpenseEntity" representedClassName="ExpenseEntity" syncable="YES" codeGenerationType="class">
         <attribute name="amount" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="category" attributeType="String"/>
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dependentID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="expenseDescription" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isPaymentReminder" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -17,6 +31,7 @@
         <attribute name="reminderFrequency" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userID" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="dependent" toMany="YES" deletionRule="Nullify" destinationEntity="DependentEntity" inverseName="expenses" inverseEntity="DependentEntity"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="expenses" inverseEntity="UserEntity"/>
     </entity>
     <entity name="IncomeEntity" representedClassName="IncomeEntity" syncable="YES" codeGenerationType="class">

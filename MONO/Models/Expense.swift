@@ -84,6 +84,7 @@ struct ExpenseModel: Identifiable {
     let isReminderActive: Bool
     let lastReminderSent: Date?
     let userID: UUID
+    let dependentID: UUID?  // Optional dependent ID reference
     let createdAt: Date
     let updatedAt: Date
     
@@ -102,6 +103,7 @@ struct ExpenseModel: Identifiable {
         isReminderActive: Bool = false,
         lastReminderSent: Date? = nil,
         userID: UUID,
+        dependentID: UUID? = nil,  // Optional dependent ID reference
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -119,6 +121,7 @@ struct ExpenseModel: Identifiable {
         self.isReminderActive = isReminderActive
         self.lastReminderSent = lastReminderSent
         self.userID = userID
+        self.dependentID = dependentID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

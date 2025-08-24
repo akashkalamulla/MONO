@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+// Import Income model to access IncomeCategory
+import CoreData
+
 struct SimpleIncomeEntry: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var amount: String = ""
@@ -156,13 +159,54 @@ struct SimpleIncomeEntry: View {
             return
         }
         
-        // TODO: Add Core Data integration when available
+        // Get current user
+        guard let currentUser = CoreDataStack.shared.fetchCurrentUser() else {
+            alertMessage = "No logged in user found"
+            showingAlert = true
+            return
+        }
         
-        // Save to Core Data (simplified for now)
-        // TODO: Implement actual Core Data saving once IncomeEntity is available
+        // Convert category to IncomeCategory
+        let selectedIncomeCategory = IncomeCategory(
+            id: UUID().uuidString,
+            name: selectedCategory,
+            icon: "dollarsign.circle",  // Default icon
+            color: "#007AFF"  // Default color
+        )
+        
+        // Convert frequency string to RecurrenceFrequency string
+        let recurrenceFrequencyString = isRecurring ? convertStringToFrequency(selectedFrequency) : nil
+        
+        // Save to Core Data
+        let income = CoreDataStack.shared.createIncome(
+            amount: amountValue,
+            category: selectedIncomeCategory,
+            description: description.isEmpty ? nil : description,
+            date: selectedDate,
+            isRecurring: isRecurring,
+            recurrenceFrequency: recurrenceFrequencyString,
+            user: currentUser
+        )
+        
         let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
-        alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) will be saved\(recurringInfo)!"
+        alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
         showingAlert = true
+    }
+    
+    // Helper function to convert UI string to appropriate frequency value
+    private func convertStringToFrequency(_ frequency: String) -> String {
+        switch frequency {
+        case "Weekly":
+            return "weekly"
+        case "Bi-weekly":
+            return "biweekly"
+        case "Monthly":
+            return "monthly"
+        case "Yearly":
+            return "yearly"
+        default:
+            return "monthly"
+        }
     }
     
     struct SimpleIncomeEntry_Previews: PreviewProvider {

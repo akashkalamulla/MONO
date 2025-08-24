@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct SimpleExpenseEntry: View {
     @Environment(\.presentationMode) var presentationMode
@@ -22,6 +23,18 @@ struct SimpleExpenseEntry: View {
     @State private var reminderDayOfMonth = 1
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var isForDependent: Bool
+    @State private var selectedDependentId: UUID?
+    
+    // Dependency injection for the dependent manager
+    var dependentManager = DependentManager()
+    
+    // Initialize with default parameters
+    init(isForDependent: Bool = false, selectedDependentId: UUID? = nil, dependentManager: DependentManager = DependentManager()) {
+        _isForDependent = State(initialValue: isForDependent)
+        _selectedDependentId = State(initialValue: selectedDependentId)
+        self.dependentManager = dependentManager
+    }
     
     let categories = ["Food & Dining", "Transportation", "Housing", "Utilities", "Shopping", "Healthcare", "Entertainment", "Education", "Other"]
     let frequencies = ["Daily", "Weekly", "Monthly", "Yearly"]
@@ -186,6 +199,50 @@ struct SimpleExpenseEntry: View {
                         .cornerRadius(12)
                 }
                 
+                // Associate with Dependent Toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Associate with Dependent")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $isForDependent)
+                            .labelsHidden()
+                    }
+                    
+                    if isForDependent && !dependentManager.dependents.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Choose Dependent")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            
+                            Picker("Select Dependent", selection: $selectedDependentId) {
+                                Text("None").tag(nil as UUID?)
+                                ForEach(dependentManager.dependents) { dependent in
+                                    Text(dependent.fullName).tag(dependent.id as UUID?)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .animation(.easeInOut(duration: 0.3), value: isForDependent)
+                    } else if isForDependent && dependentManager.dependents.isEmpty {
+                        Text("No dependents available. Please add dependents first.")
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                            .padding(.vertical, 8)
+                            .transition(.opacity)
+                            .animation(.easeInOut(duration: 0.3), value: isForDependent)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
+                
                 // Save Button
                 Button(action: saveExpense) {
                     Text("Save Expense")
@@ -226,37 +283,110 @@ struct SimpleExpenseEntry: View {
             return
         }
         
-        // TODO: Implement Core Data saving after ExpenseEntity is generated
-        let message = "Expense of Rs.\(String(format: "%.2f", amountValue)) will be saved once Core Data is set up!"
-        alertMessage = message
-        showingAlert = true
-    }
-    
-    private func convertStringToRecurringFrequency(_ frequency: String) -> ExpenseRecurrenceFrequency {
-        switch frequency {
-        case "Daily":
-            return .daily
-        case "Weekly":
-            return .weekly
-        case "Monthly":
-            return .monthly
-        case "Yearly":
-            return .yearly
-        default:
-            return .monthly
+        guard let currentUser = coreDataStack.fetchCurrentUser() else {
+            alertMessage = "Unable to find current user"
+            showingAlert = true
+            return
+        }
+        
+        // Find the selected category
+        let categoryObj = ExpenseCategory.defaultCategories.first { $0.name == selectedCategory } ?? 
+                         ExpenseCategory.defaultCategories.last! // Use "Other" as fallback
+        
+        // Get frequency if recurring
+        let recurrenceFreq: String? = isRecurring ? selectedFrequency.lowercased() : nil
+        
+        // Get reminder settings
+        let reminderDay: Int32? = reminderFrequency == "Monthly" ? Int32(reminderDayOfMonth) : nil
+        let reminderDate = (reminderFrequency == "Once" || reminderFrequency == "Yearly") ? self.reminderDate : nil
+        
+        // Create a new expense entity directly
+        let context = coreDataStack.context
+        let expense = NSEntityDescription.insertNewObject(forEntityName: "ExpenseEntity", into: context)
+        
+        // Set basic properties
+        expense.setValue(UUID(), forKey: "id")
+        expense.setValue(amountValue, forKey: "amount")
+        expense.setValue(categoryObj.name, forKey: "category")
+        expense.setValue(description.isEmpty ? nil : description, forKey: "expenseDescription")
+        expense.setValue(selectedDate, forKey: "date")
+        expense.setValue(isRecurring, forKey: "isRecurring")
+        expense.setValue(recurrenceFreq, forKey: "recurringFrequency")
+        expense.setValue(isPaymentReminder, forKey: "isPaymentReminder")
+        expense.setValue(reminderDate, forKey: "reminderDate")
+        expense.setValue(reminderDay != nil ? Int16(reminderDay!) : nil, forKey: "reminderDayOfMonth")
+        expense.setValue(isPaymentReminder ? reminderFrequency : nil, forKey: "reminderFrequency")
+        expense.setValue(isPaymentReminder, forKey: "isReminderActive")
+        expense.setValue(nil, forKey: "lastReminderSent")
+        expense.setValue(currentUser.id, forKey: "userID")
+        expense.setValue(Date(), forKey: "createdAt")
+        expense.setValue(Date(), forKey: "updatedAt")
+        expense.setValue(currentUser, forKey: "user")
+        
+        // Set dependent ID if applicable
+        if isForDependent && selectedDependentId != nil {
+            expense.setValue(selectedDependentId, forKey: "dependentID")
+            
+            // Try to set the dependent relationship if possible
+            do {
+                let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "DependentEntity")
+                fetchRequest.predicate = NSPredicate(format: "id == %@", selectedDependentId! as CVarArg)
+                let results = try context.fetch(fetchRequest)
+                if let dependentEntity = results.first {
+                    expense.setValue(dependentEntity, forKey: "dependent")
+                }
+            } catch {
+                print("Error setting dependent relationship: \(error)")
+            }
+        }
+        
+        // Save changes
+        do {
+            try context.save()
+            
+            // Create success message
+            var message = "Expense of Rs.\(String(format: "%.2f", amountValue)) saved"
+            
+            if isForDependent && selectedDependentId != nil {
+                if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
+                    message += " and associated with \(dependent.fullName)"
+                }
+            }
+            
+            alertMessage = message
+            showingAlert = true
+            
+        } catch {
+            alertMessage = "Error saving expense: \(error.localizedDescription)"
+            showingAlert = true
         }
     }
     
-    private func convertStringToReminderFrequency(_ frequency: String) -> PaymentReminderFrequency {
+    private func convertStringToRecurringFrequency(_ frequency: String) -> String {
+        switch frequency {
+        case "Daily":
+            return "daily"
+        case "Weekly":
+            return "weekly"
+        case "Monthly":
+            return "monthly"
+        case "Yearly":
+            return "yearly"
+        default:
+            return "monthly"
+        }
+    }
+    
+    private func convertStringToReminderFrequency(_ frequency: String) -> String {
         switch frequency {
         case "Once":
-            return .once
+            return "once"
         case "Monthly":
-            return .monthly
+            return "monthly"
         case "Yearly":
-            return .yearly
+            return "yearly"
         default:
-            return .monthly
+            return "monthly"
         }
     }
 }

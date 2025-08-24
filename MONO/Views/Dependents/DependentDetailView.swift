@@ -76,12 +76,20 @@ struct DependentDetailView: View {
                         }
                     }
                     
-                    // Expense Summary Card (Placeholder for future feature)
+                    // Expense Summary Card
                     InfoCard(title: "Expense Summary") {
                         VStack(spacing: 12) {
-                            InfoRow(label: "Total Expenses", value: "$0.00")
-                            InfoRow(label: "This Month", value: "$0.00")
-                            InfoRow(label: "Last Expense", value: "No expenses yet")
+                            // These values should be updated to fetch from Core Data
+                            InfoRow(label: "Total Expenses", value: fetchTotalExpensesForDependent())
+                            InfoRow(label: "This Month", value: fetchMonthlyExpensesForDependent())
+                            InfoRow(label: "Last Expense", value: fetchLastExpenseDate())
+                            
+                            NavigationLink(destination: DependentExpensesPlaceholderView(dependentName: dependent.fullName, dependentID: dependent.id)) {
+                                Text("View All Expenses")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.blue)
+                                    .padding(.top, 8)
+                            }
                         }
                     }
                 }
@@ -179,6 +187,59 @@ struct DependentDetailView: View {
     private func deleteDependent() {
         _ = dependentManager.deleteDependent(dependent)
         presentationMode.wrappedValue.dismiss()
+    }
+    
+    // Helper functions to fetch expense information for the dependent
+    @StateObject private var coreDataStack = CoreDataStack.shared
+    
+    private func fetchTotalExpensesForDependent() -> String {
+        let expenses = coreDataStack.fetchExpenses(for: dependent.id)
+        let total = expenses.reduce(0.0) { total, expense in
+            if let amount = expense.value(forKey: "amount") as? Double {
+                return total + amount
+            }
+            return total
+        }
+        return "Rs.\(String(format: "%.2f", total))"
+    }
+    
+    private func fetchMonthlyExpensesForDependent() -> String {
+        // Get the start and end dates for the current month
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
+              let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth) else {
+            return "Rs.0.00"
+        }
+        
+        // Filter expenses for the current month
+        let expenses = coreDataStack.fetchExpenses(for: dependent.id)
+        let monthlyExpenses = expenses.filter { expense in
+            if let date = expense.value(forKey: "date") as? Date {
+                return date >= startOfMonth && date <= endOfMonth
+            }
+            return false
+        }
+        
+        let total = monthlyExpenses.reduce(0.0) { total, expense in
+            if let amount = expense.value(forKey: "amount") as? Double {
+                return total + amount
+            }
+            return total
+        }
+        return "Rs.\(String(format: "%.2f", total))"
+    }
+    
+    private func fetchLastExpenseDate() -> String {
+        let expenses = coreDataStack.fetchExpenses(for: dependent.id)
+        if let lastExpense = expenses.first {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            if let date = lastExpense.value(forKey: "date") as? Date {
+                return formatter.string(from: date)
+            }
+        }
+        return "No expenses yet"
     }
 }
 

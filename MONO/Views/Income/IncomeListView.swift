@@ -11,14 +11,34 @@ import CoreData
 struct IncomeListView: View {
     @State private var incomes: [IncomeEntity] = []
     @State private var showingAddIncome = false
+    @State private var totalIncome: Double = 0
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(incomes, id: \.id) { income in
-                    IncomeRowView(income: income)
+            VStack {
+                // Header with total income
+                VStack(spacing: 8) {
+                    Text("Total Income")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                    
+                    Text(formatCurrency(totalIncome))
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
                 }
-                .onDelete(perform: deleteIncomes)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
+                .padding(.horizontal)
+                
+                List {
+                    ForEach(incomes, id: \.id) { income in
+                        IncomeRowView(income: income)
+                    }
+                    .onDelete(perform: deleteIncomes)
+                }
             }
             .navigationTitle("Income")
             .toolbar {
@@ -30,7 +50,9 @@ struct IncomeListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddIncome) {
+            .sheet(isPresented: $showingAddIncome, onDismiss: {
+                loadIncomes()
+            }) {
                 SimpleIncomeEntry()
             }
             .onAppear {
@@ -42,9 +64,20 @@ struct IncomeListView: View {
         }
     }
     
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "Rs. "
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        
+        return formatter.string(from: NSNumber(value: value)) ?? "Rs. 0.00"
+    }
+    
     private func loadIncomes() {
         if let currentUser = CoreDataStack.shared.fetchCurrentUser() {
             incomes = CoreDataStack.shared.fetchIncomes(for: currentUser)
+            totalIncome = incomes.reduce(0) { $0 + $1.amount }
         }
     }
     

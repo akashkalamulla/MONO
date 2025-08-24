@@ -52,11 +52,15 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
+    @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var showIncomeView = false
     @State private var showExpenseView = false
     @State private var showAddDependent = false
     @State private var selectedDependent: Dependent?
     @State private var showDependentDetail = false
+    @State private var totalIncome: Double = 0
+    @State private var totalExpenses: Double = 0
+    @State private var totalBalance: Double = 0
     
     var body: some View {
         NavigationView {
@@ -94,16 +98,16 @@ struct DashboardView: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white.opacity(0.8))
                         
-                        Text("$2,847.50")
+                        Text(formatCurrency(totalBalance))
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
                         
                         HStack(spacing: 20) {
                             VStack {
-                                Text("Savings")
+                                Text("Income")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white.opacity(0.7))
-                                Text("$2,847.50")
+                                Text(formatCurrency(totalIncome))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -112,7 +116,7 @@ struct DashboardView: View {
                                 Text("Expenses")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white.opacity(0.7))
-                                Text("$402.50")
+                                Text(formatCurrency(totalExpenses))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -219,26 +223,33 @@ struct DashboardView: View {
         .onAppear {
             if let currentUser = authManager.currentUser {
                 dependentManager.loadDependents(for: currentUser.id)
+                loadFinancialData()
             }
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if isAuthenticated, let currentUser = authManager.currentUser {
                 print("🔄 [AuthenticatedView] User authenticated, loading dependents for user: \(currentUser.id)")
                 dependentManager.loadDependents(for: currentUser.id)
+                loadFinancialData()
             }
         }
         .onChange(of: authManager.currentUser?.id) { _, userId in
             if let userId = userId {
                 print("🔄 [AuthenticatedView] Current user changed, loading dependents for user: \(userId)")
                 dependentManager.loadDependents(for: userId)
+                loadFinancialData()
             }
         }
-        .sheet(isPresented: $showIncomeView) {
+        .sheet(isPresented: $showIncomeView, onDismiss: {
+            loadFinancialData()
+        }) {
             NavigationView {
                 SimpleIncomeEntry()
             }
         }
-        .sheet(isPresented: $showExpenseView) {
+        .sheet(isPresented: $showExpenseView, onDismiss: {
+            loadFinancialData()
+        }) {
             NavigationView {
                 SimpleExpenseEntry()
             }
@@ -271,6 +282,36 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+    
+    // Function to load income, expenses and calculate balance
+    private func loadFinancialData() {
+        guard let currentUserEntity = coreDataStack.fetchCurrentUser() else {
+            print("Error: No current user found")
+            return
+        }
+        
+        // Fetch income data
+        let incomeEntities = coreDataStack.fetchIncomes(for: currentUserEntity)
+        totalIncome = incomeEntities.reduce(0) { $0 + $1.amount }
+        
+        // Fetch expense data
+        let expenseEntities = coreDataStack.fetchExpenses(for: currentUserEntity)
+        totalExpenses = expenseEntities.reduce(0) { $0 + $1.amount }
+        
+        // Calculate total balance
+        totalBalance = totalIncome - totalExpenses
+    }
+    
+    // Format currency values
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        
+        return formatter.string(from: NSNumber(value: value)) ?? "$0.00"
     }
 }
 

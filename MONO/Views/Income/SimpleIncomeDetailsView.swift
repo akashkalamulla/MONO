@@ -114,7 +114,7 @@ struct SimpleIncomeDetailsView: View {
                 .foregroundColor(primaryColor)
             
             HStack {
-                Text("$")
+                Text("Rs.")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(primaryColor)
                 

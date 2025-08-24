@@ -307,11 +307,11 @@ struct DashboardView: View {
     private func formatCurrency(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencySymbol = "$"
+        formatter.currencySymbol = "Rs. "
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
         
-        return formatter.string(from: NSNumber(value: value)) ?? "$0.00"
+        return formatter.string(from: NSNumber(value: value)) ?? "Rs. 0.00"
     }
 }
 

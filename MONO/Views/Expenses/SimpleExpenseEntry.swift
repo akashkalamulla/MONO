@@ -345,7 +345,7 @@ struct SimpleExpenseEntry: View {
             try context.save()
             
             // Create success message
-            var message = "Expense of Rs.\(String(format: "%.2f", amountValue)) saved"
+            var message = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved"
             
             if isForDependent && selectedDependentId != nil {
                 if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {

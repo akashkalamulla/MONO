@@ -200,7 +200,7 @@ struct DependentDetailView: View {
             }
             return total
         }
-        return "Rs.\(String(format: "%.2f", total))"
+        return "Rs. \(String(format: "%.2f", total))"
     }
     
     private func fetchMonthlyExpensesForDependent() -> String {
@@ -209,7 +209,7 @@ struct DependentDetailView: View {
         let now = Date()
         guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
               let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth) else {
-            return "Rs.0.00"
+            return "Rs. 0.00"
         }
         
         // Filter expenses for the current month
@@ -227,7 +227,7 @@ struct DependentDetailView: View {
             }
             return total
         }
-        return "Rs.\(String(format: "%.2f", total))"
+        return "Rs. \(String(format: "%.2f", total))"
     }
     
     private func fetchLastExpenseDate() -> String {

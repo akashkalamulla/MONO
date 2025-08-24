@@ -189,7 +189,7 @@ struct SimpleIncomeEntry: View {
         )
         
         let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
-        alertMessage = "Income of Rs.\(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
+        alertMessage = "Income of Rs. \(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
         showingAlert = true
     }
     

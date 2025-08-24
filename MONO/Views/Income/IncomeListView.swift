@@ -132,7 +132,7 @@ struct IncomeRowView: View {
             
             Spacer()
             
-            Text("$\(income.amount, specifier: "%.2f")")
+            Text("Rs. \(income.amount, specifier: "%.2f")")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.green)
         }

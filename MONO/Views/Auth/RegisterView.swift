@@ -38,9 +38,7 @@ struct RegisterView: View {
                     
                     // Registration Form
                     VStack(spacing: 18) {
-                        // Name Fields
                         HStack(spacing: 12) {
-                            // First Name
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("First Name")
                                     .font(.system(size: 14, weight: .medium))
@@ -51,7 +49,6 @@ struct RegisterView: View {
                                     .textInputAutocapitalization(.words)
                             }
                             
-                            // Last Name
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Last Name")
                                     .font(.system(size: 14, weight: .medium))
@@ -63,7 +60,6 @@ struct RegisterView: View {
                             }
                         }
                         
-                        // Email Field
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Email")
                                 .font(.system(size: 14, weight: .medium))
@@ -75,7 +71,6 @@ struct RegisterView: View {
                                 .keyboardType(.emailAddress)
                         }
                         
-                        // Phone Number Field
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Phone Number")
                                 .font(.system(size: 14, weight: .medium))
@@ -86,7 +81,7 @@ struct RegisterView: View {
                                 .keyboardType(.phonePad)
                         }
                         
-                        // Password Field
+
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Password")
                                 .font(.system(size: 14, weight: .medium))
@@ -108,7 +103,6 @@ struct RegisterView: View {
                             }
                             .textFieldStyle(CustomTextFieldStyle())
                             
-                            // Password requirements
                             if !password.isEmpty {
                                 VStack(alignment: .leading, spacing: 2) {
                                     PasswordRequirement(
@@ -125,7 +119,6 @@ struct RegisterView: View {
                             }
                         }
                         
-                        // Confirm Password Field
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Confirm Password")
                                 .font(.system(size: 14, weight: .medium))
@@ -147,7 +140,6 @@ struct RegisterView: View {
                             }
                             .textFieldStyle(CustomTextFieldStyle())
                             
-                            // Password match indicator
                             if !confirmPassword.isEmpty {
                                 HStack(spacing: 4) {
                                     Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -162,7 +154,6 @@ struct RegisterView: View {
                             }
                         }
                         
-                        // Terms and Conditions
                         HStack(alignment: .top, spacing: 8) {
                             Button(action: {
                                 agreeToTerms.toggle()
@@ -192,8 +183,7 @@ struct RegisterView: View {
                         .padding(.top, 8)
                     }
                     .padding(.horizontal, 30)
-                    
-                    // Error Message
+
                     if let errorMessage = authManager.errorMessage {
                         Text(errorMessage)
                             .font(.system(size: 14))
@@ -201,7 +191,6 @@ struct RegisterView: View {
                             .padding(.horizontal, 30)
                     }
                     
-                    // Register Button
                     Button(action: {
                         authManager.register(
                             firstName: firstName,
@@ -233,7 +222,6 @@ struct RegisterView: View {
                     .buttonStyle(PrimaryButtonStyle())
                     .padding(.horizontal, 30)
                     
-                    // Sign In Link
                     HStack(spacing: 4) {
                         Text("Already have an account?")
                             .font(.system(size: 14))

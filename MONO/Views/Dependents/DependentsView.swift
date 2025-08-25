@@ -32,12 +32,10 @@ struct DependentsView: View {
                         showingAddDependent = true
                     }
                 } else {
-                    // Search Bar
+              
                     SearchBar(text: $searchText)
                         .padding(.horizontal)
                         .padding(.top)
-                    
-                    // Dependents List
                     List {
                         ForEach(filteredDependents) { dependent in
                             DependentRowView(dependent: dependent, dependentManager: dependentManager)
@@ -77,7 +75,6 @@ struct DependentsView: View {
     }
 }
 
-// MARK: - Dependent Row View
 struct DependentRowView: View {
     let dependent: Dependent
     @ObservedObject var dependentManager: DependentManager
@@ -86,7 +83,7 @@ struct DependentRowView: View {
     var body: some View {
         Button(action: { showingDetail = true }) {
             HStack(spacing: 16) {
-                // Avatar
+     
                 ZStack {
                     Circle()
                         .fill(dependent.isActive ? Color.monoPrimary.opacity(0.2) : Color.gray.opacity(0.3))
@@ -97,7 +94,7 @@ struct DependentRowView: View {
                         .foregroundColor(dependent.isActive ? .monoPrimary : .gray)
                 }
                 
-                // Information
+   
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dependent.fullName)
                         .font(.system(size: 16, weight: .semibold))
@@ -115,7 +112,7 @@ struct DependentRowView: View {
                 
                 Spacer()
                 
-                // Status and Arrow
+             
                 VStack(spacing: 8) {
                     if !dependent.isActive {
                         Text("Inactive")
@@ -143,7 +140,7 @@ struct DependentRowView: View {
     }
 }
 
-// MARK: - Empty State View
+
 struct EmptyDependentsView: View {
     let onAddDependent: () -> Void
     
@@ -186,7 +183,7 @@ struct EmptyDependentsView: View {
     }
 }
 
-// MARK: - Search Bar
+
 struct SearchBar: View {
     @Binding var text: String
     

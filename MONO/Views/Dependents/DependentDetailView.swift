@@ -18,9 +18,7 @@ struct DependentDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header Section
                 VStack(spacing: 16) {
-                    // Avatar
                     ZStack {
                         Circle()
                             .fill(dependent.isActive ? Color.blue.opacity(0.2) : Color.gray.opacity(0.3))
@@ -53,7 +51,6 @@ struct DependentDetailView: View {
                 }
                 .padding(.top)
                 
-                // Information Cards
                 VStack(spacing: 16) {
                     InfoCard(title: "Personal Information") {
                         VStack(spacing: 12) {
@@ -76,10 +73,8 @@ struct DependentDetailView: View {
                         }
                     }
                     
-                    // Expense Summary Card
                     InfoCard(title: "Expense Summary") {
                         VStack(spacing: 12) {
-                            // These values should be updated to fetch from Core Data
                             InfoRow(label: "Total Expenses", value: fetchTotalExpensesForDependent())
                             InfoRow(label: "This Month", value: fetchMonthlyExpensesForDependent())
                             InfoRow(label: "Last Expense", value: fetchLastExpenseDate())
@@ -95,7 +90,6 @@ struct DependentDetailView: View {
                 }
                 .padding(.horizontal)
                 
-                // Action Buttons
                 VStack(spacing: 12) {
                     Button(action: { showingEditView = true }) {
                         HStack {
@@ -189,7 +183,7 @@ struct DependentDetailView: View {
         presentationMode.wrappedValue.dismiss()
     }
     
-    // Helper functions to fetch expense information for the dependent
+
     @StateObject private var coreDataStack = CoreDataStack.shared
     
     private func fetchTotalExpensesForDependent() -> String {
@@ -204,7 +198,7 @@ struct DependentDetailView: View {
     }
     
     private func fetchMonthlyExpensesForDependent() -> String {
-        // Get the start and end dates for the current month
+ 
         let calendar = Calendar.current
         let now = Date()
         guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
@@ -212,7 +206,7 @@ struct DependentDetailView: View {
             return "Rs. 0.00"
         }
         
-        // Filter expenses for the current month
+     
         let expenses = coreDataStack.fetchExpenses(for: dependent.id)
         let monthlyExpenses = expenses.filter { expense in
             if let date = expense.value(forKey: "date") as? Date {

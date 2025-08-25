@@ -25,7 +25,6 @@ struct LoginView: View {
                     }
                     .padding(.top, 60)
                     
-                    // Face ID Login Section (show if Face ID is available and enabled)
                     if biometricManager.isAvailable && biometricManager.isBiometricEnabled {
                         VStack(spacing: 16) {
                             Button(action: {
@@ -63,7 +62,6 @@ struct LoginView: View {
                             }
                             .padding(.horizontal, 30)
                             
-                            // Or divider
                             HStack {
                                 Rectangle()
                                     .frame(height: 1)
@@ -84,7 +82,6 @@ struct LoginView: View {
                     
                     // Login Form
                     VStack(spacing: 20) {
-                        // Email Field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
                                 .font(.system(size: 14, weight: .medium))
@@ -96,7 +93,7 @@ struct LoginView: View {
                                 .keyboardType(.emailAddress)
                         }
                         
-                        // Password Field
+    
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Password")
                                 .font(.system(size: 14, weight: .medium))
@@ -119,11 +116,9 @@ struct LoginView: View {
                             .textFieldStyle(CustomTextFieldStyle())
                         }
                         
-                        // Forgot Password
                         HStack {
                             Spacer()
                             Button(action: {
-                                // Handle forgot password
                                 print("Forgot password tapped")
                             }) {
                                 Text("Forgot Password?")
@@ -134,7 +129,7 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    // Error Message
+        
                     if let errorMessage = authManager.errorMessage {
                         Text(errorMessage)
                             .font(.system(size: 14))
@@ -142,7 +137,7 @@ struct LoginView: View {
                             .padding(.horizontal, 30)
                     }
                     
-                    // Login Button
+            
                     Button(action: {
                         authManager.login(email: email, password: password)
                     }) {
@@ -168,7 +163,7 @@ struct LoginView: View {
                     .buttonStyle(PrimaryButtonStyle())
                     .padding(.horizontal, 30)
                     
-                    // Sign Up Link
+                
                     HStack(spacing: 4) {
                         Text("Don't have an account?")
                             .font(.system(size: 14))

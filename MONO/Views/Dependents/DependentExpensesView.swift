@@ -42,8 +42,7 @@ struct DependentExpensesView: View {
                         .padding(.horizontal)
                     
                     Button(action: {
-                        // Navigate to expense entry form with this dependent pre-selected
-                        // This will be implemented when the navigation is set up
+
                     }) {
                         Text("Add Expense")
                             .font(.headline)
@@ -76,12 +75,7 @@ struct DependentExpensesView: View {
     }
     
     private func loadExpenses() {
-        // TODO: Replace this with actual Core Data fetch once implementation is complete
-        // This would fetch expenses where the dependentID matches the current dependent's ID
-        
-        // Simulate loading
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            // Sample data - replace with actual data fetch
             self.expenses = []
             self.isLoading = false
         }
@@ -130,7 +124,6 @@ struct ExpenseRow: View {
     }
 }
 
-// Preview isn't working due to model references - will be fixed when actual implementation is complete
 struct DependentExpensesView_Previews: PreviewProvider {
     static var previews: some View {
         Text("Preview not available")

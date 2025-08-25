@@ -80,7 +80,6 @@ struct DependentExpensesPlaceholderView: View {
     }
     
     private func loadExpenses() {
-        // Use CoreDataStack to fetch expenses for this dependent
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.expenses = coreDataStack.fetchExpenses(for: dependentID)
             self.isLoading = false
@@ -139,7 +138,7 @@ struct ExpenseEntryForDependent: View {
             dependentManager: DependentManager()
         )
         .onAppear {
-            // Pre-select the dependent in the form
+
         }
         .navigationTitle("Add Expense for \(dependentName)")
     }

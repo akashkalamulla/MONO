@@ -35,7 +35,7 @@ struct EditProfileView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 25) {
-                    // Profile Avatar
+                    // Avatars porfile pic
                     VStack(spacing: 16) {
                         Button(action: {
                             showImagePicker = true
@@ -57,7 +57,7 @@ struct EditProfileView: View {
                                 
                                 if let imageData = selectedImageData,
                                    let uiImage = UIImage(data: imageData) {
-                                    // Display selected/saved image
+                                    // show selected/saved image
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -128,7 +128,6 @@ struct EditProfileView: View {
                                 .textInputAutocapitalization(.words)
                         }
                         
-                        // Email (Read-only)
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
                                 .font(.system(size: 14, weight: .medium))
@@ -145,7 +144,6 @@ struct EditProfileView: View {
                                 )
                         }
                         
-                        // Phone Number
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Phone Number")
                                 .font(.system(size: 14, weight: .medium))
@@ -158,7 +156,6 @@ struct EditProfileView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    // Save Button
                     Button(action: saveProfile) {
                         HStack {
                             if isLoading {

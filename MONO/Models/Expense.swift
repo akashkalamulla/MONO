@@ -8,13 +8,14 @@
 import Foundation
 import CoreData
 import SwiftUI
+import CoreLocation
 
-// MARK: - Expense Category Model
+
 struct ExpenseCategory: Identifiable, Codable {
     let id: String
     let name: String
     let icon: String
-    let color: String // Store as hex string for Core Data compatibility
+    let color: String
     
     static let defaultCategories: [ExpenseCategory] = [
         ExpenseCategory(id: "food", name: "Food & Dining", icon: "fork.knife", color: "#FF5722"),
@@ -29,7 +30,7 @@ struct ExpenseCategory: Identifiable, Codable {
     ]
 }
 
-// MARK: - Recurrence Frequency Enum
+
 enum ExpenseRecurrenceFrequency: String, CaseIterable, Codable {
     case daily = "daily"
     case weekly = "weekly"
@@ -50,7 +51,7 @@ enum ExpenseRecurrenceFrequency: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - Payment Reminder Frequency Enum
+
 enum PaymentReminderFrequency: String, CaseIterable, Codable {
     case once = "once"
     case monthly = "monthly"
@@ -68,7 +69,7 @@ enum PaymentReminderFrequency: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - Expense Model (for Core Data)
+
 struct ExpenseModel: Identifiable {
     let id: UUID
     let amount: Double
@@ -84,7 +85,10 @@ struct ExpenseModel: Identifiable {
     let isReminderActive: Bool
     let lastReminderSent: Date?
     let userID: UUID
-    let dependentID: UUID?  // Optional dependent ID reference
+    let dependentID: UUID?
+    let locationName: String?
+    let latitude: Double?
+    let longitude: Double?
     let createdAt: Date
     let updatedAt: Date
     
@@ -100,12 +104,15 @@ struct ExpenseModel: Identifiable {
         reminderDate: Date? = nil,
         reminderDayOfMonth: Int? = nil,
         reminderFrequency: PaymentReminderFrequency? = nil,
-        isReminderActive: Bool = false,
-        lastReminderSent: Date? = nil,
-        userID: UUID,
-        dependentID: UUID? = nil,  // Optional dependent ID reference
-        createdAt: Date = Date(),
-        updatedAt: Date = Date()
+    isReminderActive: Bool = false,
+    lastReminderSent: Date? = nil,
+    userID: UUID,
+    dependentID: UUID? = nil,
+    locationName: String? = nil,
+    latitude: Double? = nil,
+    longitude: Double? = nil,
+    createdAt: Date = Date(),
+    updatedAt: Date = Date()
     ) {
         self.id = id
         self.amount = amount
@@ -122,6 +129,9 @@ struct ExpenseModel: Identifiable {
         self.lastReminderSent = lastReminderSent
         self.userID = userID
         self.dependentID = dependentID
+    self.locationName = locationName
+    self.latitude = latitude
+    self.longitude = longitude
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

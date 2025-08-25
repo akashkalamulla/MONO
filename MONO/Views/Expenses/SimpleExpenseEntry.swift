@@ -7,6 +7,8 @@
 
 import SwiftUI
 import CoreData
+import MapKit
+import CoreLocation
 
 struct SimpleExpenseEntry: View {
     @Environment(\.presentationMode) var presentationMode
@@ -25,6 +27,11 @@ struct SimpleExpenseEntry: View {
     @State private var alertMessage = ""
     @State private var isForDependent: Bool
     @State private var selectedDependentId: UUID?
+    // Location picker state
+    @State private var selectedPlacemark: CLPlacemark?
+    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 21.1458, longitude: 79.0882), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
+    @State private var showMapPicker = false
+    @State private var locationName: String = ""
     
     // Dependency injection for the dependent manager
     var dependentManager = DependentManager()
@@ -198,6 +205,33 @@ struct SimpleExpenseEntry: View {
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(12)
                 }
+
+                // Location Picker
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Location (Optional)")
+                            .font(.headline)
+
+                        Spacer()
+
+                        Button(action: { showMapPicker.toggle() }) {
+                            Image(systemName: "mappin.and.ellipse")
+                        }
+                    }
+
+                    if !locationName.isEmpty {
+                        Text(locationName)
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    } else {
+                        Text("No location selected")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
                 
                 // Associate with Dependent Toggle
                 VStack(alignment: .leading, spacing: 8) {
@@ -273,6 +307,13 @@ struct SimpleExpenseEntry: View {
         } message: {
             Text(alertMessage)
         }
+        .sheet(isPresented: $showMapPicker) {
+            MapPickerView(region: $region) { placemark in
+                selectedPlacemark = placemark
+                // Prefer a named place, fallback to locality or formatted string
+                locationName = placemark.name ?? placemark.locality ?? "Selected location"
+            }
+        }
     }
     
     private func saveExpense() {
@@ -339,6 +380,17 @@ struct SimpleExpenseEntry: View {
                 print("Error setting dependent relationship: \(error)")
             }
         }
+
+        // Persist selected location fields if available
+        if let placemark = selectedPlacemark {
+            expense.setValue(placemark.name ?? locationName, forKey: "locationName")
+            if let coord = placemark.location?.coordinate {
+                expense.setValue(coord.latitude, forKey: "latitude")
+                expense.setValue(coord.longitude, forKey: "longitude")
+            }
+        } else if !locationName.isEmpty {
+            expense.setValue(locationName, forKey: "locationName")
+        }
         
         // Save changes
         do {
@@ -387,6 +439,62 @@ struct SimpleExpenseEntry: View {
             return "yearly"
         default:
             return "monthly"
+        }
+    }
+}
+
+// Small map picker that returns a CLPlacemark for the map center when user taps Select
+struct MapPickerView: View {
+    @Binding var region: MKCoordinateRegion
+    var onSelect: (CLPlacemark) -> Void
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isResolving = false
+    private let geocoder = CLGeocoder()
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                Map(coordinateRegion: $region, showsUserLocation: true)
+                    .edgesIgnoringSafeArea(.all)
+
+                // Center pin
+                Image(systemName: "mappin.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.red)
+                    .offset(y: -20)
+            }
+
+            HStack {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .padding()
+
+                Spacer()
+
+                if isResolving {
+                    ProgressView()
+                        .padding()
+                } else {
+                    Button("Select Location") {
+                        resolvePlacemark()
+                    }
+                    .padding()
+                }
+            }
+            .background(Color(UIColor.systemBackground))
+        }
+    }
+
+    private func resolvePlacemark() {
+        isResolving = true
+        let location = CLLocation(latitude: region.center.latitude, longitude: region.center.longitude)
+        geocoder.reverseGeocodeLocation(location) { placemarks, error in
+            isResolving = false
+            if let placemark = placemarks?.first {
+                onSelect(placemark)
+            }
+            presentationMode.wrappedValue.dismiss()
         }
     }
 }

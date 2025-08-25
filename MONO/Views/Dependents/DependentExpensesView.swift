@@ -102,7 +102,13 @@ struct ExpenseRow: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
-                
+
+                if let locationName = expense.locationName, !locationName.isEmpty {
+                    Text(locationName)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+
                 Text(formatDate(expense.date))
                     .font(.caption)
                     .foregroundColor(.gray)

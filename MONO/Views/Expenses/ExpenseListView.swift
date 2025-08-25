@@ -116,13 +116,19 @@ struct ExpenseRowItem: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.category ?? "Uncategorized")
                     .font(.headline)
-                
+
                 if let description = expense.expenseDescription, !description.isEmpty {
                     Text(description)
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
-                
+
+                if let location = expense.value(forKey: "locationName") as? String, !location.isEmpty {
+                    Text(location)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+
                 if let date = expense.date {
                     Text(formatDate(date))
                         .font(.caption)

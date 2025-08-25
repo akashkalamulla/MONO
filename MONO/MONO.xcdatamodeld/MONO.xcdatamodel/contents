@@ -29,6 +29,9 @@
         <attribute name="reminderDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="reminderDayOfMonth" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="reminderFrequency" optional="YES" attributeType="String"/>
+    <attribute name="locationName" optional="YES" attributeType="String"/>
+    <attribute name="latitude" optional="YES" attributeType="Double" usesScalarValueType="YES"/>
+    <attribute name="longitude" optional="YES" attributeType="Double" usesScalarValueType="YES"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userID" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="dependent" toMany="YES" deletionRule="Nullify" destinationEntity="DependentEntity" inverseName="expenses" inverseEntity="DependentEntity"/>

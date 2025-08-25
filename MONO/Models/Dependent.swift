@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-// MARK: - Dependent Data Model
+
 struct Dependent: Identifiable, Codable {
     let id: UUID
     var firstName: String
@@ -19,8 +19,7 @@ struct Dependent: Identifiable, Codable {
     var email: String
     var isActive: Bool
     var dateAdded: Date
-    var userId: UUID // Reference to the user who added this dependent
-    
+    var userId: UUID
     init(firstName: String, lastName: String, relationship: String, dateOfBirth: Date, phoneNumber: String = "", email: String = "", userId: UUID) {
         self.id = UUID()
         self.firstName = firstName
@@ -49,7 +48,7 @@ struct Dependent: Identifiable, Codable {
     }
 }
 
-// MARK: - Dependent Manager
+
 class DependentManager: ObservableObject {
     @Published var dependents: [Dependent] = []
     private let userDefaults = UserDefaults.standard
@@ -63,7 +62,7 @@ class DependentManager: ObservableObject {
     
     func loadDependents(for userId: UUID? = nil) {
         guard let userId = userId else {
-            // Load all dependents if no specific user ID is provided
+           
             loadAllDependents()
             return
         }
@@ -101,17 +100,17 @@ class DependentManager: ObservableObject {
     
     func addDependent(_ dependent: Dependent) -> Bool {
         do {
-            // Load existing dependents
+        
             var allDependents: [Dependent] = []
             if let data = userDefaults.data(forKey: dependentsKey),
                let existingDependents = try? JSONDecoder().decode([Dependent].self, from: data) {
                 allDependents = existingDependents
             }
             
-            // Add new dependent
+          
             allDependents.append(dependent)
             
-            // Save updated list
+          
             let data = try JSONEncoder().encode(allDependents)
             userDefaults.set(data, forKey: dependentsKey)
             userDefaults.synchronize()
@@ -130,13 +129,13 @@ class DependentManager: ObservableObject {
     
     func updateDependent(_ dependent: Dependent) -> Bool {
         do {
-            // Load existing dependents
+          
             guard let data = userDefaults.data(forKey: dependentsKey),
                   var allDependents = try? JSONDecoder().decode([Dependent].self, from: data) else {
                 return false
             }
             
-            // Find and update the dependent
+         
             if let index = allDependents.firstIndex(where: { $0.id == dependent.id }) {
                 allDependents[index] = dependent
                 
@@ -195,7 +194,7 @@ class DependentManager: ObservableObject {
         return updateDependent(updatedDependent)
     }
     
-    // MARK: - Helper Methods
+
     
     func getDependents(for userId: UUID) -> [Dependent] {
         if let data = userDefaults.data(forKey: dependentsKey),
@@ -216,7 +215,7 @@ class DependentManager: ObservableObject {
     }
 }
 
-// MARK: - Helper Extensions
+
 extension Dependent {
     init(id: UUID, firstName: String, lastName: String, relationship: String, dateOfBirth: Date, phoneNumber: String, email: String, isActive: Bool, dateAdded: Date, userId: UUID) {
         self.id = id

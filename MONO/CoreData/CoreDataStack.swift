@@ -206,6 +206,10 @@ class CoreDataStack: ObservableObject {
         reminderDate: Date?,
         reminderDayOfMonth: Int32?,
         reminderFrequency: String?,
+    // Optional location parameters
+    locationName: String? = nil,
+    latitude: Double? = nil,
+    longitude: Double? = nil,
         user: UserEntity,
         dependentID: UUID? = nil
     ) -> ExpenseEntity {
@@ -225,6 +229,16 @@ class CoreDataStack: ObservableObject {
         expense.lastReminderSent = nil
         expense.userID = user.id ?? UUID()
         expense.setValue(dependentID, forKey: "dependentID")  // Set the dependent ID using KVC
+        // Set location fields
+        if let locationName = locationName {
+            expense.setValue(locationName, forKey: "locationName")
+        }
+        if let lat = latitude {
+            expense.setValue(lat, forKey: "latitude")
+        }
+        if let lon = longitude {
+            expense.setValue(lon, forKey: "longitude")
+        }
         expense.createdAt = Date()
         expense.updatedAt = Date()
         expense.user = user

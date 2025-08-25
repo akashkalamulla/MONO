@@ -27,9 +27,9 @@ struct ExpenseLocationListView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Controls
+
                 VStack(spacing: 12) {
-                    // Search bar
+                 
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
@@ -39,7 +39,7 @@ struct ExpenseLocationListView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Period selector
+                 
                     Picker("Time Period", selection: $selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
@@ -81,7 +81,7 @@ struct ExpenseLocationListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        // Group by location name
+       
                         ForEach(groupedExpenses.keys.sorted(), id: \.self) { locationName in
                             Section(header: LocationSectionHeader(locationName: locationName, expenses: groupedExpenses[locationName] ?? [])) {
                                 ForEach(groupedExpenses[locationName] ?? [], id: \.id) { expense in
@@ -124,7 +124,7 @@ struct ExpenseLocationListView: View {
             timeFiltered = expenses
         }
         
-        // Apply search filter
+
         if searchText.isEmpty {
             return timeFiltered
         } else {
@@ -149,7 +149,7 @@ struct ExpenseLocationListView: View {
         
         let fetchedExpenses = coreDataStack.fetchExpenses(for: currentUser)
         
-        // Convert to location data
+ 
         expenses = fetchedExpenses.compactMap { expense in
             guard let locationName = expense.value(forKey: "locationName") as? String,
                   !locationName.isEmpty,

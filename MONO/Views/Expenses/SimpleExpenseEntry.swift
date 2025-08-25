@@ -27,16 +27,13 @@ struct SimpleExpenseEntry: View {
     @State private var alertMessage = ""
     @State private var isForDependent: Bool
     @State private var selectedDependentId: UUID?
-    // Location picker state
     @State private var selectedPlacemark: CLPlacemark?
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
     @State private var showMapPicker = false
     @State private var locationName: String = ""
     
-    // Dependency injection for the dependent manager
     var dependentManager = DependentManager()
     
-    // Initialize with default parameters
     init(isForDependent: Bool = false, selectedDependentId: UUID? = nil, dependentManager: DependentManager = DependentManager()) {
         _isForDependent = State(initialValue: isForDependent)
         _selectedDependentId = State(initialValue: selectedDependentId)
@@ -50,7 +47,6 @@ struct SimpleExpenseEntry: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Amount Input
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Amount")
                         .font(.headline)
@@ -68,7 +64,6 @@ struct SimpleExpenseEntry: View {
                     .cornerRadius(12)
                 }
                 
-                // Category Selection
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Category")
                         .font(.headline)
@@ -84,7 +79,6 @@ struct SimpleExpenseEntry: View {
                     .cornerRadius(12)
                 }
                 
-                // Date Selection
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Date")
                         .font(.headline)
@@ -96,7 +90,6 @@ struct SimpleExpenseEntry: View {
                         .cornerRadius(12)
                 }
                 
-                // Recurring Expense Toggle
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Recurring Expense")
@@ -132,7 +125,6 @@ struct SimpleExpenseEntry: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
                 
-                // Payment Reminder Toggle
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Payment Reminder")
@@ -194,8 +186,7 @@ struct SimpleExpenseEntry: View {
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
-                
-                // Description
+            
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Description (Optional)")
                         .font(.headline)
@@ -206,7 +197,6 @@ struct SimpleExpenseEntry: View {
                         .cornerRadius(12)
                 }
 
-                // Location Picker
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Location (Optional)")
@@ -233,7 +223,6 @@ struct SimpleExpenseEntry: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
                 
-                // Associate with Dependent Toggle
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Associate with Dependent")
@@ -277,7 +266,6 @@ struct SimpleExpenseEntry: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
                 
-                // Save Button
                 Button(action: saveExpense) {
                     Text("Save Expense")
                         .font(.headline)
@@ -310,14 +298,12 @@ struct SimpleExpenseEntry: View {
         .sheet(isPresented: $showMapPicker) {
             MapPickerView(region: $region) { placemark in
                 selectedPlacemark = placemark
-                // Prefer a named place, fallback to locality or formatted string
                 locationName = placemark.name ?? placemark.locality ?? "Selected location"
             }
         }
     }
     
     private func saveExpense() {
-        // Validate amount
         guard let amountValue = Double(amount), amountValue > 0 else {
             alertMessage = "Please enter a valid amount"
             showingAlert = true
@@ -330,22 +316,17 @@ struct SimpleExpenseEntry: View {
             return
         }
         
-        // Find the selected category
         let categoryObj = ExpenseCategory.defaultCategories.first { $0.name == selectedCategory } ?? 
                          ExpenseCategory.defaultCategories.last! // Use "Other" as fallback
         
-        // Get frequency if recurring
         let recurrenceFreq: String? = isRecurring ? selectedFrequency.lowercased() : nil
         
-        // Get reminder settings
         let reminderDay: Int32? = reminderFrequency == "Monthly" ? Int32(reminderDayOfMonth) : nil
         let reminderDate = (reminderFrequency == "Once" || reminderFrequency == "Yearly") ? self.reminderDate : nil
         
-        // Create a new expense entity directly
         let context = coreDataStack.context
         let expense = NSEntityDescription.insertNewObject(forEntityName: "ExpenseEntity", into: context)
         
-        // Set basic properties
         expense.setValue(UUID(), forKey: "id")
         expense.setValue(amountValue, forKey: "amount")
         expense.setValue(categoryObj.name, forKey: "category")
@@ -364,11 +345,9 @@ struct SimpleExpenseEntry: View {
         expense.setValue(Date(), forKey: "updatedAt")
         expense.setValue(currentUser, forKey: "user")
         
-        // Set dependent ID if applicable
         if isForDependent && selectedDependentId != nil {
             expense.setValue(selectedDependentId, forKey: "dependentID")
             
-            // Try to set the dependent relationship if possible
             do {
                 let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "DependentEntity")
                 fetchRequest.predicate = NSPredicate(format: "id == %@", selectedDependentId! as CVarArg)
@@ -381,7 +360,6 @@ struct SimpleExpenseEntry: View {
             }
         }
 
-        // Persist selected location fields if available
         if let placemark = selectedPlacemark {
             expense.setValue(placemark.name ?? locationName, forKey: "locationName")
             if let coord = placemark.location?.coordinate {
@@ -392,11 +370,9 @@ struct SimpleExpenseEntry: View {
             expense.setValue(locationName, forKey: "locationName")
         }
         
-        // Save changes
         do {
             try context.save()
             
-            // Create success message
             var message = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved"
             
             if isForDependent && selectedDependentId != nil {
@@ -443,7 +419,6 @@ struct SimpleExpenseEntry: View {
     }
 }
 
-// Enhanced map picker with search functionality
 struct MapPickerView: View {
     @Binding var region: MKCoordinateRegion
     var onSelect: (CLPlacemark) -> Void
@@ -458,7 +433,6 @@ struct MapPickerView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Search bar
                 VStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -477,7 +451,6 @@ struct MapPickerView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
                     
-                    // Search results
                     if !searchResults.isEmpty {
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 8) {
@@ -517,14 +490,12 @@ struct MapPickerView: View {
                     }
                     .edgesIgnoringSafeArea(.bottom)
                     .onTapGesture { location in
-                        // Convert tap location to coordinate (approximate)
                         let coordinate = region.center
                         pinnedCoordinate = coordinate
                         searchResults = []
                         searchText = ""
                     }
 
-                    // Center crosshair (when no pin is placed)
                     if pinnedCoordinate == nil {
                         Image(systemName: "plus")
                             .font(.system(size: 20))
@@ -558,8 +529,8 @@ struct MapPickerView: View {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = searchText
         request.region = MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Sri Lanka center
-            span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0) // Cover most of Sri Lanka
+            center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612),
+            span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
         )
         
         let search = MKLocalSearch(request: request)
@@ -601,7 +572,7 @@ struct MapPickerView: View {
     }
 }
 
-// Helper struct for map annotations
+
 struct PinnedLocation: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D

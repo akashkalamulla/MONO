@@ -31,9 +31,9 @@ struct ExpenseLocationMapView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Controls
+            
                 VStack(spacing: 12) {
-                    // Period selector
+              
                     Picker("Time Period", selection: $selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
@@ -41,8 +41,7 @@ struct ExpenseLocationMapView: View {
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
-                    
-                    // Toggle buttons
+       
                     HStack {
                         Button(action: { showingHeatmap.toggle() }) {
                             HStack {
@@ -109,10 +108,10 @@ struct ExpenseLocationMapView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     if showingListView {
-                        // List view
+                  
                         ExpenseLocationListContentView(expenses: filteredExpenses)
                     } else {
-                        // Map view
+           
                         ZStack {
                             Map(coordinateRegion: $region, 
                                 showsUserLocation: true,
@@ -122,8 +121,7 @@ struct ExpenseLocationMapView: View {
                                 }
                             }
                             .edgesIgnoringSafeArea(.bottom)
-                            
-                            // Heatmap overlay
+                    
                             if showingHeatmap {
                                 HeatmapOverlay(expenses: filteredExpenses)
                                     .allowsHitTesting(false)
@@ -132,7 +130,7 @@ struct ExpenseLocationMapView: View {
                     }
                 }
                 
-                // Bottom stats panel
+         
                 if !expenses.isEmpty {
                     ExpenseLocationStats(expenses: filteredExpenses)
                         .background(Color(UIColor.systemBackground))
@@ -178,7 +176,7 @@ struct ExpenseLocationMapView: View {
         
         let fetchedExpenses = coreDataStack.fetchExpenses(for: currentUser)
         
-        // Convert to location data
+
         expenses = fetchedExpenses.compactMap { expense in
             guard let locationName = expense.value(forKey: "locationName") as? String,
                   !locationName.isEmpty,
@@ -198,7 +196,7 @@ struct ExpenseLocationMapView: View {
             )
         }
         
-        // Update map region to fit all points
+ 
         if !expenses.isEmpty {
             updateMapRegion()
         }
@@ -230,7 +228,7 @@ struct ExpenseLocationMapView: View {
     }
 }
 
-// MARK: - Custom Map Pin
+
 
 struct ExpenseMapPin: View {
     let location: ExpenseLocationData
@@ -285,22 +283,22 @@ struct ExpenseMapPin: View {
     }
 }
 
-// MARK: - Heatmap Overlay
+
 
 struct HeatmapOverlay: View {
     let expenses: [ExpenseLocationData]
     
     var body: some View {
         Canvas { context, size in
-            // Group expenses by location (with some tolerance for nearby locations)
+
             let groupedExpenses = groupNearbyExpenses(expenses)
             
             for group in groupedExpenses {
                 let intensity = calculateIntensity(for: group)
                 let radius = calculateRadius(for: group, maxRadius: 50)
                 
-                // Convert coordinate to screen position (simplified)
-                let centerX = size.width * 0.5 // This is simplified - in real implementation you'd convert lat/lon to screen coordinates
+    
+                let centerX = size.width * 0.5
                 let centerY = size.height * 0.5
                 
                 let gradient = Gradient(colors: [
@@ -327,7 +325,7 @@ struct HeatmapOverlay: View {
             
             remaining.removeAll { expense in
                 let distance = first.coordinate.distance(to: expense.coordinate)
-                if distance < 1000 { // 1km tolerance
+                if distance < 1000 {
                     group.append(expense)
                     return true
                 }
@@ -342,7 +340,7 @@ struct HeatmapOverlay: View {
     
     private func calculateIntensity(for group: [ExpenseLocationData]) -> Double {
         let totalAmount = group.reduce(0) { $0 + $1.amount }
-        return min(totalAmount / 10000, 1.0) // Normalize to 0-1
+        return min(totalAmount / 10000, 1.0)
     }
     
     private func calculateRadius(for group: [ExpenseLocationData], maxRadius: Double) -> Double {
@@ -351,7 +349,6 @@ struct HeatmapOverlay: View {
     }
 }
 
-// MARK: - Statistics Panel
 
 struct ExpenseLocationStats: View {
     let expenses: [ExpenseLocationData]
@@ -407,14 +404,12 @@ struct ExpenseLocationStats: View {
     }
 }
 
-// MARK: - List Content View
 
 struct ExpenseLocationListContentView: View {
     let expenses: [ExpenseLocationData]
     
     var body: some View {
         List {
-            // Group by location name
             ForEach(groupedExpenses.keys.sorted(), id: \.self) { locationName in
                 Section(header: LocationSectionHeader(locationName: locationName, expenses: groupedExpenses[locationName] ?? [])) {
                     ForEach(groupedExpenses[locationName] ?? [], id: \.id) { expense in
@@ -431,14 +426,12 @@ struct ExpenseLocationListContentView: View {
     }
 }
 
-// MARK: - Compact Location Row
 
 struct ExpenseLocationRowCompact: View {
     let expense: ExpenseLocationData
     
     var body: some View {
         HStack(spacing: 12) {
-            // Category icon
             ZStack {
                 Circle()
                     .fill(categoryColor(for: expense.category).opacity(0.2))
@@ -449,7 +442,6 @@ struct ExpenseLocationRowCompact: View {
                     .foregroundColor(categoryColor(for: expense.category))
             }
             
-            // Expense details
             VStack(alignment: .leading, spacing: 2) {
                 Text(expense.category)
                     .font(.subheadline)
@@ -463,7 +455,7 @@ struct ExpenseLocationRowCompact: View {
             
             Spacer()
             
-            // Amount
+        
             Text("Rs. \(String(format: "%.2f", expense.amount))")
                 .font(.subheadline)
                 .fontWeight(.semibold)

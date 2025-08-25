@@ -16,7 +16,7 @@ struct ExpenseListView: View {
     var body: some View {
         NavigationView {
             VStack {
-                // Header with total expenses
+             
                 VStack(spacing: 8) {
                     Text("Total Expenses")
                         .font(.headline)
@@ -33,7 +33,7 @@ struct ExpenseListView: View {
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
-                // Expenses List
+       
                 List {
                     if expenses.isEmpty {
                         Text("No expenses yet")
@@ -89,10 +89,10 @@ struct ExpenseListView: View {
             return
         }
         
-        // Fetch expenses
+    
         expenses = coreDataStack.fetchExpenses(for: currentUser)
         
-        // Calculate total
+   
         totalExpenses = expenses.reduce(0) { $0 + $1.amount }
     }
     
@@ -107,7 +107,7 @@ struct ExpenseListView: View {
     }
 }
 
-// MARK: - Expense Row Item
+
 struct ExpenseRowItem: View {
     let expense: ExpenseEntity
     

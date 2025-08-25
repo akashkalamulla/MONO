@@ -10,7 +10,7 @@ import CoreData
 import CoreLocation
 import UIKit
 
-// MARK: - Shared Data Models
+
 
 struct ExpenseLocationData: Identifiable {
     let id: UUID
@@ -21,7 +21,6 @@ struct ExpenseLocationData: Identifiable {
     let date: Date
 }
 
-// MARK: - Shared Components
 
 struct LocationSectionHeader: View {
     let locationName: String
@@ -60,14 +59,12 @@ struct LocationSectionHeader: View {
     }
 }
 
-// MARK: - Expense Location Row
 
 struct ExpenseLocationRow: View {
     let expense: ExpenseLocationData
     
     var body: some View {
         HStack(spacing: 12) {
-            // Category icon
             ZStack {
                 Circle()
                     .fill(categoryColor(for: expense.category).opacity(0.2))
@@ -78,7 +75,6 @@ struct ExpenseLocationRow: View {
                     .foregroundColor(categoryColor(for: expense.category))
             }
             
-            // Expense details
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.category)
                     .font(.headline)
@@ -88,7 +84,6 @@ struct ExpenseLocationRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                // Coordinates (small text)
                 Text("(\(String(format: "%.4f", expense.coordinate.latitude)), \(String(format: "%.4f", expense.coordinate.longitude)))")
                     .font(.caption2)
                     .foregroundColor(.gray)
@@ -96,7 +91,6 @@ struct ExpenseLocationRow: View {
             
             Spacer()
             
-            // Amount
             VStack(alignment: .trailing, spacing: 2) {
                 Text("Rs. \(String(format: "%.2f", expense.amount))")
                     .font(.headline)
@@ -151,7 +145,6 @@ struct ExpenseLocationRow: View {
     }
 }
 
-// MARK: - Shared Extensions
 
 extension CLLocationCoordinate2D {
     func distance(to coordinate: CLLocationCoordinate2D) -> Double {

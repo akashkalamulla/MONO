@@ -29,7 +29,7 @@ struct SimpleExpenseEntry: View {
     @State private var selectedDependentId: UUID?
     // Location picker state
     @State private var selectedPlacemark: CLPlacemark?
-    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 21.1458, longitude: 79.0882), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
+    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
     @State private var showMapPicker = false
     @State private var locationName: String = ""
     
@@ -443,60 +443,168 @@ struct SimpleExpenseEntry: View {
     }
 }
 
-// Small map picker that returns a CLPlacemark for the map center when user taps Select
+// Enhanced map picker with search functionality
 struct MapPickerView: View {
     @Binding var region: MKCoordinateRegion
     var onSelect: (CLPlacemark) -> Void
     @Environment(\.presentationMode) var presentationMode
     @State private var isResolving = false
+    @State private var searchText = ""
+    @State private var searchResults: [MKMapItem] = []
+    @State private var isSearching = false
+    @State private var pinnedCoordinate: CLLocationCoordinate2D?
     private let geocoder = CLGeocoder()
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                Map(coordinateRegion: $region, showsUserLocation: true)
-                    .edgesIgnoringSafeArea(.all)
-
-                // Center pin
-                Image(systemName: "mappin.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.red)
-                    .offset(y: -20)
-            }
-
-            HStack {
-                Button("Cancel") {
-                    presentationMode.wrappedValue.dismiss()
-                }
-                .padding()
-
-                Spacer()
-
-                if isResolving {
-                    ProgressView()
-                        .padding()
-                } else {
-                    Button("Select Location") {
-                        resolvePlacemark()
+        NavigationView {
+            VStack(spacing: 0) {
+                // Search bar
+                VStack {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        
+                        TextField("Search for a location in Sri Lanka", text: $searchText, onCommit: {
+                            searchLocation()
+                        })
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        
+                        if isSearching {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
                     }
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Search results
+                    if !searchResults.isEmpty {
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 8) {
+                                ForEach(searchResults, id: \.self) { item in
+                                    Button(action: {
+                                        selectSearchResult(item)
+                                    }) {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(item.name ?? "Unknown")
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                            if let address = item.placemark.title {
+                                                Text(address)
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal)
+                                        .background(Color.gray.opacity(0.1))
+                                        .cornerRadius(8)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .frame(maxHeight: 200)
+                    }
+                }
+                .background(Color(UIColor.systemBackground))
+                
+                // Map view
+                ZStack {
+                    Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: pinnedCoordinate != nil ? [PinnedLocation(coordinate: pinnedCoordinate!)] : []) { location in
+                        MapPin(coordinate: location.coordinate, tint: .red)
+                    }
+                    .edgesIgnoringSafeArea(.bottom)
+                    .onTapGesture { location in
+                        // Convert tap location to coordinate (approximate)
+                        let coordinate = region.center
+                        pinnedCoordinate = coordinate
+                        searchResults = []
+                        searchText = ""
+                    }
+
+                    // Center crosshair (when no pin is placed)
+                    if pinnedCoordinate == nil {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20))
+                            .foregroundColor(.red)
+                            .background(Circle().fill(Color.white).frame(width: 30, height: 30))
+                    }
                 }
             }
-            .background(Color(UIColor.systemBackground))
+            .navigationTitle("Select Location")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("Select") {
+                    if let coordinate = pinnedCoordinate {
+                        resolvePlacemark(for: coordinate)
+                    } else {
+                        resolvePlacemark(for: region.center)
+                    }
+                }
+                .disabled(isResolving)
+            )
         }
+    }
+    
+    private func searchLocation() {
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        isSearching = true
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = searchText
+        request.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Sri Lanka center
+            span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0) // Cover most of Sri Lanka
+        )
+        
+        let search = MKLocalSearch(request: request)
+        search.start { response, error in
+            DispatchQueue.main.async {
+                isSearching = false
+                if let response = response {
+                    searchResults = response.mapItems
+                } else {
+                    searchResults = []
+                }
+            }
+        }
+    }
+    
+    private func selectSearchResult(_ item: MKMapItem) {
+        let coordinate = item.placemark.coordinate
+        pinnedCoordinate = coordinate
+        region = MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+        searchResults = []
+        searchText = item.name ?? ""
     }
 
-    private func resolvePlacemark() {
+    private func resolvePlacemark(for coordinate: CLLocationCoordinate2D) {
         isResolving = true
-        let location = CLLocation(latitude: region.center.latitude, longitude: region.center.longitude)
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         geocoder.reverseGeocodeLocation(location) { placemarks, error in
-            isResolving = false
-            if let placemark = placemarks?.first {
-                onSelect(placemark)
+            DispatchQueue.main.async {
+                isResolving = false
+                if let placemark = placemarks?.first {
+                    onSelect(placemark)
+                }
+                presentationMode.wrappedValue.dismiss()
             }
-            presentationMode.wrappedValue.dismiss()
         }
     }
+}
+
+// Helper struct for map annotations
+struct PinnedLocation: Identifiable {
+    let id = UUID()
+    let coordinate: CLLocationCoordinate2D
 }
 
 struct SimpleExpenseEntry_Previews: PreviewProvider {

@@ -32,6 +32,12 @@ struct AuthenticatedView: View {
                     Text("Expenses")
                 }
             
+            ExpenseLocationMapView()
+                .tabItem {
+                    Image(systemName: "map.fill")
+                    Text("Locations")
+                }
+            
             StatisticsView()
                 .tabItem {
                     Image(systemName: "chart.line.uptrend.xyaxis")

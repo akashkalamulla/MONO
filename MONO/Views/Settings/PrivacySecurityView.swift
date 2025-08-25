@@ -217,14 +217,6 @@ struct PrivacySettingsRows: View {
     var body: some View {
         Group {
             PrivacySettingRow(
-                icon: "clock.fill",
-                iconColor: .purple,
-                title: "Auto-Lock",
-                subtitle: "Automatically lock the app",
-                action: { /* Handle auto-lock */ }
-            )
-            
-            PrivacySettingRow(
                 icon: "shield.fill",
                 iconColor: .green,
                 title: "Security Audit",

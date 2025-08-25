@@ -54,7 +54,6 @@ struct AuthenticatedView: View {
     }
 }
 
-// MARK: - Dashboard View
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
@@ -72,7 +71,6 @@ struct DashboardView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Welcome Header
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Welcome back,")
@@ -86,7 +84,6 @@ struct DashboardView: View {
                         
                         Spacer()
                         
-                        // Profile Avatar
                         Circle()
                             .fill(Color.monoPrimary.opacity(0.2))
                             .frame(width: 50, height: 50)
@@ -98,7 +95,6 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Balance Card
                     VStack(spacing: 16) {
                         Text("Total Balance")
                             .font(.system(size: 16))
@@ -140,7 +136,6 @@ struct DashboardView: View {
                     .cornerRadius(20)
                     .padding(.horizontal)
                     
-                    // Dependents Summary (if any)
                     if !dependentManager.dependents.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             if dependentManager.dependents.filter({ $0.isActive }).isEmpty {
@@ -191,7 +186,6 @@ struct DashboardView: View {
                         }
                     }
                     
-                    // Quick Actions
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Quick Actions")
                             .font(.system(size: 18, weight: .semibold))
@@ -271,7 +265,7 @@ struct DashboardView: View {
                         dependentManager: dependentManager
                     )
                 } else {
-                    // Create a test dependent for debugging
+
                     let testDependent = Dependent(
                         firstName: "Test",
                         lastName: "User",
@@ -290,26 +284,21 @@ struct DashboardView: View {
         }
     }
     
-    // Function to load income, expenses and calculate balance
     private func loadFinancialData() {
         guard let currentUserEntity = coreDataStack.fetchCurrentUser() else {
             print("Error: No current user found")
             return
         }
         
-        // Fetch income data
         let incomeEntities = coreDataStack.fetchIncomes(for: currentUserEntity)
         totalIncome = incomeEntities.reduce(0) { $0 + $1.amount }
-        
-        // Fetch expense data
+
         let expenseEntities = coreDataStack.fetchExpenses(for: currentUserEntity)
         totalExpenses = expenseEntities.reduce(0) { $0 + $1.amount }
         
-        // Calculate total balance
         totalBalance = totalIncome - totalExpenses
     }
     
-    // Format currency values
     private func formatCurrency(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
@@ -321,7 +310,6 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Quick Action Button
 struct QuickActionButton: View {
     let icon: String
     let title: String
@@ -349,7 +337,6 @@ struct QuickActionButton: View {
     }
 }
 
-// MARK: - Placeholder Views
 struct TransactionsView: View {
     var body: some View {
         NavigationView {
@@ -404,7 +391,6 @@ struct ProfileView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
-                // Profile Header
                 VStack(spacing: 16) {
                     ZStack {
                         Circle()
@@ -423,7 +409,6 @@ struct ProfileView: View {
                         
                         if let imageData = authManager.currentUser?.profileImageData,
                            let uiImage = UIImage(data: imageData) {
-                            // Display user's profile image
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -431,7 +416,6 @@ struct ProfileView: View {
                                 .clipShape(Circle())
                                 .shadow(color: Color.monoPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
                         } else {
-                            // Default static profile icon
                             Image(systemName: "person.fill")
                                 .font(.system(size: 40, weight: .medium))
                                 .foregroundColor(.white)
@@ -449,7 +433,6 @@ struct ProfileView: View {
                     }
                 }
                 
-                // Profile Options
                 VStack(spacing: 0) {
                     ProfileOption(icon: "person.fill", title: "Edit Profile") {
                         showEditProfile = true
@@ -472,7 +455,6 @@ struct ProfileView: View {
                 .cornerRadius(15)
                 .padding(.horizontal)
                 
-                // Logout Button
                 Button(action: {
                     authManager.logout()
                 }) {
@@ -541,7 +523,6 @@ struct ProfileOption: View {
     }
 }
 
-// MARK: - Dependent Summary Card
 struct DependentSummaryCard: View {
     let dependent: Dependent
     let onTap: () -> Void

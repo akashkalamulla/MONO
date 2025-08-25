@@ -1,11 +1,5 @@
-//
-//  GetStartedView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-15.
-//
-
 import SwiftUI
+import UIKit
 
 struct GetStartedView: View {
     @EnvironmentObject private var authManager: AuthenticationManager
@@ -14,17 +8,14 @@ struct GetStartedView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Top spacer for proper positioning
             Spacer()
                 .frame(height: 80)
             
-            // 3D Character illustration
             Image("getstarted")
                 .resizable()
                 .frame(width: 410, height: 490)
                 .padding(.bottom, 50)
             
-            // Main heading text - two lines
             VStack(spacing: 4) {
                 Text("Spend Smarter")
                     .font(.system(size: 28, weight: .bold))
@@ -38,9 +29,7 @@ struct GetStartedView: View {
             }
             .padding(.bottom, 8)
             
-            // Bottom section with button and login text
             VStack(spacing: 20) {
-                // Get Started button
                 Button(action: {
                     showRegister = true
                 }) {
@@ -54,7 +43,6 @@ struct GetStartedView: View {
                 }
                 .padding(.horizontal, 40)
                 
-                // Already have account text with login link
                 HStack(spacing: 4) {
                     Text("Already Have Account?")
                         .font(.system(size: 14))
@@ -74,7 +62,7 @@ struct GetStartedView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemGray6)) // Light gray background
+        .background(Color(UIColor.systemGray6))
         .ignoresSafeArea()
         .navigationBarHidden(true)
         .sheet(isPresented: $showLogin) {

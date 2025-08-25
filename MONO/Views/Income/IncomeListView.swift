@@ -1,10 +1,3 @@
-//
-//  IncomeListView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-20.
-//
-
 import SwiftUI
 import CoreData
 
@@ -16,7 +9,6 @@ struct IncomeListView: View {
     var body: some View {
         NavigationView {
             VStack {
-                // Header with total income
                 VStack(spacing: 8) {
                     Text("Total Income")
                         .font(.headline)
@@ -95,7 +87,6 @@ struct IncomeRowView: View {
     
     var body: some View {
         HStack {
-            // Category icon
             ZStack {
                 Circle()
                     .fill(Color(hex: income.categoryColor ?? "#4CAF50").opacity(0.15))

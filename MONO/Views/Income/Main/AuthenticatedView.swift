@@ -60,6 +60,7 @@ struct DashboardView: View {
     @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var showIncomeView = false
     @State private var showExpenseView = false
+    @State private var showOCRExpenseView = false
     @State private var showAddDependent = false
     @State private var selectedDependent: Dependent?
     @State private var showDependentDetail = false
@@ -206,10 +207,22 @@ struct DashboardView: View {
                             )
                             
                             QuickActionButton(
+                                icon: "camera.viewfinder",
+                                title: "Scan Receipt",
+                                action: { showOCRExpenseView = true }
+                            )
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack(spacing: 15) {
+                            QuickActionButton(
                                 icon: "person.2.badge.plus",
                                 title: "Add Dependent",
                                 action: { showAddDependent = true }
                             )
+                            
+                            Spacer()
+                            Spacer()
                         }
                         .padding(.horizontal)
                     }
@@ -253,6 +266,11 @@ struct DashboardView: View {
             NavigationView {
                 SimpleExpenseEntry()
             }
+        }
+        .fullScreenCover(isPresented: $showOCRExpenseView, onDismiss: {
+            loadFinancialData()
+        }) {
+            OCRExpenseEntry()
         }
         .sheet(isPresented: $showAddDependent) {
             AddDependentView(dependentManager: dependentManager, authManager: authManager)

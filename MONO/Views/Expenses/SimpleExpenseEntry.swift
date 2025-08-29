@@ -31,6 +31,7 @@ struct SimpleExpenseEntry: View {
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
     @State private var showMapPicker = false
     @State private var locationName: String = ""
+    @State private var showingOCREntry = false
     
     var dependentManager = DependentManager()
     
@@ -47,6 +48,58 @@ struct SimpleExpenseEntry: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // OCR Quick Action Section
+                VStack(spacing: 12) {
+                    Button(action: {
+                        showingOCREntry = true
+                    }) {
+                        HStack {
+                            Image(systemName: "camera.viewfinder")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Scan Receipt")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                
+                                Text("Auto-extract amount & category")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                colors: [Color.blue, Color.blue.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                    }
+                    
+                    HStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                        
+                        Text("OR")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 8)
+                        
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                }
+                
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Amount")
                         .font(.headline)
@@ -300,6 +353,9 @@ struct SimpleExpenseEntry: View {
                 selectedPlacemark = placemark
                 locationName = placemark.name ?? placemark.locality ?? "Selected location"
             }
+        }
+        .fullScreenCover(isPresented: $showingOCREntry) {
+            OCRExpenseEntry()
         }
     }
     

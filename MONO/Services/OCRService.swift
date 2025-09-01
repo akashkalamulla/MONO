@@ -10,11 +10,18 @@ import Vision
 import UIKit
 import SwiftUI
 
+struct ImageQualityMetrics {
+    let brightness: Float
+    let contrast: Float
+    let sharpness: Float
+    let hasGoodLighting: Bool
+}
+
 struct OCRResult {
     let amount: Double?
     let text: String
     let suggestedCategory: String?
-    let confidence: Float
+    var confidence: Float
     let merchant: String?
     let extractedDate: Date?
 }
@@ -26,8 +33,13 @@ class OCRService: ObservableObject {
     
     // MARK: - Public Methods
     func processImage(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
-        // Preprocess image for better accuracy
-        let processedImage = preprocessImage(image) ?? image
+        // Advanced multi-step image processing pipeline
+        
+        // Step 1: Try to detect if this is a receipt and perform perspective correction
+        let perspectiveCorrectedImage = detectReceiptAndCorrectPerspective(image) ?? image
+        
+        // Step 2: Apply image enhancement filters
+        let processedImage = preprocessImage(perspectiveCorrectedImage) ?? perspectiveCorrectedImage
         
         guard let cgImage = processedImage.cgImage else {
             completion(.failure(OCRError.invalidImage))
@@ -48,9 +60,45 @@ class OCRService: ObservableObject {
             self?.processOCRResults(observations, completion: completion)
         }
         
-        // Configure for better accuracy
+        // Configure for maximum accuracy with receipt-specific settings
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
+        
+        // Support multiple languages for international receipts
+        request.recognitionLanguages = ["en-US", "en-GB", "en-AU", "en-CA"]
+        
+        // Add comprehensive custom words for better receipt recognition
+        request.customWords = [
+            // Receipt keywords
+            "receipt", "invoice", "bill", "total", "subtotal", "amount", "tax", "date", "time",
+            "payment", "cash", "credit", "debit", "card", "change", "merchant", "store",
+            "grand total", "net total", "final amount", "balance due", "amount due",
+            
+            // Currency and numbers
+            "Rs", "LKR", "rupees", "cents", "USD", "dollars",
+            
+            // Common Sri Lankan businesses and terms
+            "keells", "cargills", "arpico", "woolworths", "abans", "softlogic", "singer",
+            "damro", "kapruka", "ikman", "daraz", "dialog", "mobitel", "hutch", "airtel",
+            "ceb", "water board", "colombo", "kandy", "galle", "negombo", "mount lavinia",
+            
+            // International chains that might be in Sri Lanka
+            "mcdonalds", "kfc", "subway", "pizza hut", "dominos", "burger king", "starbucks",
+            
+            // Receipt sections
+            "items", "description", "qty", "quantity", "price", "unit price", "discount",
+            "service charge", "vat", "tax", "tip", "gratuity", "delivery", "shipping"
+        ]
+        
+        // Use latest revision for best accuracy
+        if #available(iOS 16.0, *) {
+            request.revision = VNRecognizeTextRequestRevision3
+        } else if #available(iOS 14.0, *) {
+            request.revision = VNRecognizeTextRequestRevision2
+        }
+        
+        // Enable automatic language detection
+        request.automaticallyDetectsLanguage = true
         
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         
@@ -65,29 +113,84 @@ class OCRService: ObservableObject {
     private func processOCRResults(_ observations: [VNRecognizedTextObservation], completion: @escaping (Result<OCRResult, Error>) -> Void) {
         var allText = ""
         var detectedAmounts: [(amount: Double, confidence: Float)] = []
+        var allTopCandidates: [String] = []
+        var allCandidates: [String] = []
         
+        // First pass - collect all potential text
         for observation in observations {
+            // Get top candidate
             guard let topCandidate = observation.topCandidates(1).first else { continue }
-            
             let text = topCandidate.string
             allText += text + "\n"
+            allTopCandidates.append(text)
             
-            // Extract amounts from this text
+            // Also collect alternative text recognitions for important lines
+            let alternatives = observation.topCandidates(3).map { $0.string }
+            allCandidates.append(contentsOf: alternatives)
+            
+            // First pass amount detection from top candidates only
             let amounts = extractAmountsAdvanced(from: text, confidence: topCandidate.confidence)
             detectedAmounts.append(contentsOf: amounts)
         }
         
+        // Second pass - analyze full text for context
+        let combinedText = allText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Look for receipt structural elements to improve confidence
+        let hasReceiptElements = combinedText.range(of: "receipt", options: .caseInsensitive) != nil ||
+                                 combinedText.range(of: "total", options: .caseInsensitive) != nil ||
+                                 combinedText.range(of: "amount", options: .caseInsensitive) != nil ||
+                                 combinedText.range(of: "date", options: .caseInsensitive) != nil ||
+                                 combinedText.range(of: "invoice", options: .caseInsensitive) != nil
+        
+        // Also check alternative candidates for amount patterns
+        for candidate in allCandidates {
+            let altAmounts = extractAmountsAdvanced(from: candidate, 
+                                                   confidence: 0.7) // Lower base confidence for alternatives
+            detectedAmounts.append(contentsOf: altAmounts)
+        }
+        
+        // Boost confidence for amounts that appear in lines with "total" keywords
+        var boostedAmounts: [(amount: Double, confidence: Float)] = []
+        let lines = combinedText.components(separatedBy: .newlines)
+        for line in lines {
+            let lowercaseLine = line.lowercased()
+            if lowercaseLine.contains("total") || 
+               lowercaseLine.contains("amount") || 
+               lowercaseLine.contains("sum") || 
+               lowercaseLine.contains("pay") {
+                
+                // Find any amounts in detectedAmounts that are also in this line
+                for (amount, confidence) in detectedAmounts {
+                    let amountStr = String(format: "%.2f", amount).dropZeros()
+                    if lowercaseLine.contains(amountStr) {
+                        // Boost confidence for amounts in "total" lines
+                        boostedAmounts.append((amount, min(confidence * 1.3, 1.0)))
+                    }
+                }
+            }
+        }
+        detectedAmounts.append(contentsOf: boostedAmounts)
+        
         // Find the most likely amount (highest value with good confidence)
         let bestAmount = findBestAmount(from: detectedAmounts)
-        let categoryResult = categorizeExpenseAdvanced(from: allText)
-        let merchant = extractMerchant(from: allText)
-        let extractedDate = extractDate(from: allText)
+        
+        // Third pass - context-sensitive information extraction
+        let categoryResult = categorizeExpenseAdvanced(from: combinedText)
+        let merchant = extractMerchant(from: combinedText)
+        let extractedDate = extractDate(from: combinedText)
+        
+        // Adjust final confidence based on receipt elements
+        var finalConfidence = bestAmount?.confidence ?? 0.0
+        if hasReceiptElements {
+            finalConfidence = min(finalConfidence * 1.2, 1.0)
+        }
         
         let result = OCRResult(
             amount: bestAmount?.amount,
-            text: allText.trimmingCharacters(in: .whitespacesAndNewlines),
+            text: combinedText,
             suggestedCategory: categoryResult.category,
-            confidence: bestAmount?.confidence ?? 0.0,
+            confidence: finalConfidence,
             merchant: merchant,
             extractedDate: extractedDate
         )
@@ -199,5 +302,23 @@ enum OCRError: Error, LocalizedError {
         case .processingFailed:
             return "Failed to process the image"
         }
+    }
+}
+
+extension String {
+    // Helper method to drop unnecessary zeros from decimal strings
+    func dropZeros() -> String {
+        let decimalSeparator = Locale.current.decimalSeparator ?? "."
+        if self.contains(decimalSeparator) {
+            var result = self
+            while result.hasSuffix("0") {
+                result = String(result.dropLast())
+            }
+            if result.hasSuffix(decimalSeparator) {
+                result = String(result.dropLast())
+            }
+            return result
+        }
+        return self
     }
 }

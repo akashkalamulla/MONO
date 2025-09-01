@@ -41,13 +41,14 @@ class CoreDataStack: ObservableObject {
     
 
     
-    func createUser(firstName: String, lastName: String, email: String, phoneNumber: String?) -> UserEntity {
+    func createUser(firstName: String, lastName: String, email: String, phoneNumber: String?, password: String? = nil) -> UserEntity {
         let user = UserEntity(context: context)
         user.id = UUID()
         user.firstName = firstName
         user.lastName = lastName
         user.email = email
         user.phoneNumber = phoneNumber
+        user.password = password
         user.dateCreated = Date()
         user.isLoggedIn = false
         

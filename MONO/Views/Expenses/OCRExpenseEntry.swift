@@ -309,30 +309,44 @@ struct OCRExpenseEntry: View {
     private func processImageWithOCR(_ image: UIImage) {
         isProcessingOCR = true
         
-        ocrService.processImage(image) { result in
+        // Use the advanced multi-pass OCR processing for better results
+        ocrService.multiPassOCRProcessing(image) { result in
             DispatchQueue.main.async {
                 isProcessingOCR = false
                 
                 switch result {
-                case .success(let ocrResult):
-                    self.ocrResult = ocrResult
+                case .success(let initialResult):
+                    // Validate and potentially improve the OCR result
+                    let validatedResult = self.ocrService.validateOCRResult(initialResult)
+                    self.ocrResult = validatedResult
                     
-                    if let detectedAmount = ocrResult.amount {
+                    if let detectedAmount = validatedResult.amount {
                         self.amount = String(format: "%.2f", detectedAmount)
                     }
                     
-                    if let suggestedCategory = ocrResult.suggestedCategory {
+                    if let suggestedCategory = validatedResult.suggestedCategory {
                         self.selectedCategory = suggestedCategory
                     }
                     
-                    let words = ocrResult.text.components(separatedBy: .whitespacesAndNewlines)
-                    let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
-                    if !firstFewWords.isEmpty {
-                        self.description = firstFewWords
+                    // Use merchant name for description if available
+                    if let merchantName = validatedResult.merchant, !merchantName.isEmpty {
+                        self.description = merchantName
+                    } else {
+                        // Fall back to first few words of recognized text
+                        let words = validatedResult.text.components(separatedBy: .whitespacesAndNewlines)
+                        let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
+                        if !firstFewWords.isEmpty {
+                            self.description = firstFewWords
+                        }
+                    }
+                    
+                    // Set the detected date if available
+                    if let detectedDate = validatedResult.extractedDate {
+                        self.selectedDate = detectedDate
                     }
                     
                 case .failure(let error):
-                    self.alertMessage = "Failed to process image: \(error.localizedDescription)"
+                    self.alertMessage = "Failed to process receipt: \(error.localizedDescription)"
                     self.showingAlert = true
                 }
             }
@@ -353,31 +367,27 @@ struct OCRExpenseEntry: View {
         }
         
         let context = coreDataStack.context
-        let expense = NSEntityDescription.insertNewObject(forEntityName: "ExpenseEntity", into: context)
+        let expense = ExpenseEntity(context: context)
         
-        expense.setValue(UUID(), forKey: "id")
-        expense.setValue(amountValue, forKey: "amount")
-        expense.setValue(selectedCategory, forKey: "category")
-        expense.setValue(description.isEmpty ? nil : description, forKey: "expenseDescription")
-        expense.setValue(selectedDate, forKey: "date")
-        expense.setValue(false, forKey: "isRecurring")
-        expense.setValue(nil, forKey: "recurringFrequency")
-        expense.setValue(false, forKey: "isPaymentReminder")
-        expense.setValue(nil, forKey: "reminderDate")
-        expense.setValue(nil, forKey: "reminderDayOfMonth")
-        expense.setValue(nil, forKey: "reminderFrequency")
-        expense.setValue(false, forKey: "isReminderActive")
-        expense.setValue(nil, forKey: "lastReminderSent")
-        expense.setValue(currentUser.id, forKey: "userID")
-        expense.setValue(Date(), forKey: "createdAt")
-        expense.setValue(Date(), forKey: "updatedAt")
-        expense.setValue(currentUser, forKey: "user")
+        expense.id = UUID()
+        expense.amount = amountValue
+        expense.category = selectedCategory
+        expense.expenseDescription = description.isEmpty ? nil : description
+        expense.date = selectedDate
+        expense.isRecurring = false
+        expense.recurringFrequency = nil
+        expense.isPaymentReminder = false
+        expense.reminderDate = nil
+        expense.reminderDayOfMonth = 0
+        expense.reminderFrequency = nil
+        expense.isReminderActive = false
+        expense.lastReminderSent = nil
+        expense.userID = currentUser.id ?? UUID()
+        expense.createdAt = Date()
+        expense.updatedAt = Date()
+        expense.user = currentUser
         
-
-        if let ocrResult = ocrResult {
-            expense.setValue("OCR", forKey: "source")
-            expense.setValue(ocrResult.confidence, forKey: "ocrConfidence") 
-        }
+        // Note: If you want to track OCR source and confidence, you'll need to add these attributes to your Core Data model first
         
         do {
             try context.save()

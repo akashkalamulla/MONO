@@ -13,14 +13,12 @@ struct OCRExpenseEntry: View {
     @StateObject private var coreDataStack = CoreDataStack.shared
     @StateObject private var ocrService = OCRService.shared
     
-    // OCR Related States
     @State private var selectedImage: UIImage?
     @State private var showingImagePicker = false
     @State private var isProcessingOCR = false
     @State private var ocrResult: OCRResult?
     @State private var showingOCRResults = false
     
-    // Form States
     @State private var amount: String = ""
     @State private var description: String = ""
     @State private var selectedCategory = "Food & Dining"
@@ -47,16 +45,13 @@ struct OCRExpenseEntry: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // OCR Section
                     ocrSection
                     
                     if selectedImage != nil && !isProcessingOCR {
-                        // Preview processed data
                         if let result = ocrResult {
                             processedDataSection(result)
                         }
                         
-                        // Manual form fields for adjustment
                         manualFormSection
                     }
                 }
@@ -98,12 +93,10 @@ struct OCRExpenseEntry: View {
         }
     }
     
-    // MARK: - View Sections
     
     private var ocrSection: some View {
         VStack(spacing: 16) {
             if selectedImage == nil {
-                // Initial state - show capture button
                 VStack(spacing: 20) {
                     Image(systemName: "camera.viewfinder")
                         .font(.system(size: 80))
@@ -138,9 +131,7 @@ struct OCRExpenseEntry: View {
                 }
                 .padding(.vertical, 40)
             } else {
-                // Show selected image and processing state
                 VStack(spacing: 16) {
-                    // Image preview
                     Image(uiImage: selectedImage!)
                         .resizable()
                         .scaledToFit()
@@ -151,7 +142,6 @@ struct OCRExpenseEntry: View {
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
                     
-                    // Processing indicator
                     if isProcessingOCR {
                         HStack {
                             ProgressView()
@@ -165,7 +155,6 @@ struct OCRExpenseEntry: View {
                         .cornerRadius(8)
                     }
                     
-                    // Retake photo button
                     Button(action: {
                         selectedImage = nil
                         ocrResult = nil
@@ -260,7 +249,6 @@ struct OCRExpenseEntry: View {
     
     private var manualFormSection: some View {
         VStack(spacing: 20) {
-            // Amount field (editable)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Amount")
                     .font(.headline)
@@ -279,7 +267,6 @@ struct OCRExpenseEntry: View {
                 .cornerRadius(12)
             }
             
-            // Category picker
             VStack(alignment: .leading, spacing: 8) {
                 Text("Category")
                     .font(.headline)
@@ -295,7 +282,6 @@ struct OCRExpenseEntry: View {
                 .cornerRadius(12)
             }
             
-            // Description field
             VStack(alignment: .leading, spacing: 8) {
                 Text("Description (Optional)")
                     .font(.headline)
@@ -306,7 +292,6 @@ struct OCRExpenseEntry: View {
                     .cornerRadius(12)
             }
             
-            // Date picker
             VStack(alignment: .leading, spacing: 8) {
                 Text("Date")
                     .font(.headline)
@@ -320,7 +305,6 @@ struct OCRExpenseEntry: View {
         }
     }
     
-    // MARK: - Methods
     
     private func processImageWithOCR(_ image: UIImage) {
         isProcessingOCR = true
@@ -333,7 +317,6 @@ struct OCRExpenseEntry: View {
                 case .success(let ocrResult):
                     self.ocrResult = ocrResult
                     
-                    // Auto-fill form with OCR results
                     if let detectedAmount = ocrResult.amount {
                         self.amount = String(format: "%.2f", detectedAmount)
                     }
@@ -342,7 +325,6 @@ struct OCRExpenseEntry: View {
                         self.selectedCategory = suggestedCategory
                     }
                     
-                    // Use first few words of extracted text as description
                     let words = ocrResult.text.components(separatedBy: .whitespacesAndNewlines)
                     let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
                     if !firstFewWords.isEmpty {
@@ -391,10 +373,10 @@ struct OCRExpenseEntry: View {
         expense.setValue(Date(), forKey: "updatedAt")
         expense.setValue(currentUser, forKey: "user")
         
-        // Add OCR metadata if available
+
         if let ocrResult = ocrResult {
-            expense.setValue("OCR", forKey: "source") // Add this field to your Core Data model if needed
-            expense.setValue(ocrResult.confidence, forKey: "ocrConfidence") // Add this field if needed
+            expense.setValue("OCR", forKey: "source")
+            expense.setValue(ocrResult.confidence, forKey: "ocrConfidence") 
         }
         
         do {

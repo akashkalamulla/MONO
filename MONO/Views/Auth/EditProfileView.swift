@@ -25,7 +25,6 @@ struct EditProfileView: View {
         self._firstName = State(initialValue: authManager.currentUser?.firstName ?? "")
         self._lastName = State(initialValue: authManager.currentUser?.lastName ?? "")
         self._phoneNumber = State(initialValue: authManager.currentUser?.phoneNumber ?? "")
-        // Load existing profile image if available
         if let imageData = authManager.currentUser?.profileImageData {
             self._selectedImageData = State(initialValue: imageData)
         }
@@ -35,7 +34,6 @@ struct EditProfileView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 25) {
-                    // Avatars porfile pic
                     VStack(spacing: 16) {
                         Button(action: {
                             showImagePicker = true
@@ -57,7 +55,6 @@ struct EditProfileView: View {
                                 
                                 if let imageData = selectedImageData,
                                    let uiImage = UIImage(data: imageData) {
-                                    // show selected/saved image
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -65,13 +62,12 @@ struct EditProfileView: View {
                                         .clipShape(Circle())
                                         .shadow(color: Color.monoPrimary.opacity(0.3), radius: 10, x: 0, y: 5)
                                 } else {
-                                    // Default static profile icon
+        
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 50, weight: .medium))
                                         .foregroundColor(.white)
                                 }
                                 
-                                // Camera icon overlay
                                 VStack {
                                     Spacer()
                                     HStack {
@@ -104,9 +100,7 @@ struct EditProfileView: View {
                     }
                     .padding(.top, 20)
                     
-                    // Edit Form
                     VStack(spacing: 20) {
-                        // First Name
                         VStack(alignment: .leading, spacing: 8) {
                             Text("First Name")
                                 .font(.system(size: 14, weight: .medium))
@@ -117,7 +111,6 @@ struct EditProfileView: View {
                                 .textInputAutocapitalization(.words)
                         }
                         
-                        // Last Name
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Last Name")
                                 .font(.system(size: 14, weight: .medium))
@@ -214,7 +207,6 @@ struct EditProfileView: View {
     private func saveProfile() {
         isLoading = true
         
-        // Simulate save delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             authManager.updateUserProfile(
                 firstName: firstName,

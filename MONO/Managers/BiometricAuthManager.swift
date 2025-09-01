@@ -21,7 +21,7 @@ class BiometricAuthManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let biometricEnabledKey = "BiometricAuthEnabled"
     
-    // Simulator support for testing
+
     var isSimulator: Bool {
         #if targetEnvironment(simulator)
         return true
@@ -35,17 +35,16 @@ class BiometricAuthManager: ObservableObject {
         loadBiometricPreference()
     }
     
-    // MARK: - Biometric Availability Check
+
     func checkBiometricAvailability() {
         var error: NSError?
         
-        // Check if biometric authentication is available
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             isAvailable = true
             biometricType = context.biometryType
             errorMessage = ""
         } else if isSimulator {
-            // In simulator, even if canEvaluatePolicy fails, we can still simulate Face ID
+    
             print("🔐 [BiometricAuth] Simulator detected - Face ID simulation will be available")
             isAvailable = true
             biometricType = .faceID
@@ -69,7 +68,6 @@ class BiometricAuthManager: ObservableObject {
         }
     }
     
-    // MARK: - Biometric Type Description
     var biometricTypeDescription: String {
         switch biometricType {
         case .faceID:
@@ -100,7 +98,6 @@ class BiometricAuthManager: ObservableObject {
         }
     }
     
-    // MARK: - Enable/Disable Biometric Authentication
     func enableBiometricAuth(completion: @escaping (Bool, String?) -> Void) {
         guard isAvailable else {
             completion(false, errorMessage)
@@ -125,13 +122,10 @@ class BiometricAuthManager: ObservableObject {
         saveBiometricPreference(enabled: false)
     }
     
-    // MARK: - Authentication
     func authenticateUser(reason: String, completion: @escaping (Bool, String?) -> Void) {
-        // Use the real LocalAuthentication framework even in simulator
         let context = LAContext()
         context.localizedFallbackTitle = "Use Passcode"
         
-        // Add simulator-specific logging
         if isSimulator {
             print("🔐 [BiometricAuth] Simulator detected - triggering Face ID authentication")
             print("🔐 [BiometricAuth] Reason: \(reason)")
@@ -160,7 +154,6 @@ class BiometricAuthManager: ObservableObject {
         }
     }
     
-    // MARK: - Error Handling
     private func getErrorMessage(for error: LAError) -> String {
         switch error.code {
         case LAError.userCancel:
@@ -199,7 +192,6 @@ class BiometricAuthManager: ObservableObject {
         }
     }
     
-    // MARK: - UserDefaults Management
     private func saveBiometricPreference(enabled: Bool) {
         userDefaults.set(enabled, forKey: biometricEnabledKey)
     }
@@ -208,7 +200,6 @@ class BiometricAuthManager: ObservableObject {
         isBiometricEnabled = userDefaults.bool(forKey: biometricEnabledKey)
     }
     
-    // MARK: - Quick Authentication Check
     func authenticateForQuickAccess(completion: @escaping (Bool) -> Void) {
         guard isBiometricEnabled && isAvailable else {
             completion(false)

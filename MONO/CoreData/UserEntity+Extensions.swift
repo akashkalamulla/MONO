@@ -10,7 +10,7 @@ import CoreData
 
 extension UserEntity {
     
-    // Convenience initializer
+ 
     convenience init(context: NSManagedObjectContext, firstName: String, lastName: String, email: String, phoneNumber: String? = nil) {
         self.init(context: context)
         self.id = UUID()
@@ -22,7 +22,6 @@ extension UserEntity {
         self.isLoggedIn = false
     }
     
-    // Computed properties with safe unwrapping
     var safeFirstName: String {
         return firstName ?? ""
     }
@@ -47,12 +46,10 @@ extension UserEntity {
         return dateCreated ?? Date()
     }
     
-    // Full name computed property
     var fullName: String {
         return "\(safeFirstName) \(safeLastName)".trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
-    // Validation methods
     var isValidEmail: Bool {
         return safeEmail.contains("@") && !safeEmail.isEmpty
     }
@@ -61,7 +58,7 @@ extension UserEntity {
         return !safeFirstName.isEmpty && !safeLastName.isEmpty
     }
     
-    // Static fetch requests - Core Data auto-generates fetchRequest(), so we use custom names
+
     static func createFetchRequest() -> NSFetchRequest<UserEntity> {
         return NSFetchRequest<UserEntity>(entityName: "UserEntity")
     }

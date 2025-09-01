@@ -26,7 +26,7 @@ struct SimpleIncomeEntry: View {
     
     var body: some View {
         VStack(spacing: 24) {
-            // Amount Input
+        
             VStack(alignment: .leading, spacing: 8) {
                 Text("Amount")
                     .font(.headline)
@@ -44,7 +44,7 @@ struct SimpleIncomeEntry: View {
                     .cornerRadius(12)
                 }
                 
-                // Category Selection
+          
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Category")
                         .font(.headline)
@@ -60,7 +60,7 @@ struct SimpleIncomeEntry: View {
                     .cornerRadius(12)
                 }
                 
-                // Date Selection
+   
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Date")
                         .font(.headline)
@@ -72,7 +72,7 @@ struct SimpleIncomeEntry: View {
                         .cornerRadius(12)
                 }
                 
-                // Recurring Income Toggle
+    
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Recurring Income")
@@ -108,7 +108,7 @@ struct SimpleIncomeEntry: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
                 
-                // Description
+     
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Description (Optional)")
                         .font(.headline)
@@ -121,7 +121,7 @@ struct SimpleIncomeEntry: View {
                 
                 Spacer()
                 
-                // Save Button
+  
                 Button(action: saveIncome) {
                     Text("Save Income")
                         .font(.headline)
@@ -152,32 +152,31 @@ struct SimpleIncomeEntry: View {
     }
     
     private func saveIncome() {
-        // Validate amount
+    
         guard let amountValue = Double(amount), amountValue > 0 else {
             alertMessage = "Please enter a valid amount"
             showingAlert = true
             return
         }
         
-        // Get current user
+
         guard let currentUser = CoreDataStack.shared.fetchCurrentUser() else {
             alertMessage = "No logged in user found"
             showingAlert = true
             return
         }
         
-        // Convert category to IncomeCategory
+     
         let selectedIncomeCategory = IncomeCategory(
             id: UUID().uuidString,
             name: selectedCategory,
-            icon: "dollarsign.circle",  // Default icon
-            color: "#007AFF"  // Default color
+            icon: "dollarsign.circle",
+            color: "#007AFF"
         )
         
-        // Convert frequency string to RecurrenceFrequency string
+
         let recurrenceFrequencyString = isRecurring ? convertStringToFrequency(selectedFrequency) : nil
         
-        // Save to Core Data
         let income = CoreDataStack.shared.createIncome(
             amount: amountValue,
             category: selectedIncomeCategory,
@@ -193,7 +192,6 @@ struct SimpleIncomeEntry: View {
         showingAlert = true
     }
     
-    // Helper function to convert UI string to appropriate frequency value
     private func convertStringToFrequency(_ frequency: String) -> String {
         switch frequency {
         case "Weekly":

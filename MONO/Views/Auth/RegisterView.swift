@@ -271,7 +271,6 @@ struct RegisterView: View {
     }
 }
 
-// MARK: - Password Requirement Component
 struct PasswordRequirement: View {
     let text: String
     let isMet: Bool

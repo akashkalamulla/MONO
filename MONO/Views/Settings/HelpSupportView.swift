@@ -25,13 +25,13 @@ struct HelpSupportView: View {
     var body: some View {
         NavigationView {
             List {
-                // Search Bar
+
                 if !searchText.isEmpty {
                     Section {
                         SearchResultsView(searchText: searchText)
                     }
                 } else {
-                    // Quick Help Section
+  
                     Section {
                         QuickHelpRow(
                             icon: "questionmark.circle.fill",
@@ -57,13 +57,13 @@ struct HelpSupportView: View {
                             title: "Video Tutorials",
                             subtitle: "Watch step-by-step guides"
                         ) {
-                            // Open video tutorials
+                          
                         }
                     } header: {
                         Text("Quick Help")
                     }
                     
-                    // Contact & Support Section
+              
                     Section {
                         QuickHelpRow(
                             icon: "envelope.fill",
@@ -89,13 +89,13 @@ struct HelpSupportView: View {
                             title: "Live Chat",
                             subtitle: "Chat with support agent"
                         ) {
-                            // Open live chat
+                            
                         }
                     } header: {
                         Text("Contact & Support")
                     }
                     
-                    // Feedback Section
+             
                     Section {
                         QuickHelpRow(
                             icon: "exclamationmark.triangle.fill",
@@ -127,7 +127,7 @@ struct HelpSupportView: View {
                         Text("Feedback")
                     }
                     
-                    // Account & Privacy Section
+               
                     Section {
                         QuickHelpRow(
                             icon: "person.circle.fill",
@@ -135,7 +135,7 @@ struct HelpSupportView: View {
                             title: "Account Help",
                             subtitle: "Manage your account settings"
                         ) {
-                            // Navigate to account help
+                         
                         }
                         
                         QuickHelpRow(
@@ -159,7 +159,6 @@ struct HelpSupportView: View {
                         Text("Legal & Privacy")
                     }
                     
-                    // App Information Section
                     Section {
                         AppInfoRow(label: "App Version", value: "1.0.0")
                         AppInfoRow(label: "Build Number", value: "2025.08.23")
@@ -172,7 +171,6 @@ struct HelpSupportView: View {
                             title: "What's New",
                             subtitle: "See the latest features and updates"
                         ) {
-                            // Show what's new
                         }
                     } header: {
                         Text("App Information")
@@ -218,7 +216,7 @@ struct HelpSupportView: View {
         }
     }
     
-    // MARK: - Helper Methods
+
     private func callSupport() {
         let phoneNumber = "1-800-MONO-APP"
         guard let phoneURL = URL(string: "tel://18006666277") else {
@@ -253,7 +251,7 @@ struct HelpSupportView: View {
     }
 }
 
-// MARK: - Quick Help Row
+
 struct QuickHelpRow: View {
     let icon: String
     let iconColor: Color
@@ -297,7 +295,7 @@ struct QuickHelpRow: View {
     }
 }
 
-// MARK: - App Info Row
+
 struct AppInfoRow: View {
     let label: String
     let value: String
@@ -318,7 +316,7 @@ struct AppInfoRow: View {
     }
 }
 
-// MARK: - Search Results View
+
 struct SearchResultsView: View {
     let searchText: String
     
@@ -328,7 +326,6 @@ struct SearchResultsView: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.primary)
             
-            // Mock search results
             ForEach(mockSearchResults(for: searchText), id: \.self) { result in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(result.title)
@@ -367,7 +364,6 @@ struct SearchResult: Hashable {
     let snippet: String
 }
 
-// MARK: - FAQ View
 struct FAQView: View {
     @Environment(\.dismiss) private var dismiss
     
@@ -461,7 +457,6 @@ struct FAQItemView: View {
     }
 }
 
-// MARK: - Contact Support View
 struct ContactSupportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedCategory = "General"
@@ -549,7 +544,6 @@ struct ContactSupportView: View {
     private func submitSupportRequest() {
         isLoading = true
         
-        // Simulate API call
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isLoading = false
             alertMessage = "Your support request has been sent successfully. We'll get back to you within 24 hours."
@@ -558,7 +552,6 @@ struct ContactSupportView: View {
     }
 }
 
-// MARK: - User Guide View
 struct UserGuideView: View {
     @Environment(\.dismiss) private var dismiss
     
@@ -633,7 +626,6 @@ struct GuideItemView: View {
     
     var body: some View {
         Button(action: {
-            // Navigate to detailed guide
         }) {
             HStack(spacing: 16) {
                 Image(systemName: item.icon)
@@ -663,7 +655,6 @@ struct GuideItemView: View {
     }
 }
 
-// MARK: - Report Bug View
 struct ReportBugView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var bugTitle = ""
@@ -771,7 +762,6 @@ struct ReportBugView: View {
     private func submitBugReport() {
         isLoading = true
         
-        // Simulate API call
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isLoading = false
             alertMessage = "Your bug report has been submitted successfully. Thank you for helping us improve MONO!"
@@ -780,7 +770,6 @@ struct ReportBugView: View {
     }
 }
 
-// MARK: - Feature Request View
 struct FeatureRequestView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var featureTitle = ""
@@ -871,7 +860,6 @@ struct FeatureRequestView: View {
     private func submitFeatureRequest() {
         isLoading = true
         
-        // Simulate API call
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isLoading = false
             alertMessage = "Your feature request has been submitted successfully. We'll consider it for future updates!"
@@ -880,7 +868,6 @@ struct FeatureRequestView: View {
     }
 }
 
-// MARK: - Privacy Policy View
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) private var dismiss
     
@@ -951,7 +938,6 @@ struct PrivacySection: View {
     }
 }
 
-// MARK: - Terms of Service View
 struct TermsOfServiceView: View {
     @Environment(\.dismiss) private var dismiss
     

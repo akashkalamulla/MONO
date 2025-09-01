@@ -9,20 +9,17 @@ struct SplashView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background
                 Color.white
                     .ignoresSafeArea()
                 
                 VStack(spacing: 40) {
                     Spacer()
                     
-                    // MONO Logo Text
                     Text("mono")
                         .font(.system(size: 48, weight: .medium, design: .default))
                         .foregroundColor(.monoPrimary)
-                        .tracking(2) // Letter spacing
+                        .tracking(2)
                     
-                    // Loading Indicator
                     if isLoading {
                         LoadingIndicator()
                             .frame(width: 30, height: 30)
@@ -34,17 +31,13 @@ struct SplashView: View {
             }
         }
         .onAppear {
-            // Simulate loading time
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     isLoading = false
                     
-                    // Check if user needs to see get started or login
                     if authManager.currentUser != nil {
-                        // User exists but not authenticated - show login
                         showLogin = true
                     } else {
-                        // No user - show get started
                         showGetStarted = true
                     }
                 }

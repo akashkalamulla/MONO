@@ -1,10 +1,3 @@
-//
-//  PrivacySecurityView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-22.
-//
-
 import SwiftUI
 
 struct PrivacySecurityView: View {
@@ -17,7 +10,6 @@ struct PrivacySecurityView: View {
     var body: some View {
         NavigationView {
             List {
-                // Biometric Authentication Section
                 Section {
                     BiometricAuthenticationRow()
                 } header: {
@@ -39,7 +31,6 @@ struct PrivacySecurityView: View {
                     }
                 }
                 
-                // Password Security Section
                 Section {
                     PasswordSecurityRow()
                 } header: {
@@ -48,7 +39,6 @@ struct PrivacySecurityView: View {
                     Text("Keep your account secure by using a strong password.")
                 }
                 
-                // Privacy Settings Section
                 Section {
                     PrivacySettingsRows()
                 } header: {
@@ -81,7 +71,6 @@ struct PrivacySecurityView: View {
     }
 }
 
-// MARK: - Biometric Authentication Row
 struct BiometricAuthenticationRow: View {
     @StateObject private var biometricManager = BiometricAuthManager.shared
     @State private var showingAlert = false
@@ -90,7 +79,6 @@ struct BiometricAuthenticationRow: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Biometric Icon
             ZStack {
                 Circle()
                     .fill(biometricManager.isAvailable ? Color.monoPrimary.opacity(0.1) : Color.gray.opacity(0.1))
@@ -145,7 +133,6 @@ struct BiometricAuthenticationRow: View {
         isToggleEnabled = false
         
         if enabled {
-            // Enable biometric authentication
             biometricManager.enableBiometricAuth { success, error in
                 DispatchQueue.main.async {
                     isToggleEnabled = true
@@ -159,7 +146,6 @@ struct BiometricAuthenticationRow: View {
                 }
             }
         } else {
-            // Disable biometric authentication
             biometricManager.disableBiometricAuth()
             alertMessage = "\(biometricManager.biometricTypeDescription) has been disabled."
             showingAlert = true
@@ -168,7 +154,6 @@ struct BiometricAuthenticationRow: View {
     }
 }
 
-// MARK: - Password Security Row
 struct PasswordSecurityRow: View {
     @State private var showingPasswordUpdate = false
     
@@ -212,7 +197,6 @@ struct PasswordSecurityRow: View {
     }
 }
 
-// MARK: - Privacy Settings Rows
 struct PrivacySettingsRows: View {
     var body: some View {
         Group {
@@ -221,7 +205,7 @@ struct PrivacySettingsRows: View {
                 iconColor: .green,
                 title: "Security Audit",
                 subtitle: "Review security settings",
-                action: { /* Handle security audit */ }
+                action: {  }
             )
         }
     }

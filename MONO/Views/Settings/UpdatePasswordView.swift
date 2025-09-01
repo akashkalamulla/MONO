@@ -1,10 +1,3 @@
-//
-//  UpdatePasswordView.swift
-//  MONO
-//
-//  Created by Akash01 on 2025-08-22.
-//
-
 import SwiftUI
 import UIKit
 
@@ -25,7 +18,6 @@ struct UpdatePasswordView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
                     VStack(spacing: 12) {
                         Image(systemName: "lock.shield.fill")
                             .font(.system(size: 50))
@@ -42,9 +34,7 @@ struct UpdatePasswordView: View {
                     }
                     .padding(.top, 20)
                     
-                    // Password Fields
                     VStack(spacing: 20) {
-                        // Current Password
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Current Password")
                                 .font(.system(size: 16, weight: .medium))
@@ -69,7 +59,6 @@ struct UpdatePasswordView: View {
                             .cornerRadius(12)
                         }
                         
-                        // New Password
                         VStack(alignment: .leading, spacing: 8) {
                             Text("New Password")
                                 .font(.system(size: 16, weight: .medium))
@@ -93,11 +82,9 @@ struct UpdatePasswordView: View {
                             .background(Color(UIColor.systemGray6))
                             .cornerRadius(12)
                             
-                            // Password Strength Indicator
                             PasswordStrengthIndicator(password: newPassword)
                         }
                         
-                        // Confirm Password
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Confirm New Password")
                                 .font(.system(size: 16, weight: .medium))
@@ -121,7 +108,6 @@ struct UpdatePasswordView: View {
                             .background(Color(UIColor.systemGray6))
                             .cornerRadius(12)
                             
-                            // Password Match Indicator
                             if !confirmPassword.isEmpty {
                                 HStack {
                                     Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -136,7 +122,6 @@ struct UpdatePasswordView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Update Button
                     Button(action: updatePassword) {
                         HStack {
                             if isLoading {
@@ -181,7 +166,6 @@ struct UpdatePasswordView: View {
         }
     }
     
-    // MARK: - Computed Properties
     private var passwordsMatch: Bool {
         return newPassword == confirmPassword && !confirmPassword.isEmpty
     }
@@ -194,33 +178,22 @@ struct UpdatePasswordView: View {
                isPasswordStrong(newPassword)
     }
     
-    // MARK: - Password Validation
     private func isPasswordStrong(_ password: String) -> Bool {
-        // Minimum 8 characters, at least one uppercase, one lowercase, one number
         let passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$"
         let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
         return passwordPredicate.evaluate(with: password)
     }
     
-    // MARK: - Update Password
     private func updatePassword() {
         isLoading = true
         
-        // Simulate API call - replace with actual implementation
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
             
-            // Here you would typically:
-            // 1. Verify current password
-            // 2. Update password in your backend/database
-            // 3. Handle success/error responses
-            
-            // For now, simulate success
             alertTitle = "Success"
             alertMessage = "Your password has been updated successfully."
             showAlert = true
             
-            // Clear form
             currentPassword = ""
             newPassword = ""
             confirmPassword = ""
@@ -228,7 +201,6 @@ struct UpdatePasswordView: View {
     }
 }
 
-// MARK: - Password Strength Indicator
 struct PasswordStrengthIndicator: View {
     let password: String
     
@@ -272,7 +244,6 @@ struct PasswordStrengthIndicator: View {
                     .font(.system(size: 12))
                     .foregroundColor(strength.color)
                 
-                // Requirements
                 VStack(alignment: .leading, spacing: 4) {
                     RequirementRow(met: password.count >= 8, text: "At least 8 characters")
                     RequirementRow(met: hasUppercase, text: "One uppercase letter")

@@ -8,14 +8,12 @@
 import SwiftUI
 
 extension Color {
-    // Brand Colors
-    static let monoPrimary = Color(red: 0.2, green: 0.6, blue: 0.6) // Teal
-    static let monoSecondary = Color(red: 0.15, green: 0.45, blue: 0.45) // Darker teal
-    static let monoBackground = Color(red: 0.98, green: 0.98, blue: 0.98) // Light gray
-    static let monoText = Color(red: 0.2, green: 0.2, blue: 0.2) // Dark gray
-    static let monoTextLight = Color(red: 0.6, green: 0.6, blue: 0.6) // Light gray
-    
-    // Hex color initializer
+    static let monoPrimary = Color(red: 0.2, green: 0.6, blue: 0.6)
+    static let monoSecondary = Color(red: 0.15, green: 0.45, blue: 0.45)
+    static let monoBackground = Color(red: 0.98, green: 0.98, blue: 0.98)
+    static let monoText = Color(red: 0.2, green: 0.2, blue: 0.2)
+    static let monoTextLight = Color(red: 0.6, green: 0.6, blue: 0.6)
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0

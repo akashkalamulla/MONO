@@ -9,14 +9,13 @@ import Foundation
 import CoreData
 import SwiftUI
 
-// MARK: - Income Category Model
+
 struct IncomeCategory: Identifiable, Codable {
     let id: String
     let name: String
     let icon: String
-    let color: String // Store as hex string for Core Data compatibility
+    let color: String
     
-    // Add this computed property for SwiftUI Color
     var swiftUIColor: Color {
         return Color(hex: color)
     }
@@ -32,7 +31,6 @@ struct IncomeCategory: Identifiable, Codable {
     ]
 }
 
-// MARK: - Recurrence Frequency Enum
 enum RecurrenceFrequency: String, CaseIterable, Codable {
     case weekly = "weekly"
     case biweekly = "biweekly"
@@ -53,7 +51,6 @@ enum RecurrenceFrequency: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - Income Model (for Core Data)
 struct IncomeModel: Identifiable {
     let id: UUID
     let amount: Double

@@ -13,7 +13,6 @@ struct LoginView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 30) {
-                    // Header
                     VStack(spacing: 8) {
                         Text("Welcome Back")
                             .font(.system(size: 32, weight: .bold))
@@ -80,7 +79,6 @@ struct LoginView: View {
                         }
                     }
                     
-                    // Login Form
                     VStack(spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
@@ -205,7 +203,6 @@ struct LoginView: View {
         !email.isEmpty && email.contains("@") && password.count >= 6
     }
     
-    // MARK: - Face ID Authentication
     private func authenticateWithFaceID() {
         print("🔐 [LoginView] Face ID button tapped")
         
@@ -224,7 +221,6 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Custom Text Field Style
 struct CustomTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration

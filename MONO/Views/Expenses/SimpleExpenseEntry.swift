@@ -48,7 +48,7 @@ struct SimpleExpenseEntry: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // OCR Quick Action Section
+    
                 VStack(spacing: 12) {
                     Button(action: {
                         showingOCREntry = true

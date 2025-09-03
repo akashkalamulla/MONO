@@ -182,6 +182,12 @@ extension OCRService {
             let _ = trimmedLine.lowercased() // We'll use this for pattern matching below
             
             guard trimmedLine.count > 3 else { continue }
+
+            // Quick heuristics: skip lines that are likely phone numbers or dates
+            if containsPhoneOrDate(trimmedLine) { continue }
+            let digitCount = trimmedLine.filter { $0.isNumber }.count
+            // If a line has many digits but no decimal point, it's likely a phone/serial number, not an amount
+            if digitCount >= 7 && !trimmedLine.contains(".") { continue }
             
             // Much more comprehensive patterns for amount detection with weighted confidence
             let patterns = [
@@ -242,6 +248,24 @@ extension OCRService {
         }
         
         return amounts
+    }
+
+    // Use NSDataDetector to quickly detect phone numbers or dates in a line
+    func containsPhoneOrDate(_ text: String) -> Bool {
+        do {
+            let types = NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.date.rawValue
+            let detector = try NSDataDetector(types: types)
+            let matches = detector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+            for match in matches {
+                if match.resultType == .phoneNumber || match.resultType == .date {
+                    return true
+                }
+            }
+        } catch {
+            // If detector fails, don't block processing
+            return false
+        }
+        return false
     }
     
     func categorizeExpenseAdvanced(from text: String) -> (category: String?, confidence: Float) {

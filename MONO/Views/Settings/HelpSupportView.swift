@@ -17,6 +17,7 @@ struct HelpSupportView: View {
     @State private var showingFeatureRequest = false
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
+    @State private var showingVideoTutorials = false
     @State private var showingMailComposer = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
@@ -57,7 +58,7 @@ struct HelpSupportView: View {
                             title: "Video Tutorials",
                             subtitle: "Watch step-by-step guides"
                         ) {
-                          
+                            showingVideoTutorials = true
                         }
                     } header: {
                         Text("Quick Help")
@@ -208,6 +209,9 @@ struct HelpSupportView: View {
         }
         .sheet(isPresented: $showingTermsOfService) {
             TermsOfServiceView()
+        }
+        .sheet(isPresented: $showingVideoTutorials) {
+            VideoTutorialsView()
         }
         .alert("Support", isPresented: $showingAlert) {
             Button("OK") { }
@@ -624,9 +628,27 @@ struct GuideItem {
 struct GuideItemView: View {
     let item: GuideItem
     
+    private var destination: AnyView {
+        switch item.title {
+        case "Getting Started":
+            return AnyView(GettingStartedView())
+        case "Managing Income":
+            return AnyView(ManagingIncomeView())
+        case "Tracking Expenses":
+            return AnyView(TrackingExpensesView())
+        case "Adding Dependents":
+            return AnyView(AddingDependentsView())
+        case "Security Features":
+            return AnyView(SecurityFeaturesView())
+        case "Reports & Statistics":
+            return AnyView(ReportsStatisticsView())
+        default:
+            return AnyView(EmptyView())
+        }
+    }
+    
     var body: some View {
-        Button(action: {
-        }) {
+        NavigationLink(destination: destination) {
             HStack(spacing: 16) {
                 Image(systemName: item.icon)
                     .font(.system(size: 24))
@@ -644,10 +666,6 @@ struct GuideItemView: View {
                 }
                 
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
             }
             .padding(.vertical, 4)
         }

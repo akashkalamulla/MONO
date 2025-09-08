@@ -130,7 +130,13 @@ class OCRService: ObservableObject {
             
             // First pass amount detection from top candidates only
             let amounts = extractAmountsAdvanced(from: text, confidence: topCandidate.confidence)
-            detectedAmounts.append(contentsOf: amounts)
+            // Apply a spatial/keyword-based boost to amounts found in likely total regions
+            for amt in amounts {
+                var adjustedConfidence = amt.confidence
+                let boost = spatialConfidenceBoost(for: observation, containing: text)
+                adjustedConfidence = min(adjustedConfidence * boost, 1.0)
+                detectedAmounts.append((amount: amt.amount, confidence: adjustedConfidence))
+            }
         }
         
         // Second pass - analyze full text for context
@@ -244,6 +250,33 @@ class OCRService: ObservableObject {
         } else {
             return sortedAmounts.first
         }
+    }
+
+    // Boost confidence for amounts found in likely total regions or lines containing 'total'-like keywords
+    private func spatialConfidenceBoost(for observation: VNRecognizedTextObservation, containing text: String) -> Float {
+        var boost: Float = 1.0
+
+        // If the text line contains explicit total keywords, give a larger boost
+        let lower = text.lowercased()
+        let totalKeywords = ["total", "grand total", "amount due", "amount payable", "net total", "final amount", "balance due", "to pay", "payable"]
+        for kw in totalKeywords {
+            if lower.contains(kw) {
+                boost *= 1.4
+                break
+            }
+        }
+
+        // Spatial bias: observations near the bottom-right of the image are more likely to be totals
+        // VNRectangle coordinates are normalized with origin at bottom-left in Vision
+        let box = observation.boundingBox
+        // bottom (y) close to 0, right (x) close to 1
+        let yBoost = Float(1.0 + max(0.0, (0.4 - box.minY))) // boost for lines in lower 40%
+        let xBoost = Float(1.0 + max(0.0, (box.maxX - 0.5)))   // boost for lines in right half
+
+        // Combine spatial boosts conservatively
+        boost *= min(1.0 + ((yBoost - 1.0) + (xBoost - 1.0)) * 0.6, 1.6)
+
+        return boost
     }
     
     private func categorizeExpense(from text: String) -> String? {

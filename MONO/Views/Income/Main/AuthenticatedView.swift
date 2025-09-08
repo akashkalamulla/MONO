@@ -405,6 +405,7 @@ struct ProfileView: View {
     @State private var showDebugView = false
     @State private var showPrivacySecurity = false
     @State private var showHelpSupport = false
+    @State private var showBackupView = false
     
     var body: some View {
         NavigationView {
@@ -462,6 +463,9 @@ struct ProfileView: View {
                     ProfileOption(icon: "questionmark.circle.fill", title: "Help & Support") {
                         showHelpSupport = true
                     }
+                    ProfileOption(icon: "arrow.clockwise", title: "Backup & Sync") {
+                        showBackupView = true
+                    }
                     
                     #if DEBUG
                     ProfileOption(icon: "hammer.fill", title: "Debug Core Data") {
@@ -507,6 +511,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showHelpSupport) {
             HelpSupportView()
+        }
+        .sheet(isPresented: $showBackupView) {
+            BackupView(userEmail: authManager.currentUser?.email ?? "user@example.com")
         }
     }
 }

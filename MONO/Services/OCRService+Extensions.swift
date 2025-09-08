@@ -6,6 +6,38 @@ import CoreImage.CIFilterBuiltins
 
 extension OCRService {
     
+    // Process and save OCR result to backup
+    func processAndSaveToBackup(_ image: UIImage, userEmail: String, completion: @escaping (Result<OCRResult, Error>) -> Void) {
+        multiPassOCRProcessing(image) { result in
+            switch result {
+            case .success(let ocrResult):
+                // Save to backup service
+                BackupService.shared.saveOCRResult(
+                    amount: ocrResult.amount,
+                    text: ocrResult.text,
+                    category: ocrResult.suggestedCategory,
+                    confidence: ocrResult.confidence,
+                    merchant: ocrResult.merchant,
+                    date: ocrResult.extractedDate,
+                    userEmail: userEmail
+                )
+                completion(.success(ocrResult))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    // Get all saved OCR results for a user
+    func getSavedOCRResults(for userEmail: String) -> [OCRBackupRecord] {
+        return BackupService.shared.getOCRRecords(for: userEmail)
+    }
+    
+    // Delete a saved OCR result
+    func deleteSavedOCRResult(id: String) {
+        BackupService.shared.deleteOCRRecord(id: id)
+    }
+    
     // Analyze image quality and choose optimal preprocessing
     func analyzeImageQuality(_ image: UIImage) -> ImageQualityMetrics {
         guard let cgImage = image.cgImage else {

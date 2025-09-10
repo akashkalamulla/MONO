@@ -13,6 +13,12 @@ extension Color {
     static let monoBackground = Color(red: 0.98, green: 0.98, blue: 0.98)
     static let monoText = Color(red: 0.2, green: 0.2, blue: 0.2)
     static let monoTextLight = Color(red: 0.6, green: 0.6, blue: 0.6)
+    static let monoAccent = Color(red: 0.0, green: 0.5, blue: 1.0)
+    static let monoCardBackground = Color.white
+    static let monoShadow = Color.black.opacity(0.1)
+    static let monoHeaderText = monoPrimary
+    static let monoExpenseAmount = monoAccent
+    static let monoSeparator = Color(red: 0.9, green: 0.9, blue: 0.9)
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct DependentsView: View {
     @ObservedObject var dependentManager: DependentManager
@@ -133,9 +134,12 @@ struct DependentRowView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showingDetail) {
-            Text("Dependent Details Coming Soon")
-                .font(.headline)
-                .padding()
+            NavigationView {
+                DependentDetailView(
+                    dependent: dependent,
+                    dependentManager: dependentManager
+                )
+            }
         }
     }
 }
@@ -210,11 +214,8 @@ struct SearchBar: View {
 }
 
 #Preview {
-    let authManager = AuthenticationManager()
-    authManager.currentUser = User(firstName: "John", lastName: "Doe", email: "john@example.com")
-    authManager.isAuthenticated = true
-    
-    let dependentManager = DependentManager()
-    
-    return DependentsView(dependentManager: dependentManager, authManager: authManager)
+    NavigationView {
+        Text("DependentsView Preview")
+            .foregroundColor(.monoPrimary)
+    }
 }

@@ -31,7 +31,7 @@ struct DependentExpensesPlaceholderView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 80, height: 80)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary)
                     
                     Text("No Expenses Found")
                         .font(.headline)
@@ -48,7 +48,7 @@ struct DependentExpensesPlaceholderView: View {
                             .foregroundColor(.white)
                             .frame(height: 50)
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            .background(Color.monoPrimary)
                             .cornerRadius(25)
                             .padding(.horizontal)
                     }
@@ -57,7 +57,8 @@ struct DependentExpensesPlaceholderView: View {
                 .padding()
             } else {
                 List {
-                    Section(header: Text("Expenses")) {
+                    Section(header: Text("Expenses")
+                        .foregroundColor(.monoHeaderText)) {
                         ForEach(0..<expenses.count, id: \.self) { index in
                             ExpenseRowView(expense: expenses[index])
                         }
@@ -67,13 +68,20 @@ struct DependentExpensesPlaceholderView: View {
             }
         }
         .navigationTitle("\(dependentName)'s Expenses")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadExpenses()
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: ExpenseEntryForDependent(dependentID: dependentID, dependentName: dependentName)) {
-                    Image(systemName: "plus")
+            ToolbarItem(placement: .principal) {
+                Text("\(dependentName)'s Expenses")
+                    .font(.headline)
+                    .foregroundColor(.black)
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                NavigationLink(destination: {}) {
+                    Text("Details")
+                        .foregroundColor(.monoPrimary)
                 }
             }
         }
@@ -95,17 +103,18 @@ struct ExpenseRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.value(forKey: "category") as? String ?? "Uncategorized")
                     .font(.headline)
+                    .foregroundColor(.black)
                 
                 if let description = expense.value(forKey: "expenseDescription") as? String, !description.isEmpty {
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary.opacity(0.8))
                 }
                 
                 if let date = expense.value(forKey: "date") as? Date {
                     Text(formatDate(date))
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary.opacity(0.6))
                 }
             }
             
@@ -114,7 +123,7 @@ struct ExpenseRowView: View {
             if let amount = expense.value(forKey: "amount") as? Double {
                 Text("Rs. \(String(format: "%.2f", amount))")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.monoPrimary)
             }
         }
         .padding(.vertical, 8)

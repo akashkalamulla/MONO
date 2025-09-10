@@ -21,22 +21,22 @@ struct DependentDetailView: View {
                 VStack(spacing: 16) {
                     ZStack {
                         Circle()
-                            .fill(dependent.isActive ? Color.blue.opacity(0.2) : Color.gray.opacity(0.3))
+                            .fill(dependent.isActive ? Color(red: 0.2, green: 0.6, blue: 0.6).opacity(0.2) : Color.gray.opacity(0.3))
                             .frame(width: 100, height: 100)
                         
                         Text(dependent.initials)
                             .font(.system(size: 36, weight: .bold))
-                            .foregroundColor(dependent.isActive ? .blue : .gray)
+                            .foregroundColor(dependent.isActive ? Color(red: 0.15, green: 0.45, blue: 0.45) : .gray)
                     }
                     
                     VStack(spacing: 4) {
                         Text(dependent.fullName)
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.monoPrimary)
                         
                         Text(dependent.relationship)
                             .font(.system(size: 16))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.monoSecondary)
                         
                         if !dependent.isActive {
                             Text("Inactive")
@@ -82,7 +82,7 @@ struct DependentDetailView: View {
                             NavigationLink(destination: DependentExpensesPlaceholderView(dependentName: dependent.fullName, dependentID: dependent.id)) {
                                 Text("View All Expenses")
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
                                     .padding(.top, 8)
                             }
                         }
@@ -100,7 +100,7 @@ struct DependentDetailView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.blue)
+                        .background(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
                         .cornerRadius(25)
                     }
                     
@@ -110,14 +110,14 @@ struct DependentDetailView: View {
                             Text(dependent.isActive ? "Deactivate" : "Activate")
                         }
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(Color.white)
                         .cornerRadius(25)
                         .overlay(
                             RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.blue, lineWidth: 1)
+                                .stroke(Color(red: 0.2, green: 0.6, blue: 0.6), lineWidth: 1) // monoPrimary color
                         )
                     }
                     
@@ -251,7 +251,7 @@ struct InfoCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.blue)
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
             
             content
         }
@@ -278,7 +278,7 @@ struct InfoRow: View {
             
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
         }
     }
 }

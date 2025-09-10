@@ -64,6 +64,7 @@ struct DashboardView: View {
     @State private var showAddDependent = false
     @State private var selectedDependent: Dependent?
     @State private var showDependentDetail = false
+    @State private var showAllDependents = false
     @State private var totalIncome: Double = 0
     @State private var totalExpenses: Double = 0
     @State private var totalBalance: Double = 0
@@ -183,6 +184,21 @@ struct DashboardView: View {
                                     }
                                     .padding(.horizontal)
                                 }
+                                
+                                Button(action: {
+                                    showAllDependents = true
+                                }) {
+                                    HStack {
+                                        Text("See All Dependents")
+                                            .font(.system(size: 14, weight: .medium))
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12))
+                                    }
+                                    .foregroundColor(.monoPrimary)
+                                    .padding(.horizontal)
+                                    .padding(.top, 8)
+                                }
                             }
                         }
                     }
@@ -298,6 +314,11 @@ struct DashboardView: View {
                         dependentManager: dependentManager
                     )
                 }
+            }
+        }
+        .sheet(isPresented: $showAllDependents) {
+            NavigationView {
+                DependentsView(dependentManager: dependentManager, authManager: authManager)
             }
         }
     }

@@ -20,16 +20,16 @@ struct ExpenseListView: View {
                 VStack(spacing: 8) {
                     Text("Total Expenses")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary)
                     
                     Text(formatCurrency(totalExpenses))
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.red)
+                        .foregroundColor(.monoPrimary)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.gray.opacity(0.1))
+                .background(Color.monoBackground)
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
@@ -116,23 +116,24 @@ struct ExpenseRowItem: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.category ?? "Uncategorized")
                     .font(.headline)
+                    .foregroundColor(.black)
 
                 if let description = expense.expenseDescription, !description.isEmpty {
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary.opacity(0.8))
                 }
 
                 if let location = expense.value(forKey: "locationName") as? String, !location.isEmpty {
                     Text(location)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.monoSecondary.opacity(0.7))
                 }
 
                 if let date = expense.date {
                     Text(formatDate(date))
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.monoSecondary.opacity(0.6))
                 }
             }
             
@@ -140,7 +141,7 @@ struct ExpenseRowItem: View {
             
             Text(formatAmount(expense.amount))
                 .font(.headline)
-                .foregroundColor(.red)
+                .foregroundColor(.monoPrimary)
         }
         .padding(.vertical, 4)
     }

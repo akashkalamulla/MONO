@@ -21,70 +21,245 @@ struct AddDependentView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var isLoading = false
+    @State private var showingDatePicker = false
     
     let relationships = ["Child", "Spouse", "Parent", "Sibling", "Grandparent", "Grandchild", "Other"]
     
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Personal Information")) {
-                    TextField("First Name", text: $firstName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    TextField("Last Name", text: $lastName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    Picker("Relationship", selection: $relationship) {
-                        ForEach(relationships, id: \.self) { rel in
-                            Text(rel).tag(rel)
+            ZStack {
+                Color(red: 0.98, green: 0.98, blue: 0.98) // monoBackground
+                    .edgesIgnoringSafeArea(.all)
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Personal Information Section
+                        VStack(alignment: .leading, spacing: 20) {
+                            Text("PERSONAL INFORMATION")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .padding(.leading, 4)
+                                .padding(.bottom, -4)
+                            
+                            VStack(spacing: 16) {
+                                // First Name field
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("First Name")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    TextField("", text: $firstName)
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
+                                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                }
+                                
+                                // Last Name field
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("Last Name")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    TextField("", text: $lastName)
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
+                                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                }
+                                
+                                // Custom Picker with proper left alignment
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("Relationship")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    Menu {
+                                        ForEach(relationships, id: \.self) { rel in
+                                            Button(rel) {
+                                                relationship = rel
+                                            }
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(relationship)
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            
+                                            Image(systemName: "chevron.down")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                        }
+                                        .contentShape(Rectangle())
+                                    }
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                }
+                                
+                                // Date Picker - Clean implementation with custom picker
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Date of Birth")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    Button {
+                                        showingDatePicker = true
+                                    } label: {
+                                        HStack {
+                                            Text(formattedDate)
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            
+                                            Image(systemName: "calendar")
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                        }
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
+                                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                    }
+                                    .sheet(isPresented: $showingDatePicker) {
+                                        VStack {
+                                            HStack {
+                                                Button("Cancel") {
+                                                    showingDatePicker = false
+                                                }
+                                                .padding()
+                                                
+                                                Spacer()
+                                                
+                                                Button("Done") {
+                                                    showingDatePicker = false
+                                                }
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .padding()
+                                            }
+                                            
+                                            DatePicker(
+                                                "",
+                                                selection: $dateOfBirth,
+                                                displayedComponents: [.date]
+                                            )
+                                            .datePickerStyle(GraphicalDatePickerStyle())
+                                            .labelsHidden()
+                                            .padding()
+                                        }
+                                        .presentationDetents([.height(420)])
+                                    }
+                                }
+                            }
                         }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    
-                    DatePicker("Date of Birth", selection: $dateOfBirth, displayedComponents: .date)
-                        .datePickerStyle(CompactDatePickerStyle())
-                }
-                
-                Section(header: Text("Contact Information (Optional)")) {
-                    TextField("Phone Number", text: $phoneNumber)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.phonePad)
-                    
-                    TextField("Email", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                }
-                
-                Section {
-                    Button(action: addDependent) {
-                        if isLoading {
-                            HStack {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                Text("Adding...")
+                        .padding(.bottom, 10)
+                        
+                        // Contact Information Section
+                        VStack(alignment: .leading, spacing: 20) {
+                            Text("CONTACT INFORMATION (OPTIONAL)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .padding(.leading, 4)
+                                .padding(.bottom, -4)
+                            
+                            VStack(spacing: 16) {
+                                // Phone field
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("Phone Number")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    TextField("", text: $phoneNumber)
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
+                                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                        .keyboardType(.phonePad)
+                                }
+                                
+                                // Email field
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("Email")
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .font(.system(size: 14))
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 4)
+                                    
+                                    TextField("", text: $email)
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
+                                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                                        .keyboardType(.emailAddress)
+                                        .textInputAutocapitalization(.never)
+                                }
+                            }
+                        }
+                        .padding(.bottom, 30)
+                        
+                        // Button
+                        Button(action: addDependent) {
+                            if isLoading {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    Text("Adding...")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.leading, 8)
+                                }
+                            } else {
+                                Text("Add Dependent")
+                                    .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
-                        } else {
-                            Text("Add Dependent")
-                                .foregroundColor(.white)
-                                .fontWeight(.semibold)
                         }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(isFormValid ? Color(red: 0.2, green: 0.6, blue: 0.6) : Color.gray.opacity(0.5)) // monoPrimary or disabled
+                        .cornerRadius(27)
+                        .shadow(color: isFormValid ? Color(red: 0.2, green: 0.6, blue: 0.6).opacity(0.3) : Color.clear, radius: 8, x: 0, y: 4)
+                        .disabled(!isFormValid || isLoading)
+                        .padding(.horizontal, 20)
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(isFormValid ? Color.monoPrimary : Color.gray)
-                    .cornerRadius(10)
-                    .disabled(!isFormValid || isLoading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
             }
             .navigationTitle("Add Dependent")
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
+                }
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)), // monoPrimary
+                
+                trailing: NavigationLink(destination: DependentHelpView()) {
+                    Text("Help")
+                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
                 }
             )
         }
@@ -99,6 +274,12 @@ struct AddDependentView: View {
                 }
             )
         }
+    }
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: dateOfBirth)
     }
     
     private var isFormValid: Bool {
@@ -141,12 +322,8 @@ struct AddDependentView: View {
 }
 
 #Preview {
-    let authManager = AuthenticationManager()
-    authManager.currentUser = User(firstName: "John", lastName: "Doe", email: "john@example.com")
-    authManager.isAuthenticated = true
-    
-    return AddDependentView(
+    AddDependentView(
         dependentManager: DependentManager(),
-        authManager: authManager
+        authManager: AuthenticationManager()
     )
 }

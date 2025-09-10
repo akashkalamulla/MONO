@@ -78,12 +78,6 @@ struct DependentExpensesPlaceholderView: View {
                     .font(.headline)
                     .foregroundColor(.black)
             }
-            ToolbarItem(placement: .navigationBarLeading) {
-                NavigationLink(destination: {}) {
-                    Text("Details")
-                        .foregroundColor(.monoPrimary)
-                }
-            }
         }
     }
     

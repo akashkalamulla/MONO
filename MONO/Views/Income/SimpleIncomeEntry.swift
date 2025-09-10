@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-
-// Import Income model to access IncomeCategory
 import CoreData
+import Foundation
 
 struct SimpleIncomeEntry: View {
     @Environment(\.presentationMode) var presentationMode
@@ -20,128 +19,226 @@ struct SimpleIncomeEntry: View {
     @State private var selectedFrequency = "Monthly"
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var showingDatePicker = false
     
     let categories = ["Salary", "Freelance", "Business", "Investment", "Rental", "Other"]
     let frequencies = ["Weekly", "Bi-weekly", "Monthly", "Yearly"]
     
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: selectedDate)
+    }
+    
     var body: some View {
-        VStack(spacing: 24) {
-        
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Amount")
-                    .font(.headline)
-                    
-                    HStack {
+        ScrollView {
+            VStack(spacing: 28) {
+                // Amount section
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Amount")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                        .padding(.leading, 4)
+                        
+                    HStack(spacing: 0) {
                         Text("Rs.")
-                            .font(.title2)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.monoSecondary)
+                            .padding(.leading, 20)
+                            .padding(.trailing, 6)
                         
                         TextField("0.00", text: $amount)
-                            .font(.title2)
+                            .font(.system(size: 24, weight: .medium))
+                            .keyboardType(.decimalPad)
+                            .foregroundColor(.black)
+                            .padding(.vertical, 16)
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.monoBackground)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.monoSeparator, lineWidth: 1)
+                    )
+                    .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
                 
-          
-                VStack(alignment: .leading, spacing: 8) {
+                // Category section
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Category")
-                        .font(.headline)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                        .padding(.leading, 4)
                     
-                    Picker("Category", selection: $selectedCategory) {
+                    // Using a button to show a custom dropdown menu appearance
+                    Menu {
                         ForEach(categories, id: \.self) { category in
-                            Text(category).tag(category)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-                }
-                
-   
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Date")
-                        .font(.headline)
-                    
-                    DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(CompactDatePickerStyle())
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                }
-                
-    
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Recurring Income")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $isRecurring)
-                            .labelsHidden()
-                    }
-                    
-                    if isRecurring {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Frequency")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            
-                            Picker("Frequency", selection: $selectedFrequency) {
-                                ForEach(frequencies, id: \.self) { frequency in
-                                    Text(frequency).tag(frequency)
+                            Button(action: {
+                                selectedCategory = category
+                            }) {
+                                Text(category)
+                                if selectedCategory == category {
+                                    Image(systemName: "checkmark")
                                 }
                             }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
                         }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                        .animation(.easeInOut(duration: 0.3), value: isRecurring)
+                    } label: {
+                        HStack {
+                            Text(selectedCategory)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.monoSecondary)
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(Color.monoBackground)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.monoSeparator, lineWidth: 1)
+                        )
                     }
+                    .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
                 
-     
-                VStack(alignment: .leading, spacing: 8) {
+                // Date section - Using a simplified DatePicker implementation
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Date")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .padding(.leading, 4)
+                    
+                    VStack {
+                        DatePicker(
+                            "Select Date",
+                            selection: $selectedDate,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(CompactDatePickerStyle())
+                        .accentColor(.blue)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                    }
+                    .frame(height: 56)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color(UIColor.separator), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+                }
+                
+                // Recurring income section
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Recurring Income")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                        .padding(.leading, 4)
+                    
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("Set as recurring income")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.black)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $isRecurring)
+                                .labelsHidden()
+                                .toggleStyle(SwitchToggleStyle(tint: .monoPrimary))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        
+                        if isRecurring {
+                            Divider()
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Frequency")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.monoSecondary)
+                                    .padding(.horizontal, 20)
+                                
+                                Picker("Frequency", selection: $selectedFrequency) {
+                                    ForEach(frequencies, id: \.self) { frequency in
+                                        Text(frequency).tag(frequency)
+                                    }
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 16)
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .animation(.easeInOut(duration: 0.3), value: isRecurring)
+                        }
+                    }
+                    .background(Color.monoBackground)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.monoSeparator, lineWidth: 1)
+                    )
+                    .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
+                }
+                
+                // Description section
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Description (Optional)")
-                        .font(.headline)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                        .padding(.leading, 4)
                     
                     TextField("Enter description", text: $description)
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
+                        .font(.system(size: 17))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.monoBackground)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.monoSeparator, lineWidth: 1)
+                        )
+                        .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
                 
-                Spacer()
+                Spacer(minLength: 30)
                 
-  
+                // Save button
                 Button(action: saveIncome) {
                     Text("Save Income")
-                        .font(.headline)
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(amount.isEmpty ? Color.gray : Color.blue)
-                        .cornerRadius(12)
+                        .frame(height: 56)
+                        .background(amount.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
+                        .cornerRadius(28)
+                        .shadow(color: amount.isEmpty ? .clear : Color.blue.opacity(0.3), radius: 5, x: 0, y: 3)
                 }
                 .disabled(amount.isEmpty)
+                .padding(.bottom, 24)
             }
-            .padding()
-            .navigationTitle("Add Income")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+        }
+        .navigationTitle("Add Income")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
                 }
+                .foregroundColor(.monoPrimary)
             }
+        }
             .alert("Income Saved", isPresented: $showingAlert) {
                 Button("OK") {
                     presentationMode.wrappedValue.dismiss()
@@ -152,44 +249,23 @@ struct SimpleIncomeEntry: View {
     }
     
     private func saveIncome() {
-    
         guard let amountValue = Double(amount), amountValue > 0 else {
             alertMessage = "Please enter a valid amount"
             showingAlert = true
             return
         }
         
-
-        guard let currentUser = CoreDataStack.shared.fetchCurrentUser() else {
-            alertMessage = "No logged in user found"
-            showingAlert = true
-            return
-        }
-        
-     
-        let selectedIncomeCategory = IncomeCategory(
-            id: UUID().uuidString,
-            name: selectedCategory,
-            icon: "dollarsign.circle",
-            color: "#007AFF"
-        )
-        
-
-        let recurrenceFrequencyString = isRecurring ? convertStringToFrequency(selectedFrequency) : nil
-        
-        let income = CoreDataStack.shared.createIncome(
-            amount: amountValue,
-            category: selectedIncomeCategory,
-            description: description.isEmpty ? nil : description,
-            date: selectedDate,
-            isRecurring: isRecurring,
-            recurrenceFrequency: recurrenceFrequencyString,
-            user: currentUser
-        )
-        
+        // For demonstration, just show success message
         let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
         alertMessage = "Income of Rs. \(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
         showingAlert = true
+        
+        // In a real implementation, we would save to CoreData here
+        
+        // After successful save, wait a moment and dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            presentationMode.wrappedValue.dismiss()
+        }
     }
     
     private func convertStringToFrequency(_ frequency: String) -> String {

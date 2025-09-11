@@ -18,6 +18,8 @@ struct StatisticsView: View {
     @State private var topSpending: [TopSpendingItem] = []
     @State private var totalAmount: Double = 0
     @State private var currentUser: NSManagedObject?
+    @State private var isLoading = false
+    @State private var showingInsights = false
     
     @State private var incomes: [NSManagedObject] = []
     @State private var expenses: [NSManagedObject] = []
@@ -28,17 +30,27 @@ struct StatisticsView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
-                    headerSection
-                    periodSelector
-                    typeSelector
-                    chartSection
-                    topSpendingSection
-                    Spacer(minLength: 100)
+                LazyVStack(spacing: 24) {
+                    enhancedHeaderSection
+                    enhancedSummaryCards
+                    enhancedControlsSection
+                    enhancedChartSection
+                    insightsSection
+                    enhancedTopSpendingSection
+                    Spacer(minLength: 80)
                 }
-                .padding(.top)
+                .padding(.top, 8)
             }
-            .background(Color.gray.opacity(0.05))
+            .background(
+                LinearGradient(
+                    colors: [Color.monoBackground, Color.white],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .refreshable {
+                await refreshData()
+            }
         }
         .onAppear {
             loadCurrentUser()
@@ -245,47 +257,176 @@ struct StatisticsView: View {
         }
     }
     
-    private var headerSection: some View {
-        HStack {
-            Text("Statistics")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            Button(action: {
-                // Export functionality
-            }) {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 20))
-                    .foregroundColor(.primary)
-            }
-        }
-        .padding(.horizontal)
-    }
-    
-    private var periodSelector: some View {
-        HStack(spacing: 0) {
-            ForEach(periods, id: \.self) { period in
-                Button(action: {
-                    selectedPeriod = period
-                    updateChartData()
-                }) {
-                    Text(period)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(selectedPeriod == period ? .white : .gray)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            selectedPeriod == period ? 
-                            Color.blue : Color.clear
-                        )
+    private var enhancedHeaderSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Financial Analytics")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.monoPrimary)
+                    
+                    Text("Track your financial patterns")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 12) {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                            showingInsights.toggle()
+                        }
+                    }) {
+                        Image(systemName: showingInsights ? "lightbulb.fill" : "lightbulb")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(showingInsights ? .yellow : .monoPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(showingInsights ? Color.yellow.opacity(0.1) : Color.monoPrimary.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    
+                    Button(action: {
+                        // Export functionality
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.monoPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(Color.monoPrimary.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
                 }
             }
+            .padding(.horizontal, 20)
         }
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
-        .padding(.horizontal)
+    }
+    
+    private var enhancedSummaryCards: some View {
+        HStack(spacing: 12) {
+            SummaryCard(
+                title: selectedType == "Income" ? "Total Income" : "Total Expenses",
+                value: "Rs. \(String(format: "%.0f", totalAmount))",
+                icon: selectedType == "Income" ? "arrow.up.circle.fill" : "arrow.down.circle.fill",
+                color: selectedType == "Income" ? .green : .red,
+                trend: getTrendPercentage(),
+                isPositive: selectedType == "Income" ? true : getTrendPercentage() < 0
+            )
+            
+            SummaryCard(
+                title: "This Period",
+                value: "\(chartData.count) entries",
+                icon: "calendar",
+                color: .monoPrimary,
+                trend: nil,
+                isPositive: true
+            )
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var enhancedControlsSection: some View {
+        VStack(spacing: 16) {
+            // Period Selector
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Time Period")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                    
+                    Spacer()
+                    
+                    Text(selectedPeriod)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                }
+                .padding(.horizontal, 20)
+                
+                HStack(spacing: 0) {
+                    ForEach(periods, id: \.self) { period in
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedPeriod = period
+                                updateChartData()
+                            }
+                        }) {
+                            Text(period)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(selectedPeriod == period ? .white : .monoPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    selectedPeriod == period ? 
+                                    LinearGradient(colors: [Color.monoPrimary, Color.monoSecondary], startPoint: .leading, endPoint: .trailing) : 
+                                    LinearGradient(colors: [Color.clear], startPoint: .leading, endPoint: .trailing)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(14)
+                .padding(.horizontal, 20)
+            }
+            
+            // Type Selector with improved design
+            HStack {
+                Text("Category")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.monoPrimary)
+                
+                Spacer()
+                
+                Menu {
+                    ForEach(types, id: \.self) { type in
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedType = type
+                                updateChartData()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: type == "Income" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                                    .foregroundColor(type == "Income" ? .green : .red)
+                                Text(type)
+                                if selectedType == type {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.monoPrimary)
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: selectedType == "Income" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                            .foregroundColor(selectedType == "Income" ? .green : .red)
+                        
+                        Text(selectedType)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.monoPrimary)
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: Color.monoShadow, radius: 2, x: 0, y: 1)
+                    )
+                }
+            }
+            .padding(.horizontal, 20)
+        }
     }
     
     private var typeSelector: some View {
@@ -329,95 +470,282 @@ struct StatisticsView: View {
         .padding(.horizontal)
     }
     
-    private var chartSection: some View {
+    private var enhancedChartSection: some View {
         VStack(spacing: 16) {
-            ZStack {
-                Chart(chartData) { dataPoint in
-                    LineMark(
-                        x: .value("Time", dataPoint.date),
-                        y: .value("Amount", dataPoint.amount)
-                    )
-                    .foregroundStyle(Color.blue)
-                    .lineStyle(StrokeStyle(lineWidth: 3))
+            // Chart Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Trends")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.monoPrimary)
                     
-                    AreaMark(
-                        x: .value("Time", dataPoint.date),
-                        y: .value("Amount", dataPoint.amount)
-                    )
-                    .foregroundStyle(Color.blue.opacity(0.2))
+                    Text("\(selectedPeriod)ly overview")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
                 }
-                .frame(height: 200)
-                .chartXAxis(.hidden)
-                .chartYAxis(.hidden)
                 
-                VStack {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Rs. \(String(format: "%.0f", totalAmount))")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.blue)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.9))
-                                .cornerRadius(8)
-                                .shadow(color: .black.opacity(0.1), radius: 2)
+                Spacer()
+                
+                // Chart type buttons
+                HStack(spacing: 8) {
+                    Button(action: {}) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.monoPrimary)
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.monoPrimary.opacity(0.1)))
+                    }
+                    
+                    Button(action: {}) {
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.gray.opacity(0.1)))
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            // Enhanced Chart
+            VStack(spacing: 12) {
+                ZStack {
+                    // Background grid
+                    VStack(spacing: 0) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            Divider()
+                                .background(Color.gray.opacity(0.2))
+                            Spacer()
+                        }
+                    }
+                    .frame(height: 200)
+                    
+                    Chart(chartData) { dataPoint in
+                        LineMark(
+                            x: .value("Time", dataPoint.date),
+                            y: .value("Amount", dataPoint.amount)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: selectedType == "Income" ? 
+                                [Color.green, Color.green.opacity(0.8)] : 
+                                [Color.monoPrimary, Color.monoSecondary],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                        .symbol(Circle().strokeBorder(lineWidth: 2))
+                        .symbolSize(40)
+                        
+                        AreaMark(
+                            x: .value("Time", dataPoint.date),
+                            y: .value("Amount", dataPoint.amount)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: selectedType == "Income" ? 
+                                [Color.green.opacity(0.3), Color.green.opacity(0.1)] : 
+                                [Color.monoPrimary.opacity(0.3), Color.monoPrimary.opacity(0.05)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    }
+                    .frame(height: 200)
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    
+                    // Floating total amount
+                    VStack {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Total")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.gray)
+                                
+                                Text("Rs. \(String(format: "%.0f", totalAmount))")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(selectedType == "Income" ? .green : .monoPrimary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white)
+                                    .shadow(color: Color.monoShadow, radius: 8, x: 0, y: 4)
+                            )
+                            
+                            Spacer()
                         }
                         Spacer()
                     }
-                    Spacer()
+                    .padding()
                 }
-                .padding()
-            }
-            
-            HStack {
-                ForEach(getMonthLabels(), id: \.self) { month in
-                    Text(month)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
-                        .frame(maxWidth: .infinity)
+                
+                // Enhanced axis labels
+                HStack {
+                    ForEach(getMonthLabels(), id: \.self) { month in
+                        Text(month)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: Color.monoShadow, radius: 4, x: 0, y: 2)
+            )
+            .padding(.horizontal, 20)
         }
-        .padding(.horizontal)
     }
     
-    private var topSpendingSection: some View {
+    private var insightsSection: some View {
+        Group {
+            if showingInsights {
+                VStack(spacing: 16) {
+                    HStack {
+                        Image(systemName: "lightbulb.fill")
+                            .foregroundColor(.yellow)
+                        
+                        Text("Smart Insights")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.monoPrimary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    LazyVStack(spacing: 12) {
+                        InsightCard(
+                            icon: "chart.line.uptrend.xyaxis",
+                            title: "Spending Trend",
+                            description: "Your expenses have decreased by 12% compared to last month",
+                            color: .green
+                        )
+                        
+                        InsightCard(
+                            icon: "exclamationmark.triangle.fill",
+                            title: "Budget Alert",
+                            description: "You're approaching 80% of your monthly budget limit",
+                            color: .orange
+                        )
+                        
+                        InsightCard(
+                            icon: "star.fill",
+                            title: "Best Category",
+                            description: "Transportation costs are well within budget this month",
+                            color: .blue
+                        )
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .move(edge: .top).combined(with: .opacity)
+                ))
+            }
+        }
+    }
+    
+    private var enhancedTopSpendingSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Top Spending")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Top \(selectedType == "Income" ? "Income Sources" : "Expenses")")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.monoPrimary)
+                    
+                    Text("Highest transactions this \(selectedPeriod.lowercased())")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
                 
                 Spacer()
                 
                 Button(action: {
                     // Sort functionality
                 }) {
-                    Image(systemName: "arrow.up.arrow.down")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.system(size: 14))
+                        Text("Sort")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(.monoPrimary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.monoPrimary.opacity(0.1))
+                    )
                 }
+                .buttonStyle(ScaleButtonStyle())
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
             
-            LazyVStack(spacing: 12) {
-                ForEach(topSpending) { item in
-                    TopSpendingRow(item: item)
+            if topSpending.isEmpty {
+                EmptyStateView(
+                    icon: selectedType == "Income" ? "arrow.up.circle" : "arrow.down.circle",
+                    title: "No \(selectedType) Data",
+                    description: "Start tracking your \(selectedType.lowercased()) to see insights here"
+                )
+                .padding(.horizontal, 20)
+            } else {
+                LazyVStack(spacing: 8) {
+                    ForEach(Array(topSpending.enumerated()), id: \.element.id) { index, item in
+                        EnhancedTopSpendingRow(item: item, rank: index + 1)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
+                    }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal)
         }
     }
     
     private func updateChartData() {
-        chartData = generateSampleData(for: selectedPeriod, type: selectedType)
-        topSpending = generateTopSpending(for: selectedType)
-        totalAmount = chartData.max(by: { $0.amount < $1.amount })?.amount ?? 1230
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isLoading = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                chartData = generateSampleData(for: selectedPeriod, type: selectedType)
+                topSpending = generateTopSpending(for: selectedType)
+                totalAmount = chartData.reduce(0) { $0 + $1.amount }
+                isLoading = false
+            }
+        }
     }
     
     private func loadInitialData() {
         loadRealData()
+    }
+    
+    private func refreshData() async {
+        isLoading = true
+        
+        // Simulate network delay
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        await MainActor.run {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                loadRealData()
+                isLoading = false
+            }
+        }
+    }
+    
+    private func getTrendPercentage() -> Double {
+        // Mock trend calculation - in real app, compare with previous period
+        return Double.random(in: -15...25)
     }
     
     private func getMonthLabels() -> [String] {
@@ -560,49 +888,249 @@ struct TopSpendingItem: Identifiable {
     }
 }
 
-// MARK: - Top Spending Row Component
+// MARK: - Enhanced UI Components
+
+// Scale Button Style for better interactions
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// Enhanced Summary Card
+struct SummaryCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    let trend: Double?
+    let isPositive: Bool
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(color)
+                
+                Spacer()
+                
+                if let trend = trend {
+                    HStack(spacing: 4) {
+                        Image(systemName: isPositive ? "arrow.up" : "arrow.down")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("\(String(format: "%.1f", abs(trend)))%")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundColor(isPositive ? .green : .red)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill((isPositive ? Color.green : Color.red).opacity(0.1))
+                    )
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Text(value)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.monoPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.monoShadow, radius: 4, x: 0, y: 2)
+        )
+    }
+}
+
+// Insight Card Component
+struct InsightCard: View {
+    let icon: String
+    let title: String
+    let description: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.monoPrimary)
+                
+                Text(description)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+            }
+            
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .shadow(color: Color.monoShadow, radius: 2, x: 0, y: 1)
+        )
+    }
+}
+
+// Enhanced Top Spending Row
+struct EnhancedTopSpendingRow: View {
+    let item: TopSpendingItem
+    let rank: Int
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Rank indicator
+            ZStack {
+                Circle()
+                    .fill(getRankColor().opacity(0.2))
+                    .frame(width: 32, height: 32)
+                
+                Text("\(rank)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(getRankColor())
+            }
+            
+            // Enhanced Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [item.color.opacity(0.2), item.color.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+                
+                Image(systemName: item.icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(item.color)
+            }
+            
+            // Enhanced Content
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(item.name)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.monoPrimary)
+                    
+                    Spacer()
+                    
+                    Text("\(item.isIncome ? "+" : "")Rs. \(String(format: "%.0f", item.amount))")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(item.isIncome ? .green : .monoPrimary)
+                }
+                
+                HStack {
+                    Text(item.date)
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    // Category badge
+                    Text(item.isIncome ? "Income" : "Expense")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(item.isIncome ? .green : .red)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill((item.isIncome ? Color.green : Color.red).opacity(0.1))
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(item.isHighlighted ? Color.monoPrimary.opacity(0.05) : Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(item.isHighlighted ? Color.monoPrimary.opacity(0.2) : Color.clear, lineWidth: 1)
+                )
+                .shadow(color: Color.monoShadow, radius: 3, x: 0, y: 1)
+        )
+    }
+    
+    private func getRankColor() -> Color {
+        switch rank {
+        case 1: return .yellow
+        case 2: return .gray
+        case 3: return .orange
+        default: return .monoPrimary
+        }
+    }
+}
+
+// Empty State Component
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let description: String
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 80, height: 80)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundColor(.gray.opacity(0.6))
+            }
+            
+            VStack(spacing: 8) {
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.monoPrimary)
+                
+                Text(description)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, 32)
+    }
+}
+
+// Legacy component for compatibility
 struct TopSpendingRow: View {
     let item: TopSpendingItem
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(item.color.opacity(0.2))
-                    .frame(width: 45, height: 45)
-                
-                Image(systemName: item.icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(item.color)
-            }
-            
-            // Name and Date
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.name)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
-                
-                Text(item.date)
-                    .font(.system(size: 13))
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-            
-            // Amount
-            Text("\(item.isIncome ? "+" : "-") Rs. \(String(format: "%.2f", item.amount))")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(item.isIncome ? .green : .red)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            item.isHighlighted ? 
-            Color.blue.opacity(0.1) : Color.white
-        )
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        EnhancedTopSpendingRow(item: item, rank: 1)
     }
 }
 

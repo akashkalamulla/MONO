@@ -663,16 +663,6 @@ struct ExpenseLocationRowCompact: View {
 
 // MARK: - Enhanced Components
 
-// Custom button style for better UX
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .opacity(configuration.isPressed ? 0.8 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-    }
-}
-
 // Enhanced Map Pin with better design
 struct EnhancedExpenseMapPin: View {
     let location: ExpenseLocationData

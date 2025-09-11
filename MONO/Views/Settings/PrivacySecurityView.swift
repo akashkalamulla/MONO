@@ -39,13 +39,7 @@ struct PrivacySecurityView: View {
                     Text("Keep your account secure by using a strong password.")
                 }
                 
-                Section {
-                    PrivacySettingsRows()
-                } header: {
-                    Text("Privacy Settings")
-                } footer: {
-                    Text("Control how your data is used and stored.")
-                }
+                // Privacy Settings section removed as requested
             }
             .navigationTitle("Privacy & Security")
             .navigationBarTitleDisplayMode(.large)
@@ -200,13 +194,8 @@ struct PasswordSecurityRow: View {
 struct PrivacySettingsRows: View {
     var body: some View {
         Group {
-            PrivacySettingRow(
-                icon: "shield.fill",
-                iconColor: .green,
-                title: "Security Audit",
-                subtitle: "Review security settings",
-                action: {  }
-            )
+            // Privacy settings rows can be added here in the future
+            EmptyView()
         }
     }
 }

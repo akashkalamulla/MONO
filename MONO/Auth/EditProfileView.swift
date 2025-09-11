@@ -14,6 +14,7 @@ struct EditProfileView: View {
     
     @State private var firstName: String
     @State private var lastName: String
+    @State private var email: String
     @State private var phoneNumber: String
     @State private var isLoading = false
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -24,6 +25,7 @@ struct EditProfileView: View {
         self.authManager = authManager
         self._firstName = State(initialValue: authManager.currentUser?.firstName ?? "")
         self._lastName = State(initialValue: authManager.currentUser?.lastName ?? "")
+        self._email = State(initialValue: authManager.currentUser?.email ?? "")
         self._phoneNumber = State(initialValue: authManager.currentUser?.phoneNumber ?? "")
         if let imageData = authManager.currentUser?.profileImageData {
             self._selectedImageData = State(initialValue: imageData)
@@ -126,15 +128,11 @@ struct EditProfileView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.monoPrimary)
                             
-                            Text(authManager.currentUser?.email ?? "")
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                )
+                            TextField("Enter email", text: $email)
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -200,6 +198,7 @@ struct EditProfileView: View {
     private var hasChanges: Bool {
         firstName != (authManager.currentUser?.firstName ?? "") ||
         lastName != (authManager.currentUser?.lastName ?? "") ||
+        email != (authManager.currentUser?.email ?? "") ||
         phoneNumber != (authManager.currentUser?.phoneNumber ?? "") ||
         selectedImageData != authManager.currentUser?.profileImageData
     }
@@ -211,6 +210,7 @@ struct EditProfileView: View {
             authManager.updateUserProfile(
                 firstName: firstName,
                 lastName: lastName,
+                email: email,
                 phoneNumber: phoneNumber.isEmpty ? nil : phoneNumber,
                 profileImageData: selectedImageData
             )

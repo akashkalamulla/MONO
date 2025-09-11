@@ -198,16 +198,34 @@ class AuthenticationManager: ObservableObject {
     }
     
     
-    func updateUserProfile(firstName: String, lastName: String, phoneNumber: String?, profileImageData: Data? = nil) {
+    func updateUserProfile(firstName: String, lastName: String, email: String? = nil, phoneNumber: String?, profileImageData: Data? = nil) {
         guard let currentUser = currentUser else { return }
         
         if let userEntity = coreDataStack.fetchUser(by: currentUser.email) {
             userEntity.firstName = firstName
             userEntity.lastName = lastName
             userEntity.phoneNumber = phoneNumber
+            
+            // Handle email update
+            let oldEmail = currentUser.email
+            let emailChanged = email != nil && email != oldEmail
+            
+            if emailChanged, let newEmail = email {
+                // Check if the new email is already in use
+                if !coreDataStack.userExists(email: newEmail) {
+                    userEntity.email = newEmail
+                    
+                    // Update profile image key in UserDefaults if exists
+                    if let imageData = UserDefaults.standard.data(forKey: "profileImage_\(oldEmail)") {
+                        UserDefaults.standard.set(imageData, forKey: "profileImage_\(newEmail)")
+                        UserDefaults.standard.removeObject(forKey: "profileImage_\(oldEmail)")
+                    }
+                }
+            }
 
             if let imageData = profileImageData {
-                UserDefaults.standard.set(imageData, forKey: "profileImage_\(currentUser.email)")
+                let emailKey = emailChanged && email != nil ? email! : currentUser.email
+                UserDefaults.standard.set(imageData, forKey: "profileImage_\(emailKey)")
             }
             
             coreDataStack.save()

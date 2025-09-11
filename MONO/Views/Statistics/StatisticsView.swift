@@ -19,7 +19,7 @@ struct StatisticsView: View {
     @State private var totalAmount: Double = 0
     @State private var currentUser: NSManagedObject?
     @State private var isLoading = false
-    @State private var showingInsights = false
+    // Insights feature removed
     
     @State private var incomes: [NSManagedObject] = []
     @State private var expenses: [NSManagedObject] = []
@@ -35,7 +35,6 @@ struct StatisticsView: View {
                     enhancedSummaryCards
                     enhancedControlsSection
                     enhancedChartSection
-                    insightsSection
                     enhancedTopSpendingSection
                     Spacer(minLength: 80)
                 }
@@ -271,38 +270,6 @@ struct StatisticsView: View {
                 }
                 
                 Spacer()
-                
-                HStack(spacing: 12) {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                            showingInsights.toggle()
-                        }
-                    }) {
-                        Image(systemName: showingInsights ? "lightbulb.fill" : "lightbulb")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(showingInsights ? .yellow : .monoPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .fill(showingInsights ? Color.yellow.opacity(0.1) : Color.monoPrimary.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                    
-                    Button(action: {
-                        // Export functionality
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.monoPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .fill(Color.monoPrimary.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                }
             }
             .padding(.horizontal, 20)
         }
@@ -604,53 +571,7 @@ struct StatisticsView: View {
         }
     }
     
-    private var insightsSection: some View {
-        Group {
-            if showingInsights {
-                VStack(spacing: 16) {
-                    HStack {
-                        Image(systemName: "lightbulb.fill")
-                            .foregroundColor(.yellow)
-                        
-                        Text("Smart Insights")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.monoPrimary)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    LazyVStack(spacing: 12) {
-                        InsightCard(
-                            icon: "chart.line.uptrend.xyaxis",
-                            title: "Spending Trend",
-                            description: "Your expenses have decreased by 12% compared to last month",
-                            color: .green
-                        )
-                        
-                        InsightCard(
-                            icon: "exclamationmark.triangle.fill",
-                            title: "Budget Alert",
-                            description: "You're approaching 80% of your monthly budget limit",
-                            color: .orange
-                        )
-                        
-                        InsightCard(
-                            icon: "star.fill",
-                            title: "Best Category",
-                            description: "Transportation costs are well within budget this month",
-                            color: .blue
-                        )
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .top).combined(with: .opacity),
-                    removal: .move(edge: .top).combined(with: .opacity)
-                ))
-            }
-        }
-    }
+    // Insights section removed
     
     private var enhancedTopSpendingSection: some View {
         VStack(alignment: .leading, spacing: 16) {

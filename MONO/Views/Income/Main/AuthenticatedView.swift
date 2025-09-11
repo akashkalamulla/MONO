@@ -20,16 +20,10 @@ struct AuthenticatedView: View {
                     Text("Home")
                 }
             
-            IncomeListView()
+            FinanceView()
                 .tabItem {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Income")
-                }
-            
-            ExpenseListView()
-                .tabItem {
-                    Image(systemName: "minus.circle.fill")
-                    Text("Expenses")
+                    Image(systemName: "dollarsign.circle.fill")
+                    Text("Finance")
                 }
             
             ExpenseLocationMapView()

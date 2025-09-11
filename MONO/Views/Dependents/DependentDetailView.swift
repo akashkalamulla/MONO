@@ -82,7 +82,7 @@ struct DependentDetailView: View {
                             NavigationLink(destination: DependentExpensesPlaceholderView(dependentName: dependent.fullName, dependentID: dependent.id)) {
                                 Text("View All Expenses")
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
+                                    .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                     .padding(.top, 8)
                             }
                         }
@@ -100,7 +100,7 @@ struct DependentDetailView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
+                        .background(Color(red: 0.2, green: 0.6, blue: 0.6))
                         .cornerRadius(25)
                     }
                     
@@ -110,14 +110,14 @@ struct DependentDetailView: View {
                             Text(dependent.isActive ? "Deactivate" : "Activate")
                         }
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
+                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(Color.white)
                         .cornerRadius(25)
                         .overlay(
                             RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color(red: 0.2, green: 0.6, blue: 0.6), lineWidth: 1) // monoPrimary color
+                                .stroke(Color(red: 0.2, green: 0.6, blue: 0.6), lineWidth: 1)
                         )
                     }
                     
@@ -237,7 +237,6 @@ struct DependentDetailView: View {
     }
 }
 
-// MARK: - Info Card
 struct InfoCard<Content: View>: View {
     let title: String
     let content: Content
@@ -263,7 +262,6 @@ struct InfoCard<Content: View>: View {
     }
 }
 
-// MARK: - Info Row
 struct InfoRow: View {
     let label: String
     let value: String

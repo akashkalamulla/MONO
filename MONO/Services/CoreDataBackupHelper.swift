@@ -1,8 +1,6 @@
 import Foundation
 import CoreData
 
-// MARK: - Core Data Backup Helper
-
 class CoreDataBackupHelper {
     static let shared = CoreDataBackupHelper()
     
@@ -56,7 +54,6 @@ class CoreDataBackupHelper {
         
         let context = CoreDataStack.shared.context
         
-        // Fetch expenses for user
         let request: NSFetchRequest<ExpenseEntity> = ExpenseEntity.fetchRequest()
         request.predicate = NSPredicate(format: "user == %@", userEntity)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \ExpenseEntity.date, ascending: false)]
@@ -100,8 +97,6 @@ class CoreDataBackupHelper {
         }
         
         let context = CoreDataStack.shared.context
-        
-        // Fetch dependents for user
         let request: NSFetchRequest<DependentEntity> = DependentEntity.fetchRequest()
         request.predicate = NSPredicate(format: "userID == %@", userEntity.safeId as CVarArg)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \DependentEntity.firstName, ascending: true)]

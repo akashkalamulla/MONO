@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 import LocalAuthentication
-import CryptoKit // Add this for secure hashing
+import CryptoKit
 
 struct User: Identifiable {
     let id: UUID
@@ -103,34 +103,27 @@ class AuthenticationManager: ObservableObject {
             self.isLoading = false
             return
         }
-        
-        // Check if user exists
         if let userEntity = coreDataStack.fetchUser(by: email) {
-            // User exists - verify password
             let hashedInputPassword = hashPassword(password)
             let storedPassword = userEntity.password ?? ""
             
             if hashedInputPassword == storedPassword || storedPassword.isEmpty {
-                // Password matches or legacy account with no password
                 coreDataStack.loginUser(userEntity)
                 
                 self.currentUser = User(from: userEntity)
                 self.isAuthenticated = true
                 self.isLoading = false
                 self.errorMessage = nil
-                
-                // If this is a legacy account with no password, update it with the new password
+        
                 if storedPassword.isEmpty {
                     userEntity.password = hashedInputPassword
                     coreDataStack.save()
                 }
             } else {
-                // Password doesn't match
                 self.errorMessage = "Invalid email or password"
                 self.isLoading = false
             }
         } else {
-            // User doesn't exist - show error instead of creating account
             self.errorMessage = "No account found with this email address. Please check your email or create a new account."
             self.isLoading = false
         }
@@ -167,7 +160,6 @@ class AuthenticationManager: ObservableObject {
             return
         }
  
-        // Hash the password before storing it
         let hashedPassword = hashPassword(password)
         
         let newUserEntity = coreDataStack.createUser(
@@ -239,9 +231,7 @@ class AuthenticationManager: ObservableObject {
         if let userEntity = coreDataStack.fetchCurrentUser() {
             print("🔐 [AuthManager] Found currently logged in user: \(userEntity.email ?? "unknown")")
             
-            // For biometric authentication, we just verify the user's identity
-            // We don't need to check the password as the biometric authentication already verified their identity
-            coreDataStack.loginUser(userEntity) // Make sure login state is updated
+            coreDataStack.loginUser(userEntity) 
             
             self.currentUser = User(from: userEntity)
             self.isAuthenticated = true

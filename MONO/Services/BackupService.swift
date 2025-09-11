@@ -1,10 +1,6 @@
 import Foundation
 import CoreData
 
-// Note: CoreDataStack will be accessed via CoreDataStack.shared
-
-// MARK: - Backup Models
-
 struct OCRBackupRecord: Codable {
     let id: String
     let amount: Double?
@@ -89,15 +85,12 @@ struct CompleteBackupData: Codable {
     let dependents: [DependentBackupRecord]
 }
 
-// Legacy backup data structure for compatibility
 struct BackupData: Codable {
     let version: String
     let createdAt: Date
     let userEmail: String
     let ocrRecords: [OCRBackupRecord]
 }
-
-// MARK: - Backup Error Types
 
 enum BackupError: Error, LocalizedError {
     case exportFailed
@@ -122,8 +115,6 @@ enum BackupError: Error, LocalizedError {
     }
 }
 
-// MARK: - Backup Service
-
 class BackupService: ObservableObject {
     static let shared = BackupService()
     
@@ -138,7 +129,6 @@ class BackupService: ObservableObject {
         loadLastBackupDate()
     }
     
-    // MARK: - OCR Data Management
     
     func saveOCRResult(amount: Double?, text: String, category: String?, confidence: Float, merchant: String?, date: Date?, userEmail: String) {
         let record = OCRBackupRecord(
@@ -165,18 +155,15 @@ class BackupService: ObservableObject {
         records.removeAll { $0.id == id }
         saveOCRRecords(records)
     }
-    
-    // MARK: - Backup Operations
+
     
     func createBackup(for userEmail: String) async throws -> URL {
         backupInProgress = true
         defer { backupInProgress = false }
         
         do {
-            // Fetch user data
             let user = try fetchUserForBackup(userEmail: userEmail)
             
-            // Fetch all related data
             let ocrRecords = getOCRRecords(for: userEmail)
             let incomes = try fetchIncomesForBackup(userEmail: userEmail)
             let expenses = try fetchExpensesForBackup(userEmail: userEmail)
@@ -217,15 +204,9 @@ class BackupService: ObservableObject {
         do {
             let jsonData = try Data(contentsOf: url)
             let backupData = try JSONDecoder().decode(BackupData.self, from: jsonData)
-            
-            // Filter records for this user and merge with existing records
             let userRecords = backupData.ocrRecords.filter { $0.userEmail == userEmail }
             var existingRecords = loadOCRRecords()
-            
-            // Remove old records for this user
             existingRecords.removeAll { $0.userEmail == userEmail }
-            
-            // Add restored records
             existingRecords.append(contentsOf: userRecords)
             
             saveOCRRecords(existingRecords)
@@ -244,7 +225,6 @@ class BackupService: ObservableObject {
         return (ocrCount: ocrRecords.count, lastBackup: lastBackupDate)
     }
     
-    // MARK: - Private Helper Methods
     
     private func saveOCRRecordToLocal(_ record: OCRBackupRecord) {
         var records = loadOCRRecords()
@@ -291,12 +271,7 @@ class BackupService: ObservableObject {
         }
     }
     
-    // MARK: - Core Data Fetch Methods for Backup
-    // Note: These methods provide a simplified backup implementation
-    // that includes OCR data and basic user info
-    
     private func fetchUserForBackup(userEmail: String) throws -> UserBackupRecord? {
-        // Create a basic user record for backup
         return UserBackupRecord(
             id: UUID().uuidString,
             firstName: "User",
@@ -309,20 +284,14 @@ class BackupService: ObservableObject {
     }
     
     private func fetchIncomesForBackup(userEmail: String) throws -> [IncomeBackupRecord] {
-        // TODO: Implement full Core Data integration
-        // For now, returning empty array as OCR data is the main focus
         return []
     }
     
     private func fetchExpensesForBackup(userEmail: String) throws -> [ExpenseBackupRecord] {
-        // TODO: Implement full Core Data integration  
-        // For now, returning empty array as OCR data is the main focus
         return []
     }
     
     private func fetchDependentsForBackup(userEmail: String) throws -> [DependentBackupRecord] {
-        // TODO: Implement full Core Data integration
-        // For now, returning empty array as OCR data is the main focus
         return []
     }
 }

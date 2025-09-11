@@ -58,7 +58,6 @@ class DependentManager: ObservableObject {
         loadDependents()
     }
     
-    // MARK: - Persistent Storage Operations
     
     func loadDependents(for userId: UUID? = nil) {
         guard let userId = userId else {
@@ -139,7 +138,6 @@ class DependentManager: ObservableObject {
             if let index = allDependents.firstIndex(where: { $0.id == dependent.id }) {
                 allDependents[index] = dependent
                 
-                // Save updated list
                 let updatedData = try JSONEncoder().encode(allDependents)
                 userDefaults.set(updatedData, forKey: dependentsKey)
                 userDefaults.synchronize()
@@ -162,16 +160,11 @@ class DependentManager: ObservableObject {
     
     func deleteDependent(_ dependent: Dependent) -> Bool {
         do {
-            // Load existing dependents
             guard let data = userDefaults.data(forKey: dependentsKey),
                   var allDependents = try? JSONDecoder().decode([Dependent].self, from: data) else {
                 return false
             }
-            
-            // Remove the dependent
             allDependents.removeAll { $0.id == dependent.id }
-            
-            // Save updated list
             let updatedData = try JSONEncoder().encode(allDependents)
             userDefaults.set(updatedData, forKey: dependentsKey)
             userDefaults.synchronize()

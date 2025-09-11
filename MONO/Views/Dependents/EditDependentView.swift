@@ -42,25 +42,24 @@ struct EditDependentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(red: 0.98, green: 0.98, blue: 0.98) // monoBackground
+                Color(red: 0.98, green: 0.98, blue: 0.98)
                     .edgesIgnoringSafeArea(.all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Personal Information Section
                         VStack(alignment: .leading, spacing: 20) {
                             Text("PERSONAL INFORMATION")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .padding(.leading, 4)
                                 .padding(.bottom, -4)
                             
                             VStack(spacing: 16) {
-                                // First Name field
+
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("First Name")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -73,11 +72,10 @@ struct EditDependentView: View {
                                         .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
                                 
-                                // Last Name field
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Last Name")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -90,11 +88,10 @@ struct EditDependentView: View {
                                         .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
                                 
-                                // Custom Picker with proper left alignment
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Relationship")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -109,12 +106,12 @@ struct EditDependentView: View {
                                     } label: {
                                         HStack {
                                             Text(relationship)
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                             
                                             Image(systemName: "chevron.down")
                                                 .font(.system(size: 14))
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                         }
                                         .contentShape(Rectangle())
                                     }
@@ -124,11 +121,10 @@ struct EditDependentView: View {
                                     .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
                                 
-                                // Date Picker - Clean implementation with custom picker
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack {
                                         Text("Date of Birth")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -139,11 +135,11 @@ struct EditDependentView: View {
                                     } label: {
                                         HStack {
                                             Text(formattedDate)
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                             
                                             Image(systemName: "calendar")
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                         }
                                         .padding()
                                         .background(Color.white)
@@ -163,7 +159,7 @@ struct EditDependentView: View {
                                                 Button("Done") {
                                                     showingDatePicker = false
                                                 }
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .padding()
                                             }
                                             
@@ -183,11 +179,10 @@ struct EditDependentView: View {
                         }
                         .padding(.bottom, 10)
                         
-                        // Contact Information Section
                         VStack(alignment: .leading, spacing: 20) {
                             Text("CONTACT INFORMATION")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .padding(.leading, 4)
                                 .padding(.bottom, -4)
                             

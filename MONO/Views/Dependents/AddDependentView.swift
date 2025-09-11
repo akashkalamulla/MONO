@@ -28,25 +28,24 @@ struct AddDependentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(red: 0.98, green: 0.98, blue: 0.98) // monoBackground
+                Color(red: 0.98, green: 0.98, blue: 0.98)
                     .edgesIgnoringSafeArea(.all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Personal Information Section
+
                         VStack(alignment: .leading, spacing: 20) {
                             Text("PERSONAL INFORMATION")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .padding(.leading, 4)
                                 .padding(.bottom, -4)
                             
                             VStack(spacing: 16) {
-                                // First Name field
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("First Name")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -59,11 +58,10 @@ struct AddDependentView: View {
                                         .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
                                 
-                                // Last Name field
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Last Name")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -76,11 +74,11 @@ struct AddDependentView: View {
                                         .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
                                 
-                                // Custom Picker with proper left alignment
+            
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Relationship")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -95,12 +93,12 @@ struct AddDependentView: View {
                                     } label: {
                                         HStack {
                                             Text(relationship)
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                             
                                             Image(systemName: "chevron.down")
                                                 .font(.system(size: 14))
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                         }
                                         .contentShape(Rectangle())
                                     }
@@ -109,12 +107,11 @@ struct AddDependentView: View {
                                     .cornerRadius(10)
                                     .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
                                 }
-                                
-                                // Date Picker - Clean implementation with custom picker
+
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack {
                                         Text("Date of Birth")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -125,11 +122,11 @@ struct AddDependentView: View {
                                     } label: {
                                         HStack {
                                             Text(formattedDate)
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                             
                                             Image(systemName: "calendar")
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                         }
                                         .padding()
                                         .background(Color.white)
@@ -149,7 +146,7 @@ struct AddDependentView: View {
                                                 Button("Done") {
                                                     showingDatePicker = false
                                                 }
-                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                                                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
                                                 .padding()
                                             }
                                             
@@ -169,20 +166,19 @@ struct AddDependentView: View {
                         }
                         .padding(.bottom, 10)
                         
-                        // Contact Information Section
                         VStack(alignment: .leading, spacing: 20) {
                             Text("CONTACT INFORMATION (OPTIONAL)")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .padding(.leading, 4)
                                 .padding(.bottom, -4)
                             
                             VStack(spacing: 16) {
-                                // Phone field
+                   
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Phone Number")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -196,11 +192,11 @@ struct AddDependentView: View {
                                         .keyboardType(.phonePad)
                                 }
                                 
-                                // Email field
+    
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Email")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -218,7 +214,6 @@ struct AddDependentView: View {
                         }
                         .padding(.bottom, 30)
                         
-                        // Button
                         Button(action: addDependent) {
                             if isLoading {
                                 HStack {
@@ -238,7 +233,7 @@ struct AddDependentView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(isFormValid ? Color(red: 0.2, green: 0.6, blue: 0.6) : Color.gray.opacity(0.5)) // monoPrimary or disabled
+                        .background(isFormValid ? Color(red: 0.2, green: 0.6, blue: 0.6) : Color.gray.opacity(0.5))
                         .cornerRadius(27)
                         .shadow(color: isFormValid ? Color(red: 0.2, green: 0.6, blue: 0.6).opacity(0.3) : Color.clear, radius: 8, x: 0, y: 4)
                         .disabled(!isFormValid || isLoading)
@@ -255,11 +250,11 @@ struct AddDependentView: View {
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)), // monoPrimary
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)),
                 
                 trailing: NavigationLink(destination: DependentHelpView()) {
                     Text("Help")
-                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) 
                 }
             )
         }

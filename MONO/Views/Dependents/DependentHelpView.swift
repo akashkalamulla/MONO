@@ -13,19 +13,17 @@ struct DependentHelpView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Title and description
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Adding a Dependent")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2)) // monoText
+                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                     
                     Text("Learn how to add and manage your dependents in MONO.")
                         .font(.system(size: 16))
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 
-                // Instructions
                 instructionCard(
                     number: "1",
                     title: "Personal Information",
@@ -50,11 +48,10 @@ struct DependentHelpView: View {
                     description: "Optionally add phone number and email address for your dependent. This information can be useful for sending receipts or expense notifications."
                 )
                 
-                // Tips section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Tips")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2)) // monoText
+                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                     
                     tipItem(
                         icon: "person.badge.plus",
@@ -80,25 +77,23 @@ struct DependentHelpView: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .background(Color(red: 0.98, green: 0.98, blue: 0.98)) // monoBackground
+        .background(Color(red: 0.98, green: 0.98, blue: 0.98))
         .edgesIgnoringSafeArea(.bottom)
     }
     
-    // Helper view for instruction cards
     private func instructionCard(number: String, title: String, description: String) -> some View {
         HStack(alignment: .top, spacing: 16) {
-            // Number circle
             Text(number)
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
                 .frame(width: 32, height: 32)
-                .background(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                .background(Color(red: 0.2, green: 0.6, blue: 0.6))
                 .cornerRadius(16)
             
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2)) // monoText
+                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                 
                 Text(description)
                     .font(.system(size: 16))
@@ -112,12 +107,11 @@ struct DependentHelpView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
     
-    // Helper view for tips
     private func tipItem(icon: String, text: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 18))
-                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) 
                 .frame(width: 24, height: 24)
             
             Text(text)

@@ -149,7 +149,7 @@ struct DashboardView: View {
                                     Button("Add First Dependent") {
                                         showAddDependent = true
                                     }
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(.monoPrimary)
                                 }
                                 .padding()
@@ -164,7 +164,7 @@ struct DashboardView: View {
                                     Text("\(dependentManager.dependents.filter { $0.isActive }.count)")
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(.monoPrimary)
-                                        .padding(.horizontal, 8)
+                                        .padding(.horizontal, 14)
                                         .padding(.vertical, 4)
                                         .background(Color.monoPrimary.opacity(0.1))
                                         .cornerRadius(8)
@@ -209,37 +209,90 @@ struct DashboardView: View {
                             .foregroundColor(.monoPrimary)
                             .padding(.horizontal)
                         
+                        // First row - 3 buttons horizontally
                         HStack(spacing: 15) {
-                            QuickActionButton(
-                                icon: "plus.circle.fill",
-                                title: "Add Income",
-                                action: { showIncomeView = true }
-                            )
+                            // Add Income Button
+                            Button(action: { showIncomeView = true }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.monoPrimary)
+                                    
+                                    Text("Add Income")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.monoPrimary)
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
                             
-                            QuickActionButton(
-                                icon: "minus.circle.fill",
-                                title: "Add Expense",
-                                action: { showExpenseView = true }
-                            )
+                            // Add Expense Button
+                            Button(action: { showExpenseView = true }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.monoPrimary)
+                                    
+                                    Text("Add Expense")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.monoPrimary)
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
                             
-                            QuickActionButton(
-                                icon: "camera.viewfinder",
-                                title: "Scan Receipt",
-                                action: { showOCRExpenseView = true }
-                            )
+                            // Scan Receipt Button
+                            Button(action: { showOCRExpenseView = true }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "camera.viewfinder")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.monoPrimary)
+                                    
+                                    Text("Scan Receipt")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.monoPrimary)
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
                         }
                         .padding(.horizontal)
                         
-                        HStack(spacing: 15) {
-                            QuickActionButton(
-                                icon: "person.2.badge.plus",
-                                title: "Add Dependent",
-                                action: { showAddDependent = true }
-                            )
-                            
-                            Spacer()
-                            Spacer()
+                        // Second row - Full width Add Dependent button
+                        Button(action: { showAddDependent = true }) {
+                            VStack(spacing: 8) {
+                                Image(systemName: "person.2.badge.plus")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.monoPrimary)
+                                
+                                Text("Add Dependent")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.monoPrimary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                         }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .padding(.horizontal)
                         .padding(.horizontal)
                     }
                     

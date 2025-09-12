@@ -85,7 +85,7 @@ struct ExpenseHelpView: View {
                     )
                     
                     tipItem(
-                        icon: "bell.badge",
+                        icon: "app.badge",
                         text: "Enable payment reminders for important bills to maintain good financial habits."
                     )
                     
@@ -115,7 +115,7 @@ struct ExpenseHelpView: View {
                         setupExpenseReminder()
                     }) {
                         HStack {
-                            Image(systemName: "bell.badge")
+                            Image(systemName: "app.badge")
                                 .font(.system(size: 18))
                                 .foregroundColor(.white)
                             

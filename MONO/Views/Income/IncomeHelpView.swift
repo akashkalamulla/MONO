@@ -98,7 +98,7 @@ struct IncomeHelpView: View {
                         setupIncomeReminder()
                     }) {
                         HStack {
-                            Image(systemName: "bell.badge")
+                            Image(systemName: "app.badge")
                                 .font(.system(size: 18))
                                 .foregroundColor(.white)
                             

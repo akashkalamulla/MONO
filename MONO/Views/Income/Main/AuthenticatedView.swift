@@ -62,6 +62,7 @@ struct DashboardView: View {
     @State private var totalIncome: Double = 0
     @State private var totalExpenses: Double = 0
     @State private var totalBalance: Double = 0
+    @State private var showNotifications = false
     
     var body: some View {
         NavigationView {
@@ -80,14 +81,20 @@ struct DashboardView: View {
                         
                         Spacer()
                         
-                        Circle()
-                            .fill(Color.monoPrimary.opacity(0.2))
-                            .frame(width: 50, height: 50)
-                            .overlay(
-                                Text(authManager.currentUser?.firstName.prefix(1) ?? "U")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.monoPrimary)
-                            )
+                        Button(action: {
+                            showNotifications = true
+                        }) {
+                            Image(systemName: "bell.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.monoPrimary)
+                                .overlay(
+                                    // Notification badge
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 8, height: 8)
+                                        .offset(x: 8, y: -8)
+                                )
+                        }
                     }
                     .padding(.horizontal)
                     
@@ -367,6 +374,9 @@ struct DashboardView: View {
             NavigationView {
                 DependentsView(dependentManager: dependentManager, authManager: authManager)
             }
+        }
+        .sheet(isPresented: $showNotifications) {
+            NotificationView()
         }
     }
     

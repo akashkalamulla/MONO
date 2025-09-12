@@ -34,6 +34,7 @@ struct OCRExpenseEntry: View {
     @State private var isForDependent: Bool = false
     @State private var selectedDependentId: UUID?
     @State private var locationName: String = ""
+    @State private var showingHelp = false
     
     var dependentManager = DependentManager()
     
@@ -66,14 +67,25 @@ struct OCRExpenseEntry: View {
                     }
                 }
                 
-                if selectedImage != nil && !isProcessingOCR {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Save") {
-                            saveExpense()
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack {
+                        Button("Help") {
+                            showingHelp = true
                         }
-                        .disabled(amount.isEmpty)
+                        
+                        if selectedImage != nil && !isProcessingOCR {
+                            Button("Save") {
+                                saveExpense()
+                            }
+                            .disabled(amount.isEmpty)
+                        }
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $showingHelp) {
+            NavigationView {
+                ExpenseHelpView()
             }
         }
         .sheet(isPresented: $showingImagePicker) {

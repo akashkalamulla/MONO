@@ -10,6 +10,7 @@ import SwiftUI
 struct ExpenseListView: View {
     @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var showingAddExpense = false
+    @State private var showingHelp = false
     @State private var totalExpenses: Double = 0
     @State private var expenses: [ExpenseEntity] = []
     
@@ -55,6 +56,12 @@ struct ExpenseListView: View {
                 loadExpenses()
             }
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Help") {
+                        showingHelp = true
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         showingAddExpense = true
@@ -62,6 +69,11 @@ struct ExpenseListView: View {
                         Image(systemName: "plus")
                             .font(.title2)
                     }
+                }
+            }
+            .sheet(isPresented: $showingHelp) {
+                NavigationView {
+                    ExpenseHelpView()
                 }
             }
             .sheet(isPresented: $showingAddExpense, onDismiss: {

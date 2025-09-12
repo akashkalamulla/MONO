@@ -32,6 +32,7 @@ struct SimpleExpenseEntry: View {
     @State private var showMapPicker = false
     @State private var locationName: String = ""
     @State private var showingOCREntry = false
+    @State private var showingHelp = false
     
     var dependentManager = DependentManager()
     
@@ -339,6 +340,17 @@ struct SimpleExpenseEntry: View {
                 Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button("Help") {
+                    showingHelp = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingHelp) {
+            NavigationView {
+                ExpenseHelpView()
             }
         }
         .alert("Expense Saved", isPresented: $showingAlert) {

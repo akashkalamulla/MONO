@@ -7,98 +7,79 @@ extension OCRService {
     
     // This extends the public API without conflicting with the private implementation
     func enhancedOCRProcessing(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
-        print("OCR Debug: Using enhanced OCR implementation")
-        
-        // First, ensure we're working with a safe copy of the image data to avoid file provider issues
-        guard let imageCGImage = image.cgImage else {
-            print("OCR Debug: Failed to get CGImage from input image")
-            DispatchQueue.main.async {
-                completion(.failure(OCRError.invalidImage))
-            }
+        print("OCR Debug: Using enhanced OCR implementation with app-local temp file")
+
+        // Save image to app temp to avoid any FileProvider/security-scoped issues
+        guard let tempURL = OCRFileHelper.saveImageToAppTemp(image) else {
+            print("OCR Debug: Failed to save image to app temp")
+            DispatchQueue.main.async { completion(.failure(OCRError.invalidImage)) }
             return
         }
-        
-        // Create a new UIImage from the CGImage to ensure we're not depending on any file URLs
-        let safeCopyImage = UIImage(cgImage: imageCGImage)
-        
-        // Process on a background thread
+
+        // Process on background queue
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            
-            // Pre-process the image to improve OCR results
-            let processedImage = self.preprocessImage(safeCopyImage) ?? safeCopyImage
-            
-            guard let finalCGImage = processedImage.cgImage else {
-                print("OCR Debug: Failed to get CGImage from processed image")
-                DispatchQueue.main.async {
-                    completion(.failure(OCRError.invalidImage))
-                }
+            guard let self = self else {
+                OCRFileHelper.removeTempFile(tempURL)
                 return
             }
-            
-            // Create the text recognition request
+
+            // Load the image back from our sandbox copy
+            guard let loaded = OCRFileHelper.loadImageFromAppURL(tempURL) else {
+                print("OCR Debug: Failed to load image from temp URL")
+                OCRFileHelper.removeTempFile(tempURL)
+                DispatchQueue.main.async { completion(.failure(OCRError.invalidImage)) }
+                return
+            }
+
+            // Convert to CGImage safely
+            guard let finalCGImage = OCRFileHelper.cgImageFrom(self.preprocessImage(loaded) ?? loaded) else {
+                print("OCR Debug: Failed to create CGImage from loaded image")
+                OCRFileHelper.removeTempFile(tempURL)
+                DispatchQueue.main.async { completion(.failure(OCRError.invalidImage)) }
+                return
+            }
+
+            // Build request
             let request = VNRecognizeTextRequest { [weak self] (request, error) in
+                // Clean up temp file as soon as we have results
+                OCRFileHelper.removeTempFile(tempURL)
+
                 guard let self = self else { return }
-                
                 if let error = error {
                     print("OCR Debug: VNRecognizeTextRequest error: \(error)")
-                    DispatchQueue.main.async {
-                        completion(.failure(error))
-                    }
+                    DispatchQueue.main.async { completion(.failure(error)) }
                     return
                 }
-                
+
                 guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
                     print("OCR Debug: No text found in image")
-                    DispatchQueue.main.async {
-                        completion(.failure(OCRError.noTextFound))
-                    }
+                    DispatchQueue.main.async { completion(.failure(OCRError.noTextFound)) }
                     return
                 }
-                
-                print("OCR Debug: Successfully found \(observations.count) text observations")
-                
-                // Process the OCR results on the same background queue
+
+                // Process results on background queue and return on main
                 self.improvedProcessOCRResults(observations) { result in
-                    // Always return results on the main queue
-                    DispatchQueue.main.async {
-                        completion(result)
-                    }
+                    DispatchQueue.main.async { completion(result) }
                 }
             }
-            
-            // Configure the text recognition request with optimal settings
+
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
             request.recognitionLanguages = ["en-US", "en-GB", "en-AU", "en-CA"]
-            
             if #available(iOS 16.0, *) {
                 request.revision = VNRecognizeTextRequestRevision3
             } else if #available(iOS 14.0, *) {
                 request.revision = VNRecognizeTextRequestRevision2
             }
-            
-            // Add custom words that might appear on receipts for better recognition
-            request.customWords = [
-                "total", "amount", "bill", "receipt", "invoice", "payment",
-                "Rs", "LKR", "rupees", "cash", "card", "tax", "fee"
-            ]
-            
-            // Create handler with explicit options to avoid file provider issues
-            let handler = VNImageRequestHandler(
-                cgImage: finalCGImage,
-                orientation: .up,
-                options: [VNImageOption.ciContext: CIContext()]
-            )
-            
+            request.customWords = ["total","amount","bill","receipt","invoice","payment","Rs","LKR","rupees","cash","card","tax","fee"]
+
+            let handler = VNImageRequestHandler(cgImage: finalCGImage, orientation: .up, options: [:])
             do {
-                print("OCR Debug: Performing text recognition request")
                 try handler.perform([request])
             } catch {
+                OCRFileHelper.removeTempFile(tempURL)
                 print("OCR Debug: Failed to perform recognition: \(error)")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+                DispatchQueue.main.async { completion(.failure(error)) }
             }
         }
     }

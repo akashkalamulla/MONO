@@ -36,9 +36,19 @@ struct ImagePickerView: UIViewControllerRepresentable {
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let editedImage = info[.editedImage] as? UIImage {
-                parent.selectedImage = editedImage
+                if let temp = OCRFileHelper.saveImageToAppTemp(editedImage), let loaded = OCRFileHelper.loadImageFromAppURL(temp) {
+                    parent.selectedImage = loaded
+                    OCRFileHelper.removeTempFile(temp)
+                } else {
+                    parent.selectedImage = editedImage
+                }
             } else if let originalImage = info[.originalImage] as? UIImage {
-                parent.selectedImage = originalImage
+                if let temp = OCRFileHelper.saveImageToAppTemp(originalImage), let loaded = OCRFileHelper.loadImageFromAppURL(temp) {
+                    parent.selectedImage = loaded
+                    OCRFileHelper.removeTempFile(temp)
+                } else {
+                    parent.selectedImage = originalImage
+                }
             }
             
             parent.presentationMode.wrappedValue.dismiss()
@@ -84,8 +94,17 @@ struct PhotoPickerView: UIViewControllerRepresentable {
             
             if provider.canLoadObject(ofClass: UIImage.self) {
                 provider.loadObject(ofClass: UIImage.self) { image, _ in
-                    DispatchQueue.main.async {
-                        self.parent.selectedImage = image as? UIImage
+                    if let image = image as? UIImage {
+                        if let temp = OCRFileHelper.saveImageToAppTemp(image), let loaded = OCRFileHelper.loadImageFromAppURL(temp) {
+                            DispatchQueue.main.async {
+                                self.parent.selectedImage = loaded
+                            }
+                            OCRFileHelper.removeTempFile(temp)
+                        } else {
+                            DispatchQueue.main.async {
+                                self.parent.selectedImage = image
+                            }
+                        }
                     }
                 }
             }

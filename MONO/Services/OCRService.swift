@@ -36,39 +36,54 @@ class OCRService: ObservableObject {
     var testOCRProcessingWithFixes: ((UIImage, @escaping (Result<OCRResult, Error>) -> Void) -> Void)?
     
     private init() {
-        // Check if the fixes extension is available
-        if let bundleClass = NSClassFromString("MONOApp") {
-            let bundle = Bundle(for: bundleClass)
-            if bundle.path(forResource: "OCRService+Fixes", ofType: "swift") != nil {
-                print("OCR Fixes available - enabling enhanced OCR")
-                hasEnhancedOCR = true
-                
-                // Note: We don't need to set up the method reference here anymore
-                // The extension will provide the implementation directly
-            }
-        }
+    // The enhanced OCR implementation is provided via an extension file
+    // and is available at compile time in this target. Enable it so
+    // callers use the app-local temp file flow (avoids FileProvider issues).
+    hasEnhancedOCR = true
+    print("OCRService: enhancedOCR enabled")
     }
     
     func processImage(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
         let perspectiveCorrectedImage = detectReceiptAndCorrectPerspective(image) ?? image
         let processedImage = preprocessImage(perspectiveCorrectedImage) ?? perspectiveCorrectedImage
-        
-        guard let cgImage = processedImage.cgImage else {
+
+        // Create an app-local copy and a safe CGImage to avoid provider-backed resources
+        var tempURL: URL? = nil
+        var finalCGImage: CGImage? = nil
+
+        if let saved = OCRFileHelper.saveImageToAppTemp(processedImage) {
+            tempURL = saved
+            if let loaded = OCRFileHelper.loadImageFromAppURL(saved), let cg = OCRFileHelper.cgImageFrom(loaded) {
+                finalCGImage = cg
+            }
+        }
+
+        // Fallback to direct cgImage if app-copy failed
+        if finalCGImage == nil {
+            finalCGImage = processedImage.cgImage
+        }
+
+        guard let cgImage = finalCGImage else {
+            // cleanup temp if created
+            if let t = tempURL { OCRFileHelper.removeTempFile(t) }
             completion(.failure(OCRError.invalidImage))
             return
         }
-        
+
         let request = VNRecognizeTextRequest { [weak self] (request, error) in
+            // Remove the temporary file as soon as we have results (best-effort)
+            if let t = tempURL { OCRFileHelper.removeTempFile(t) }
+
             if let error = error {
                 completion(.failure(error))
                 return
             }
-            
+
             guard let observations = request.results as? [VNRecognizedTextObservation] else {
                 completion(.failure(OCRError.noTextFound))
                 return
             }
-            
+
             self?.processOCRResults(observations, completion: completion)
         }
         request.recognitionLevel = .accurate

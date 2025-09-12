@@ -116,7 +116,13 @@ struct OCRCameraView: UIViewControllerRepresentable {
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
+                // Persist a sandbox copy and reload to avoid provider-backed image issues
+                if let temp = OCRFileHelper.saveImageToAppTemp(image), let loaded = OCRFileHelper.loadImageFromAppURL(temp) {
+                    parent.selectedImage = loaded
+                    OCRFileHelper.removeTempFile(temp)
+                } else {
+                    parent.selectedImage = image
+                }
                 parent.completionHandler(true)
             } else {
                 parent.completionHandler(false)
@@ -169,9 +175,18 @@ struct OCRPhotoLibraryPicker: UIViewControllerRepresentable {
             
             result.itemProvider.loadObject(ofClass: UIImage.self) { (object, error) in
                 if let image = object as? UIImage {
-                    DispatchQueue.main.async {
-                        self.parent.selectedImage = image
-                        self.parent.completionHandler(true)
+                    // Save to app temp and reload before assigning
+                    if let temp = OCRFileHelper.saveImageToAppTemp(image), let loaded = OCRFileHelper.loadImageFromAppURL(temp) {
+                        DispatchQueue.main.async {
+                            self.parent.selectedImage = loaded
+                            self.parent.completionHandler(true)
+                        }
+                        OCRFileHelper.removeTempFile(temp)
+                    } else {
+                        DispatchQueue.main.async {
+                            self.parent.selectedImage = image
+                            self.parent.completionHandler(true)
+                        }
                     }
                 } else {
                     self.parent.completionHandler(false)

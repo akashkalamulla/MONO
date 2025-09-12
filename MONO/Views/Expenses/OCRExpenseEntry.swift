@@ -309,47 +309,62 @@ struct OCRExpenseEntry: View {
     private func processImageWithOCR(_ image: UIImage) {
         isProcessingOCR = true
         
-        // Use the advanced multi-pass OCR processing for better results
-        ocrService.multiPassOCRProcessing(image) { result in
-            DispatchQueue.main.async {
-                isProcessingOCR = false
-                
-                switch result {
-                case .success(let initialResult):
-                    // Validate and potentially improve the OCR result
-                    let validatedResult = self.ocrService.validateOCRResult(initialResult)
-                    self.ocrResult = validatedResult
-                    
-                    if let detectedAmount = validatedResult.amount {
-                        self.amount = String(format: "%.2f", detectedAmount)
-                    }
-                    
-                    if let suggestedCategory = validatedResult.suggestedCategory {
-                        self.selectedCategory = suggestedCategory
-                    }
-                    
-                    // Use merchant name for description if available
-                    if let merchantName = validatedResult.merchant, !merchantName.isEmpty {
-                        self.description = merchantName
-                    } else {
-                        // Fall back to first few words of recognized text
-                        let words = validatedResult.text.components(separatedBy: .whitespacesAndNewlines)
-                        let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
-                        if !firstFewWords.isEmpty {
-                            self.description = firstFewWords
-                        }
-                    }
-                    
-                    // Set the detected date if available
-                    if let detectedDate = validatedResult.extractedDate {
-                        self.selectedDate = detectedDate
-                    }
-                    
-                case .failure(let error):
-                    self.alertMessage = "Failed to process receipt: \(error.localizedDescription)"
-                    self.showingAlert = true
+        // Try to use the enhanced implementation first if available
+        if ocrService.hasEnhancedOCR {
+            print("Using enhanced OCR method")
+            ocrService.enhancedOCRProcessing(image) { result in
+                DispatchQueue.main.async {
+                    self.handleOCRResult(result)
                 }
             }
+        } else {
+            // Fall back to the original method
+            print("Using original OCR method")
+            ocrService.multiPassOCRProcessing(image) { result in
+                DispatchQueue.main.async {
+                    self.handleOCRResult(result)
+                }
+            }
+        }
+    }
+    
+    private func handleOCRResult(_ result: Result<OCRResult, Error>) {
+        isProcessingOCR = false
+                
+        switch result {
+        case .success(let initialResult):
+            // Validate and potentially improve the OCR result
+            let validatedResult = self.ocrService.validateOCRResult(initialResult)
+            self.ocrResult = validatedResult
+            
+            if let detectedAmount = validatedResult.amount {
+                self.amount = String(format: "%.2f", detectedAmount)
+            }
+            
+            if let suggestedCategory = validatedResult.suggestedCategory {
+                self.selectedCategory = suggestedCategory
+            }
+            
+            // Use merchant name for description if available
+            if let merchantName = validatedResult.merchant, !merchantName.isEmpty {
+                self.description = merchantName
+            } else {
+                // Fall back to first few words of recognized text
+                let words = validatedResult.text.components(separatedBy: .whitespacesAndNewlines)
+                let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
+                if !firstFewWords.isEmpty {
+                    self.description = firstFewWords
+                }
+            }
+            
+            // Set the detected date if available
+            if let detectedDate = validatedResult.extractedDate {
+                self.selectedDate = detectedDate
+            }
+            
+        case .failure(let error):
+            self.alertMessage = "Failed to process receipt: \(error.localizedDescription)"
+            self.showingAlert = true
         }
     }
     

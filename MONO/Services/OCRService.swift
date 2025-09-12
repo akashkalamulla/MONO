@@ -29,7 +29,25 @@ struct OCRResult {
 class OCRService: ObservableObject {
     static let shared = OCRService()
     
-    private init() {}
+    // Flag to indicate if enhanced OCR processing is available
+    private(set) var hasEnhancedOCR = false
+    
+    // Testing implementation for improved OCR
+    var testOCRProcessingWithFixes: ((UIImage, @escaping (Result<OCRResult, Error>) -> Void) -> Void)?
+    
+    private init() {
+        // Check if the fixes extension is available
+        if let bundleClass = NSClassFromString("MONOApp") {
+            let bundle = Bundle(for: bundleClass)
+            if bundle.path(forResource: "OCRService+Fixes", ofType: "swift") != nil {
+                print("OCR Fixes available - enabling enhanced OCR")
+                hasEnhancedOCR = true
+                
+                // Note: We don't need to set up the method reference here anymore
+                // The extension will provide the implementation directly
+            }
+        }
+    }
     
     func processImage(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
         let perspectiveCorrectedImage = detectReceiptAndCorrectPerspective(image) ?? image
@@ -158,7 +176,7 @@ class OCRService: ObservableObject {
             suggestedCategory: categoryResult.category,
             confidence: finalConfidence,
             merchant: merchant,
-            extractedDate: extractedDate
+            extractedDate: extractedDate,
         )
         
         completion(.success(result))

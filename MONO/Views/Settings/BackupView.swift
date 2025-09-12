@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 
-// Backup manager for handling OCR data backups
+
 class SimpleBackupManager: ObservableObject {
     static let shared = SimpleBackupManager()
     

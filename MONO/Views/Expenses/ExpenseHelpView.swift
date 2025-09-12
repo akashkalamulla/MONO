@@ -237,7 +237,7 @@ struct ExpenseHelpView: View {
     }
     
     private func setupExpenseReminder() {
-        // Request notification permission
+        
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
                 if granted {
@@ -259,7 +259,7 @@ struct ExpenseHelpView: View {
         content.sound = UNNotificationSound.default
         content.userInfo = ["category": "expense", "action": "add_expense"]
         
-        // Schedule for 10 seconds from now (for demo purposes)
+        
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
         let request = UNNotificationRequest(identifier: "expense_reminder_demo", content: content, trigger: trigger)
         

@@ -175,7 +175,6 @@ struct IncomeHelpView: View {
     }
     
     private func setupIncomeReminder() {
-        // Request notification permission
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
                 if granted {
@@ -197,7 +196,6 @@ struct IncomeHelpView: View {
         content.sound = UNNotificationSound.default
         content.userInfo = ["category": "income", "action": "add_income"]
         
-        // Schedule for 10 seconds from now (for demo purposes)
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
         let request = UNNotificationRequest(identifier: "income_reminder_demo", content: content, trigger: trigger)
         

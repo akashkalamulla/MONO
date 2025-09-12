@@ -29,7 +29,7 @@ struct LocationSectionHeader: View {
     var body: some View {
         HStack {
             HStack(spacing: 12) {
-                // Location icon
+                
                 ZStack {
                     Circle()
                         .fill(Color.monoPrimary.opacity(0.1))
@@ -80,7 +80,7 @@ struct ExpenseLocationRow: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Enhanced category icon
+           
             ZStack {
                 Circle()
                     .fill(
@@ -100,7 +100,7 @@ struct ExpenseLocationRow: View {
                     .foregroundColor(categoryColor(for: expense.category))
             }
             
-            // Enhanced content
+           
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(expense.category)
@@ -140,8 +140,7 @@ struct ExpenseLocationRow: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                
-                // Coordinates (smaller and less prominent)
+               
                 Text("Coordinates: \(String(format: "%.4f", expense.coordinate.latitude)), \(String(format: "%.4f", expense.coordinate.longitude))")
                     .font(.caption2)
                     .foregroundColor(.gray.opacity(0.7))

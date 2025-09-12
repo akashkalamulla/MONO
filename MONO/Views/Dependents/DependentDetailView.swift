@@ -276,7 +276,7 @@ struct InfoRow: View {
             
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary color
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) 
         }
     }
 }

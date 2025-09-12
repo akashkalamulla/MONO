@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Guide Content Common Elements
-
 struct GuideHeader: View {
     let title: String
     let iconName: String
@@ -96,7 +94,6 @@ struct GuideInfoBox: View {
     }
 }
 
-// MARK: - Getting Started View
 
 struct GettingStartedView: View {
     var body: some View {
@@ -161,8 +158,6 @@ struct GettingStartedView: View {
         .navigationTitle("Getting Started")
     }
 }
-
-// MARK: - Managing Income View
 
 struct ManagingIncomeView: View {
     var body: some View {
@@ -235,8 +230,6 @@ struct ManagingIncomeView: View {
         .navigationTitle("Managing Income")
     }
 }
-
-// MARK: - Tracking Expenses View
 
 struct TrackingExpensesView: View {
     var body: some View {
@@ -312,8 +305,6 @@ struct TrackingExpensesView: View {
     }
 }
 
-// MARK: - Adding Dependents View
-
 struct AddingDependentsView: View {
     var body: some View {
         ScrollView {
@@ -386,7 +377,6 @@ struct AddingDependentsView: View {
     }
 }
 
-// MARK: - Security Features View
 
 struct SecurityFeaturesView: View {
     var body: some View {
@@ -459,7 +449,6 @@ struct SecurityFeaturesView: View {
     }
 }
 
-// MARK: - Reports & Statistics View
 
 struct ReportsStatisticsView: View {
     var body: some View {
@@ -533,7 +522,6 @@ struct ReportsStatisticsView: View {
     }
 }
 
-// MARK: - Helper Views
 
 struct ChecklistItem: View {
     let text: String
@@ -584,7 +572,6 @@ struct ReportTypePill: View {
     }
 }
 
-// MARK: - Preview
 
 struct UserGuideDetailViews_Previews: PreviewProvider {
     static var previews: some View {

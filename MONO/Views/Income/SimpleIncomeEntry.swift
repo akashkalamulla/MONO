@@ -34,7 +34,6 @@ struct SimpleIncomeEntry: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 28) {
-                // Amount section
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Amount")
                         .font(.system(size: 16, weight: .semibold))
@@ -64,14 +63,12 @@ struct SimpleIncomeEntry: View {
                     .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
                 
-                // Category section
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Category")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.monoPrimary)
                         .padding(.leading, 4)
                     
-                    // Using a button to show a custom dropdown menu appearance
                     Menu {
                         ForEach(categories, id: \.self) { category in
                             Button(action: {
@@ -105,8 +102,7 @@ struct SimpleIncomeEntry: View {
                     }
                     .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
-                
-                // Date section - Using a simplified DatePicker implementation
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Date")
                         .font(.system(size: 16, weight: .semibold))
@@ -134,7 +130,6 @@ struct SimpleIncomeEntry: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
                 
-                // Recurring income section
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Recurring Income")
                         .font(.system(size: 16, weight: .semibold))
@@ -188,8 +183,7 @@ struct SimpleIncomeEntry: View {
                     )
                     .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
-                
-                // Description section
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Description (Optional)")
                         .font(.system(size: 16, weight: .semibold))
@@ -213,7 +207,6 @@ struct SimpleIncomeEntry: View {
                 
                 Spacer(minLength: 30)
                 
-                // Save button
                 Button(action: saveIncome) {
                     Text("Save Income")
                         .font(.system(size: 18, weight: .semibold))
@@ -268,14 +261,11 @@ struct SimpleIncomeEntry: View {
             return
         }
         
-        // For demonstration, just show success message
+
         let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
         alertMessage = "Income of Rs. \(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
         showingAlert = true
         
-        // In a real implementation, we would save to CoreData here
-        
-        // After successful save, wait a moment and dismiss
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             presentationMode.wrappedValue.dismiss()
         }

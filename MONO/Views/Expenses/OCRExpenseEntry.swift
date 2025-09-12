@@ -321,7 +321,7 @@ struct OCRExpenseEntry: View {
     private func processImageWithOCR(_ image: UIImage) {
         isProcessingOCR = true
         
-        // Try to use the enhanced implementation first if available
+    
         if ocrService.hasEnhancedOCR {
             print("Using enhanced OCR method")
             ocrService.enhancedOCRProcessing(image) { result in
@@ -330,7 +330,7 @@ struct OCRExpenseEntry: View {
                 }
             }
         } else {
-            // Fall back to the original method
+
             print("Using original OCR method")
             ocrService.multiPassOCRProcessing(image) { result in
                 DispatchQueue.main.async {
@@ -345,7 +345,7 @@ struct OCRExpenseEntry: View {
                 
         switch result {
         case .success(let initialResult):
-            // Validate and potentially improve the OCR result
+
             let validatedResult = self.ocrService.validateOCRResult(initialResult)
             self.ocrResult = validatedResult
             
@@ -357,11 +357,10 @@ struct OCRExpenseEntry: View {
                 self.selectedCategory = suggestedCategory
             }
             
-            // Use merchant name for description if available
+
             if let merchantName = validatedResult.merchant, !merchantName.isEmpty {
                 self.description = merchantName
             } else {
-                // Fall back to first few words of recognized text
                 let words = validatedResult.text.components(separatedBy: .whitespacesAndNewlines)
                 let firstFewWords = Array(words.prefix(5)).joined(separator: " ")
                 if !firstFewWords.isEmpty {
@@ -369,7 +368,6 @@ struct OCRExpenseEntry: View {
                 }
             }
             
-            // Set the detected date if available
             if let detectedDate = validatedResult.extractedDate {
                 self.selectedDate = detectedDate
             }
@@ -414,7 +412,6 @@ struct OCRExpenseEntry: View {
         expense.updatedAt = Date()
         expense.user = currentUser
         
-        // Note: If you want to track OCR source and confidence, you'll need to add these attributes to your Core Data model first
         
         do {
             try context.save()

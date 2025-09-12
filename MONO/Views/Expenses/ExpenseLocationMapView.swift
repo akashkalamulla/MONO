@@ -13,7 +13,7 @@ struct ExpenseLocationMapView: View {
     @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var expenses: [ExpenseLocationData] = []
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Sri Lanka center
+        center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612),
         span: MKCoordinateSpan(latitudeDelta: 1.0, longitudeDelta: 1.0)
     )
     @State private var showingHeatmap = true
@@ -31,9 +31,7 @@ struct ExpenseLocationMapView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Enhanced Control Panel
                 VStack(spacing: 16) {
-                    // Time Period Selector with improved design
                     VStack(spacing: 8) {
                         Text("Time Period")
                             .font(.subheadline)
@@ -50,10 +48,9 @@ struct ExpenseLocationMapView: View {
                         .pickerStyle(SegmentedPickerStyle())
                         .padding(.horizontal, 20)
                     }
-                    
-                    // Enhanced Toggle Buttons with better UX
+
                     HStack(spacing: 12) {
-                        // Heatmap Toggle
+
                         Button(action: { 
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 showingHeatmap.toggle() 
@@ -68,7 +65,7 @@ struct ExpenseLocationMapView: View {
                             .foregroundColor(showingHeatmap ? .white : .monoPrimary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
-                            .frame(minHeight: 44) // Better touch target
+                            .frame(minHeight: 44)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(showingHeatmap ? 
@@ -84,7 +81,7 @@ struct ExpenseLocationMapView: View {
                         }
                         .buttonStyle(ScaleButtonStyle())
                         
-                        // View Toggle
+                   
                         Button(action: { 
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 showingListView.toggle() 
@@ -99,7 +96,7 @@ struct ExpenseLocationMapView: View {
                             .foregroundColor(.monoPrimary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
-                            .frame(minHeight: 44) // Better touch target
+                            .frame(minHeight: 44)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.monoPrimary.opacity(0.1))
@@ -113,7 +110,7 @@ struct ExpenseLocationMapView: View {
                         
                         Spacer()
                         
-                        // Enhanced location counter
+     
                         VStack(spacing: 2) {
                             Text("\(filteredExpenses.count)")
                                 .font(.system(size: 18, weight: .bold))
@@ -142,7 +139,7 @@ struct ExpenseLocationMapView: View {
                         .shadow(color: Color.monoShadow, radius: 2, x: 0, y: 1)
                 )
                 
-                // Enhanced Loading State
+
                 if isLoading {
                     VStack(spacing: 20) {
                         ProgressView()
@@ -162,10 +159,10 @@ struct ExpenseLocationMapView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.monoBackground.opacity(0.5))
                     
-                // Enhanced Empty State
+  
                } else if expenses.isEmpty {
                     VStack(spacing: 24) {
-                        // Animated icon
+
                         ZStack {
                             Circle()
                                 .fill(Color.monoPrimary.opacity(0.1))
@@ -190,9 +187,9 @@ struct ExpenseLocationMapView: View {
                                 .padding(.horizontal, 32)
                         }
                         
-                        // Call to action (optional)
+             
                         Button(action: {
-                            // Navigate to add expense or show tips
+                          
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "plus.circle.fill")
@@ -214,11 +211,11 @@ struct ExpenseLocationMapView: View {
                     .background(Color.monoBackground.opacity(0.3))
                 } else {
                     if showingListView {
-                        // Enhanced List View with animation
+
                         ExpenseLocationListContentView(expenses: filteredExpenses)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     } else {
-                        // Enhanced Map View
+                 
                         ZStack {
                             Map(coordinateRegion: $region, 
                                 showsUserLocation: true,
@@ -231,20 +228,20 @@ struct ExpenseLocationMapView: View {
                             .cornerRadius(0)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     
-                            // Enhanced Heatmap with better visuals
+     
                             if showingHeatmap {
                                 EnhancedHeatmapOverlay(expenses: filteredExpenses)
                                     .allowsHitTesting(false)
                                     .transition(.opacity)
                             }
                             
-                            // Map controls overlay
+
                             VStack {
                                 HStack {
                                     Spacer()
                                     
                                     VStack(spacing: 8) {
-                                        // Zoom to fit button
+                                    
                                         Button(action: updateMapRegion) {
                                             Image(systemName: "scope")
                                                 .font(.system(size: 16, weight: .medium))
@@ -258,7 +255,7 @@ struct ExpenseLocationMapView: View {
                                         }
                                         .buttonStyle(ScaleButtonStyle())
                                         
-                                        // Location button
+           
                                         Button(action: centerOnUserLocation) {
                                             Image(systemName: "location.fill")
                                                 .font(.system(size: 16, weight: .medium))
@@ -282,7 +279,7 @@ struct ExpenseLocationMapView: View {
                     }
                 }
                 
-                // Enhanced Statistics Panel
+          
                 if !expenses.isEmpty && !isLoading {
                     EnhancedExpenseLocationStats(expenses: filteredExpenses)
                         .background(
@@ -391,8 +388,6 @@ struct ExpenseLocationMapView: View {
     }
     
     private func centerOnUserLocation() {
-        // This would require CoreLocation to get user's current location
-        // For now, center on Sri Lanka
         withAnimation(.easeInOut(duration: 0.5)) {
             region = MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612),
@@ -661,9 +656,7 @@ struct ExpenseLocationRowCompact: View {
     }
 }
 
-// MARK: - Enhanced Components
 
-// Enhanced Map Pin with better design
 struct EnhancedExpenseMapPin: View {
     let location: ExpenseLocationData
     @State private var showingDetail = false
@@ -676,13 +669,13 @@ struct EnhancedExpenseMapPin: View {
             }
         }) {
             ZStack {
-                // Drop shadow
+     
                 Circle()
                     .fill(Color.black.opacity(0.2))
                     .frame(width: 36, height: 36)
                     .offset(y: 2)
                 
-                // Main pin
+
                 Circle()
                     .fill(
                         LinearGradient(
@@ -700,12 +693,12 @@ struct EnhancedExpenseMapPin: View {
                             .stroke(Color.white, lineWidth: 3)
                     )
                 
-                // Icon
+
                 Image(systemName: categoryIcon(for: location.category))
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
                 
-                // Amount indicator (for high amounts)
+ 
                 if location.amount > 5000 {
                     Circle()
                         .fill(Color.red)
@@ -723,7 +716,7 @@ struct EnhancedExpenseMapPin: View {
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isAnimating)
         }
         .onAppear {
-            // Add a subtle bounce animation when pin appears
+       
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...0.5)) {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                     isAnimating = true
@@ -759,20 +752,20 @@ struct EnhancedExpenseMapPin: View {
     }
 }
 
-// Enhanced Expense Detail Sheet
+
 struct ExpenseDetailSheet: View {
     let location: ExpenseLocationData
     
     var body: some View {
         VStack(spacing: 20) {
-            // Handle bar
+ 
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color.gray.opacity(0.3))
                 .frame(width: 40, height: 6)
                 .padding(.top, 8)
             
             VStack(spacing: 16) {
-                // Header
+      
                 HStack {
                     ZStack {
                         Circle()
@@ -798,7 +791,7 @@ struct ExpenseDetailSheet: View {
                     Spacer()
                 }
                 
-                // Amount
+          
                 VStack(spacing: 4) {
                     Text("Amount Spent")
                         .font(.caption)
@@ -816,7 +809,7 @@ struct ExpenseDetailSheet: View {
                         .fill(Color.monoBackground)
                 )
                 
-                // Date and coordinates
+ 
                 VStack(spacing: 8) {
                     HStack {
                         Label("Date", systemImage: "calendar")
@@ -844,7 +837,7 @@ struct ExpenseDetailSheet: View {
                     }
                 }
                 
-                // Action button
+
                 Button(action: openInMaps) {
                     HStack {
                         Image(systemName: "map.fill")
@@ -901,7 +894,7 @@ struct ExpenseDetailSheet: View {
     }
 }
 
-// Enhanced Heatmap Overlay with better gradients
+
 struct EnhancedHeatmapOverlay: View {
     let expenses: [ExpenseLocationData]
     
@@ -912,8 +905,7 @@ struct EnhancedHeatmapOverlay: View {
             for group in groupedExpenses {
                 let intensity = calculateIntensity(for: group)
                 let radius = calculateRadius(for: group, maxRadius: 60)
-                
-                // More realistic positioning based on coordinate conversion
+
                 let centerX = size.width * 0.5 + CGFloat.random(in: -size.width*0.3...size.width*0.3)
                 let centerY = size.height * 0.5 + CGFloat.random(in: -size.height*0.3...size.height*0.3)
                 
@@ -976,13 +968,13 @@ struct EnhancedHeatmapOverlay: View {
     }
 }
 
-// Enhanced Statistics Panel
+
 struct EnhancedExpenseLocationStats: View {
     let expenses: [ExpenseLocationData]
     
     var body: some View {
         VStack(spacing: 0) {
-            // Divider with gradient
+    
             LinearGradient(
                 colors: [Color.clear, Color.monoPrimary.opacity(0.3), Color.clear],
                 startPoint: .leading,
@@ -991,7 +983,7 @@ struct EnhancedExpenseLocationStats: View {
             .frame(height: 1)
             
             VStack(spacing: 16) {
-                // Header
+          
                 HStack {
                     Text("Spending Summary")
                         .font(.headline)
@@ -1005,7 +997,7 @@ struct EnhancedExpenseLocationStats: View {
                         .foregroundColor(.monoPrimary.opacity(0.6))
                 }
                 
-                // Stats Grid
+         
                 HStack(spacing: 16) {
                     StatCard(
                         title: "Total Spent",
@@ -1056,7 +1048,7 @@ struct EnhancedExpenseLocationStats: View {
     }
 }
 
-// Individual Stat Card
+
 struct StatCard: View {
     let title: String
     let value: String

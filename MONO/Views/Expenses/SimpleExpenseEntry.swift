@@ -551,7 +551,7 @@ struct MapPickerView: View {
                 }
                 .background(Color(UIColor.systemBackground))
                 
-                // Map view
+     
                 ZStack {
                     Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: pinnedCoordinate != nil ? [PinnedLocation(coordinate: pinnedCoordinate!)] : []) { location in
                         MapPin(coordinate: location.coordinate, tint: .red)

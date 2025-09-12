@@ -187,11 +187,11 @@ struct EditDependentView: View {
                                 .padding(.bottom, -4)
                             
                             VStack(spacing: 16) {
-                                // Phone field
+                               
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Phone Number")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -205,11 +205,11 @@ struct EditDependentView: View {
                                         .keyboardType(.phonePad)
                                 }
                                 
-                                // Email field
+                              
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text("Email")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         Spacer()
                                     }
@@ -227,24 +227,24 @@ struct EditDependentView: View {
                         }
                         .padding(.bottom, 10)
                         
-                        // Status Section
+            
                         VStack(alignment: .leading, spacing: 20) {
                             Text("STATUS")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                 .padding(.leading, 4)
                                 .padding(.bottom, -4)
                             
                             VStack(spacing: 8) {
                                 HStack {
                                     Text("Active")
-                                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2)) // monoText
+                                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                                         .font(.system(size: 16))
                                     
                                     Spacer()
                                     
                                     Toggle("", isOn: $isActive)
-                                        .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.2, green: 0.6, blue: 0.6))) // monoPrimary
+                                        .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.2, green: 0.6, blue: 0.6)))
                                         .labelsHidden()
                                 }
                                 .padding()
@@ -255,12 +255,12 @@ struct EditDependentView: View {
                                 if !isActive {
                                     HStack {
                                         Image(systemName: "info.circle")
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .font(.system(size: 14))
                                         
                                         Text("Inactive dependents won't appear in expense tracking")
                                             .font(.system(size: 14))
-                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6)) // monoTextLight
+                                            .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.6))
                                             .fixedSize(horizontal: false, vertical: true)
                                         
                                         Spacer()
@@ -271,7 +271,7 @@ struct EditDependentView: View {
                         }
                         .padding(.bottom, 30)
                         
-                        // Update Button
+                       
                         Button(action: updateDependent) {
                             if isLoading {
                                 HStack {
@@ -293,7 +293,7 @@ struct EditDependentView: View {
                         .frame(height: 54)
                         .background(
                             isFormValid && hasChanges ? 
-                                Color(red: 0.2, green: 0.6, blue: 0.6) : // monoPrimary
+                                Color(red: 0.2, green: 0.6, blue: 0.6) :
                                 Color.gray.opacity(0.5)
                         )
                         .cornerRadius(27)
@@ -316,7 +316,7 @@ struct EditDependentView: View {
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) // monoPrimary
+                .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6)) 
             )
         }
         .alert(isPresented: $showingAlert) {

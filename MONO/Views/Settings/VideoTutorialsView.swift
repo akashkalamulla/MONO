@@ -18,42 +18,42 @@ struct VideoTutorialsView: View {
             description: "Learn the basics of setting up your MONO account and navigating the app.",
             thumbnailName: "play.circle.fill",
             duration: "5:22",
-            youtubeID: "dQw4w9WgXcQ" // Sample YouTube ID
+            youtubeID: "dQw4w9WgXcQ"
         ),
         VideoTutorial(
             title: "Managing Your Income Sources",
             description: "How to add, edit, and categorize different income streams in MONO.",
             thumbnailName: "dollarsign.circle.fill",
             duration: "4:15",
-            youtubeID: "9bZkp7q19f0" // Sample YouTube ID
+            youtubeID: "9bZkp7q19f0"
         ),
         VideoTutorial(
             title: "Tracking Expenses Effectively",
             description: "Learn how to use MONO's expense tracking features, including receipt scanning.",
             thumbnailName: "minus.circle.fill",
             duration: "6:48",
-            youtubeID: "JGwWNGJdvx8" // Sample YouTube ID
+            youtubeID: "JGwWNGJdvx8"
         ),
         VideoTutorial(
             title: "Setting Up Family Members as Dependents",
             description: "How to add family members to your MONO account and track expenses for each person.",
             thumbnailName: "person.2.circle.fill",
             duration: "3:37",
-            youtubeID: "kJQP7kiw5Fk" // Sample YouTube ID
+            youtubeID: "kJQP7kiw5Fk"
         ),
         VideoTutorial(
             title: "Using Security Features in MONO",
             description: "Protect your financial data with MONO's security features including biometric authentication.",
             thumbnailName: "shield.fill",
             duration: "4:53",
-            youtubeID: "hT_nvWreIhg" // Sample YouTube ID
+            youtubeID: "hT_nvWreIhg"
         ),
         VideoTutorial(
             title: "Understanding Financial Reports",
             description: "How to generate and analyze financial reports in MONO to make better decisions.",
             thumbnailName: "chart.bar.fill",
             duration: "7:12",
-            youtubeID: "fJ9rUzIMcZQ" // Sample YouTube ID
+            youtubeID: "fJ9rUzIMcZQ" 
         )
     ]
     

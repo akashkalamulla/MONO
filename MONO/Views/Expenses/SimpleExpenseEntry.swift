@@ -13,6 +13,7 @@ import CoreLocation
 struct SimpleExpenseEntry: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var coreDataStack = CoreDataStack.shared
+    @StateObject private var notificationManager = NotificationManager.shared
     @State private var amount: String = ""
     @State private var description: String = ""
     @State private var selectedCategory = "Food & Dining"
@@ -77,7 +78,7 @@ struct SimpleExpenseEntry: View {
                         .padding()
                         .background(
                             LinearGradient(
-                                colors: [Color.blue, Color.blue.opacity(0.8)],
+                                colors: [Color.monoPrimary, Color.monoPrimary.opacity(0.85)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -441,12 +442,56 @@ struct SimpleExpenseEntry: View {
         do {
             try context.save()
             
+            // Schedule notifications if enabled
+            if isRecurring {
+                let frequency = convertStringToRecurringFrequency(selectedFrequency)
+                notificationManager.scheduleExpenseReminder(
+                    amount: amountValue,
+                    description: description.isEmpty ? nil : description,
+                    category: selectedCategory,
+                    date: selectedDate,
+                    isRecurring: true,
+                    frequency: frequency
+                )
+            }
+            
+            if isPaymentReminder {
+                let frequency = convertStringToReminderFrequency(reminderFrequency)
+                var reminderScheduleDate: Date? = reminderDate
+
+                if reminderFrequency == "Monthly" {
+                    // Calculate next occurrence based on day of month
+                    var components = Calendar.current.dateComponents([.year, .month], from: Date())
+                    components.day = reminderDayOfMonth
+                    if let newDate = Calendar.current.date(from: components) {
+                        reminderScheduleDate = newDate
+
+                        // If the date has passed this month, schedule for next month
+                        if let rsd = reminderScheduleDate, rsd < Date() {
+                            components.month = (components.month ?? 1) + 1
+                            reminderScheduleDate = Calendar.current.date(from: components) ?? Date()
+                        }
+                    }
+                }
+
+                notificationManager.schedulePaymentReminder(
+                    amount: amountValue,
+                    description: "\(selectedCategory) payment",
+                    reminderDate: reminderScheduleDate ?? Date(),
+                    frequency: frequency
+                )
+            }
+            
             var message = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved"
             
             if isForDependent && selectedDependentId != nil {
                 if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
                     message += " and associated with \(dependent.fullName)"
                 }
+            }
+            
+            if isRecurring || isPaymentReminder {
+                message += "\nReminder notifications have been set up."
             }
             
             alertMessage = message

@@ -10,7 +10,7 @@ import UserNotifications
 
 struct NotificationView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var notifications: [NotificationItem] = []
+    @StateObject private var notificationManager = NotificationManager.shared
     @State private var isLoading = true
     
     var body: some View {
@@ -19,7 +19,7 @@ struct NotificationView: View {
                 if isLoading {
                     ProgressView("Loading notifications...")
                         .padding()
-                } else if notifications.isEmpty {
+                } else if notificationManager.notifications.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "bell.slash")
                             .font(.system(size: 60))
@@ -34,13 +34,19 @@ struct NotificationView: View {
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
+                        
+                        Button("Add Sample Notifications") {
+                            notificationManager.addSampleNotifications()
+                        }
+                        .padding(.top)
+                        .foregroundColor(.blue)
                     }
                     .padding()
                 } else {
                     List {
-                        ForEach(notifications) { notification in
+                        ForEach(notificationManager.notifications) { notification in
                             NotificationRowView(notification: notification) {
-                                markAsRead(notification)
+                                notificationManager.markAsRead(notification)
                             }
                         }
                         .onDelete(perform: deleteNotifications)
@@ -57,10 +63,10 @@ struct NotificationView: View {
                     }
                 }
                 
-                if !notifications.isEmpty {
+                if !notificationManager.notifications.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Clear All") {
-                            clearAllNotifications()
+                            notificationManager.clearAllNotifications()
                         }
                         .foregroundColor(.red)
                     }
@@ -77,58 +83,21 @@ struct NotificationView: View {
         
         // Simulate loading delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // Load sample notifications (in a real app, this would come from Core Data or a service)
-            notifications = getSampleNotifications()
             isLoading = false
         }
     }
     
-    private func getSampleNotifications() -> [NotificationItem] {
-        return [
-            NotificationItem(
-                id: UUID(),
-                title: "Income Reminder",
-                message: "Don't forget to log your monthly salary",
-                timestamp: Date().addingTimeInterval(-3600), // 1 hour ago
-                type: .income,
-                isRead: false
-            ),
-            NotificationItem(
-                id: UUID(),
-                title: "Expense Reminder",
-                message: "Rent payment is due tomorrow",
-                timestamp: Date().addingTimeInterval(-7200), // 2 hours ago
-                type: .expense,
-                isRead: false
-            ),
-            NotificationItem(
-                id: UUID(),
-                title: "Budget Alert",
-                message: "You've spent 80% of your monthly food budget",
-                timestamp: Date().addingTimeInterval(-86400), // 1 day ago
-                type: .budget,
-                isRead: true
-            )
-        ]
-    }
-    
-    private func markAsRead(_ notification: NotificationItem) {
-        if let index = notifications.firstIndex(where: { $0.id == notification.id }) {
-            notifications[index].isRead = true
-        }
-    }
-    
     private func deleteNotifications(offsets: IndexSet) {
-        notifications.remove(atOffsets: offsets)
-    }
-    
-    private func clearAllNotifications() {
-        notifications.removeAll()
+        for index in offsets {
+            let notification = notificationManager.notifications[index]
+            notificationManager.deleteNotification(notification)
+        }
     }
 }
 
+
 struct NotificationRowView: View {
-    let notification: NotificationItem
+    let notification: AppNotification
     let onTap: () -> Void
     
     var body: some View {
@@ -162,7 +131,7 @@ struct NotificationRowView: View {
                 
                 if !notification.isRead {
                     Circle()
-                        .fill(Color.monoPrimary)
+                        .fill(Color.blue)
                         .frame(width: 8, height: 8)
                 }
             }
@@ -175,48 +144,6 @@ struct NotificationRowView: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.dateTimeStyle = .named
         return formatter.localizedString(for: date, relativeTo: Date())
-    }
-}
-
-struct NotificationItem: Identifiable {
-    let id: UUID
-    let title: String
-    let message: String
-    let timestamp: Date
-    let type: NotificationType
-    var isRead: Bool
-}
-
-enum NotificationType {
-    case income
-    case expense
-    case budget
-    case reminder
-    
-    var iconName: String {
-        switch self {
-        case .income:
-            return "plus.circle.fill"
-        case .expense:
-            return "minus.circle.fill"
-        case .budget:
-            return "chart.pie.fill"
-        case .reminder:
-            return "bell.fill"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .income:
-            return .green
-        case .expense:
-            return .red
-        case .budget:
-            return .orange
-        case .reminder:
-            return .blue
-        }
     }
 }
 

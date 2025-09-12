@@ -11,6 +11,8 @@ import Foundation
 
 struct SimpleIncomeEntry: View {
     @Environment(\.presentationMode) var presentationMode
+    @StateObject private var notificationManager = NotificationManager.shared
+    @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var amount: String = ""
     @State private var description: String = ""
     @State private var selectedCategory = "Salary"
@@ -261,13 +263,83 @@ struct SimpleIncomeEntry: View {
             return
         }
         
-
-        let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
-        alertMessage = "Income of Rs. \(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
-        showingAlert = true
+        guard let currentUser = coreDataStack.fetchCurrentUser() else {
+            alertMessage = "Unable to find current user"
+            showingAlert = true
+            return
+        }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            presentationMode.wrappedValue.dismiss()
+        // Create and save income to CoreData
+        let context = coreDataStack.context
+        let income = IncomeEntity(context: context)
+        
+        income.id = UUID()
+        income.amount = amountValue
+        income.categoryName = selectedCategory
+        income.incomeDescription = description.isEmpty ? nil : description
+        income.date = selectedDate
+        income.isRecurring = isRecurring
+        income.recurrenceFrequency = isRecurring ? selectedFrequency.lowercased() : nil
+        income.createdAt = Date()
+        income.updatedAt = Date()
+        income.user = currentUser
+        
+        // Set category color and icon based on category
+        switch selectedCategory {
+        case "Salary":
+            income.categoryColor = "#4CAF50"
+            income.categoryIcon = "dollarsign.circle.fill"
+            income.categoryId = "salary"
+        case "Freelance":
+            income.categoryColor = "#2196F3"
+            income.categoryIcon = "laptopcomputer"
+            income.categoryId = "freelance"
+        case "Business":
+            income.categoryColor = "#FF9800"
+            income.categoryIcon = "briefcase.fill"
+            income.categoryId = "business"
+        case "Investment":
+            income.categoryColor = "#9C27B0"
+            income.categoryIcon = "chart.line.uptrend.xyaxis"
+            income.categoryId = "investment"
+        case "Rental":
+            income.categoryColor = "#607D8B"
+            income.categoryIcon = "house.fill"
+            income.categoryId = "rental"
+        default:
+            income.categoryColor = "#795548"
+            income.categoryIcon = "plus.circle.fill"
+            income.categoryId = "other"
+        }
+        
+        do {
+            try context.save()
+            
+            // Schedule notification if recurring income is enabled
+            if isRecurring {
+                let frequency = convertStringToFrequency(selectedFrequency)
+                notificationManager.scheduleIncomeReminder(
+                    amount: amountValue,
+                    description: description.isEmpty ? nil : description,
+                    date: selectedDate,
+                    isRecurring: true,
+                    frequency: frequency
+                )
+            }
+
+            let recurringInfo = isRecurring ? " (\(selectedFrequency))" : ""
+            alertMessage = "Income of Rs. \(String(format: "%.2f", amountValue)) has been saved\(recurringInfo)!"
+            if isRecurring {
+                alertMessage += "\nReminder notifications have been set up for this recurring income."
+            }
+            showingAlert = true
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                presentationMode.wrappedValue.dismiss()
+            }
+        } catch {
+            alertMessage = "Error saving income: \(error.localizedDescription)"
+            showingAlert = true
         }
     }
     

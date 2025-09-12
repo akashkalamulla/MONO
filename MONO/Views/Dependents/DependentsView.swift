@@ -216,6 +216,6 @@ struct SearchBar: View {
 #Preview {
     NavigationView {
         Text("DependentsView Preview")
-            .foregroundColor(.monoPrimary)
+            .foregroundColor(Color.monoPrimary)
     }
 }

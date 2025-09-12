@@ -80,7 +80,10 @@ struct StatisticsView: View {
     
     private func loadRealData() {
         guard let user = currentUser else {
-            updateChartData() // Fallback to sample data
+            // Clear data when no user is found instead of showing sample data
+            chartData = []
+            topSpending = []
+            totalAmount = 0
             return
         }
         
@@ -109,7 +112,10 @@ struct StatisticsView: View {
             }
         } catch {
             print("Error fetching real data: \(error)")
-            updateChartData() // Fallback to sample data
+            // Clear data on error instead of showing sample data
+            chartData = []
+            topSpending = []
+            totalAmount = 0
         }
     }
     
@@ -152,10 +158,6 @@ struct StatisticsView: View {
             return ChartDataPoint(date: date, amount: amount)
         }
         
-        if chartData.isEmpty {
-            chartData = generateSampleData(for: selectedPeriod, type: selectedType)
-        }
-        
         totalAmount = chartData.reduce(0) { $0 + $1.amount }
     }
     
@@ -166,10 +168,6 @@ struct StatisticsView: View {
                 return nil
             }
             return ChartDataPoint(date: date, amount: amount)
-        }
-        
-        if chartData.isEmpty {
-            chartData = generateSampleData(for: selectedPeriod, type: selectedType)
         }
         
         totalAmount = chartData.reduce(0) { $0 + $1.amount }
@@ -197,10 +195,6 @@ struct StatisticsView: View {
                 isIncome: true
             )
         }.sorted { $0.amount > $1.amount }
-        
-        if topSpending.isEmpty {
-            topSpending = generateTopSpending(for: selectedType)
-        }
     }
     
     private func generateTopSpendingFromExpenses(_ expenses: [NSManagedObject]) {
@@ -227,10 +221,6 @@ struct StatisticsView: View {
                 isIncome: false
             )
         }.sorted { $0.amount > $1.amount }
-        
-        if topSpending.isEmpty {
-            topSpending = generateTopSpending(for: selectedType)
-        }
     }
     
     private func getExpenseCategoryIconAndColor(for category: String) -> (String, Color) {
@@ -487,79 +477,102 @@ struct StatisticsView: View {
                     }
                     .frame(height: 200)
                     
-                    Chart(chartData) { dataPoint in
-                        LineMark(
-                            x: .value("Time", dataPoint.date),
-                            y: .value("Amount", dataPoint.amount)
-                        )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: selectedType == "Income" ? 
-                                [Color.green, Color.green.opacity(0.8)] : 
-                                [Color.monoPrimary, Color.monoSecondary],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-                        .symbol(Circle().strokeBorder(lineWidth: 2))
-                        .symbolSize(40)
-                        
-                        AreaMark(
-                            x: .value("Time", dataPoint.date),
-                            y: .value("Amount", dataPoint.amount)
-                        )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: selectedType == "Income" ? 
-                                [Color.green.opacity(0.3), Color.green.opacity(0.1)] : 
-                                [Color.monoPrimary.opacity(0.3), Color.monoPrimary.opacity(0.05)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    }
-                    .frame(height: 200)
-                    .chartXAxis(.hidden)
-                    .chartYAxis(.hidden)
-                    
-                    // Floating total amount
-                    VStack {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Total")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.gray)
-                                
-                                Text("Rs. \(String(format: "%.0f", totalAmount))")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(selectedType == "Income" ? .green : .monoPrimary)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .shadow(color: Color.monoShadow, radius: 8, x: 0, y: 4)
-                            )
+                    if chartData.isEmpty {
+                        // Empty state for chart
+                        VStack(spacing: 16) {
+                            Image(systemName: selectedType == "Income" ? "chart.line.uptrend.xyaxis" : "chart.line.downtrend.xyaxis")
+                                .font(.system(size: 48, weight: .light))
+                                .foregroundColor(.gray.opacity(0.4))
                             
+                            VStack(spacing: 4) {
+                                Text("No \(selectedType) Data")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.monoPrimary)
+                                
+                                Text("Add some \(selectedType.lowercased()) entries to see trends")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .frame(height: 200)
+                    } else {
+                        Chart(chartData) { dataPoint in
+                            LineMark(
+                                x: .value("Time", dataPoint.date),
+                                y: .value("Amount", dataPoint.amount)
+                            )
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: selectedType == "Income" ? 
+                                    [Color.green, Color.green.opacity(0.8)] : 
+                                    [Color.monoPrimary, Color.monoSecondary],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                            .symbol(Circle().strokeBorder(lineWidth: 2))
+                            .symbolSize(40)
+                            
+                            AreaMark(
+                                x: .value("Time", dataPoint.date),
+                                y: .value("Amount", dataPoint.amount)
+                            )
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: selectedType == "Income" ? 
+                                    [Color.green.opacity(0.3), Color.green.opacity(0.1)] : 
+                                    [Color.monoPrimary.opacity(0.3), Color.monoPrimary.opacity(0.05)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        }
+                        .frame(height: 200)
+                        .chartXAxis(.hidden)
+                        .chartYAxis(.hidden)
+                        
+                        // Floating total amount - only show when there's data
+                        VStack {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Total")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.gray)
+                                    
+                                    Text("Rs. \(String(format: "%.0f", totalAmount))")
+                                        .font(.system(size: 22, weight: .bold))
+                                        .foregroundColor(selectedType == "Income" ? .green : .monoPrimary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white)
+                                        .shadow(color: Color.monoShadow, radius: 8, x: 0, y: 4)
+                                )
+                                
+                                Spacer()
+                            }
                             Spacer()
                         }
-                        Spacer()
+                        .padding()
                     }
-                    .padding()
                 }
                 
-                // Enhanced axis labels
-                HStack {
-                    ForEach(getMonthLabels(), id: \.self) { month in
-                        Text(month)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity)
+                // Enhanced axis labels - only show when there's data
+                if !chartData.isEmpty {
+                    HStack {
+                        ForEach(getMonthLabels(), id: \.self) { month in
+                            Text(month)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
             }
             .padding(.vertical, 16)
             .background(
@@ -638,9 +651,7 @@ struct StatisticsView: View {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.easeInOut(duration: 0.5)) {
-                chartData = generateSampleData(for: selectedPeriod, type: selectedType)
-                topSpending = generateTopSpending(for: selectedType)
-                totalAmount = chartData.reduce(0) { $0 + $1.amount }
+                loadRealData()
                 isLoading = false
             }
         }
@@ -665,117 +676,106 @@ struct StatisticsView: View {
     }
     
     private func getTrendPercentage() -> Double {
-        // Mock trend calculation - in real app, compare with previous period
-        return Double.random(in: -15...25)
+        // Calculate real trend by comparing current period with previous period
+        guard let user = currentUser else { return 0 }
+        
+        let (currentStartDate, currentEndDate) = getDateRange(for: selectedPeriod)
+        let (previousStartDate, previousEndDate) = getPreviousDateRange(for: selectedPeriod)
+        
+        // Fetch current period data
+        let currentRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: selectedType == "Income" ? "IncomeEntity" : "ExpenseEntity")
+        currentRequest.predicate = NSPredicate(format: "user == %@ AND date >= %@ AND date <= %@", user, currentStartDate as NSDate, currentEndDate as NSDate)
+        
+        // Fetch previous period data
+        let previousRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: selectedType == "Income" ? "IncomeEntity" : "ExpenseEntity")
+        previousRequest.predicate = NSPredicate(format: "user == %@ AND date >= %@ AND date <= %@", user, previousStartDate as NSDate, previousEndDate as NSDate)
+        
+        do {
+            let currentData = try viewContext.fetch(currentRequest)
+            let previousData = try viewContext.fetch(previousRequest)
+            
+            let currentTotal = currentData.compactMap { $0.value(forKey: "amount") as? Double }.reduce(0, +)
+            let previousTotal = previousData.compactMap { $0.value(forKey: "amount") as? Double }.reduce(0, +)
+            
+            guard previousTotal > 0 else { return 0 }
+            
+            return ((currentTotal - previousTotal) / previousTotal) * 100
+        } catch {
+            print("Error calculating trend: \(error)")
+            return 0
+        }
+    }
+    
+    private func getPreviousDateRange(for period: String) -> (Date, Date) {
+        let calendar = Calendar.current
+        let (currentStart, _) = getDateRange(for: period)
+        
+        switch period {
+        case "Day":
+            let previousStart = calendar.date(byAdding: .day, value: -1, to: currentStart)!
+            let previousEnd = calendar.date(byAdding: .day, value: 1, to: previousStart)!
+            return (previousStart, previousEnd)
+            
+        case "Week":
+            let previousStart = calendar.date(byAdding: .weekOfYear, value: -1, to: currentStart)!
+            let previousEnd = calendar.date(byAdding: .weekOfYear, value: 1, to: previousStart)!
+            return (previousStart, previousEnd)
+            
+        case "Month":
+            let previousStart = calendar.date(byAdding: .month, value: -1, to: currentStart)!
+            let previousEnd = calendar.date(byAdding: .month, value: 1, to: previousStart)!
+            return (previousStart, previousEnd)
+            
+        case "Year":
+            let previousStart = calendar.date(byAdding: .year, value: -1, to: currentStart)!
+            let previousEnd = calendar.date(byAdding: .year, value: 1, to: previousStart)!
+            return (previousStart, previousEnd)
+            
+        default:
+            return getPreviousDateRange(for: "Month")
+        }
     }
     
     private func getMonthLabels() -> [String] {
+        let calendar = Calendar.current
+        let (startDate, endDate) = getDateRange(for: selectedPeriod)
+        
         switch selectedPeriod {
         case "Day":
             return ["6AM", "12PM", "6PM", "12AM"]
         case "Week":
-            return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            let formatter = DateFormatter()
+            formatter.dateFormat = "E"
+            var labels: [String] = []
+            var currentDate = startDate
+            while currentDate < endDate {
+                labels.append(formatter.string(from: currentDate))
+                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+                if labels.count >= 7 { break }
+            }
+            return labels
         case "Month":
-            return ["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"]
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM"
+            var labels: [String] = []
+            var currentDate = startDate
+            for _ in 0..<8 {
+                labels.append(formatter.string(from: currentDate))
+                currentDate = calendar.date(byAdding: .day, value: 4, to: currentDate) ?? currentDate
+            }
+            return labels
         case "Year":
-            return ["2020", "2021", "2022", "2023", "2024", "2025"]
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM"
+            var labels: [String] = []
+            var currentDate = startDate
+            for _ in 0..<12 {
+                labels.append(formatter.string(from: currentDate))
+                currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+            }
+            return labels
         default:
-            return ["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"]
-        }
-    }
-    
-    private func generateSampleData(for period: String, type: String) -> [ChartDataPoint] {
-        let baseAmount = type == "Income" ? 2000.0 : 1200.0
-        let variation = type == "Income" ? 500.0 : 300.0
-        
-        return (0..<8).map { index in
-            ChartDataPoint(
-                date: Date().addingTimeInterval(TimeInterval(index * 24 * 3600)),
-                amount: baseAmount + Double.random(in: -variation...variation)
-            )
-        }
-    }
-    
-    private func generateTopSpending(for type: String) -> [TopSpendingItem] {
-        if type == "Income" {
-            return [
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Salary",
-                    date: "Monthly",
-                    amount: 85000.00,
-                    icon: "dollarsign.circle.fill",
-                    color: .green,
-                    isIncome: true
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Freelance",
-                    date: "Aug 15, 2025",
-                    amount: 25000.00,
-                    icon: "laptopcomputer",
-                    color: .blue,
-                    isIncome: true
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Investment",
-                    date: "Aug 10, 2025",
-                    amount: 15000.00,
-                    icon: "chart.line.uptrend.xyaxis",
-                    color: .purple,
-                    isIncome: true
-                )
-            ]
-        } else {
-            return [
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Starbucks",
-                    date: "Jan 12, 2025",
-                    amount: 150.00,
-                    icon: "cup.and.saucer.fill",
-                    color: .green,
-                    isIncome: false
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Transfer",
-                    date: "Yesterday",
-                    amount: 850.00,
-                    icon: "arrow.right.circle.fill",
-                    color: .blue,
-                    isIncome: false,
-                    isHighlighted: true
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "YouTube",
-                    date: "Jan 16, 2025",
-                    amount: 119.90,
-                    icon: "play.rectangle.fill",
-                    color: .red,
-                    isIncome: false
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Grocery",
-                    date: "Aug 18, 2025",
-                    amount: 2500.00,
-                    icon: "cart.fill",
-                    color: .orange,
-                    isIncome: false
-                ),
-                TopSpendingItem(
-                    id: UUID(),
-                    name: "Gas Station",
-                    date: "Aug 17, 2025",
-                    amount: 3200.00,
-                    icon: "fuelpump.fill",
-                    color: .blue,
-                    isIncome: false
-                )
-            ]
+            return ["No Data"]
         }
     }
 }

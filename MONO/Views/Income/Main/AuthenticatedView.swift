@@ -11,10 +11,11 @@ import SwiftUI
 struct AuthenticatedView: View {
     @ObservedObject var authManager: AuthenticationManager
     @StateObject private var dependentManager = DependentManager()
+    @StateObject private var notificationManager = NotificationManager.shared
     
     var body: some View {
         TabView {
-            DashboardView(authManager: authManager, dependentManager: dependentManager)
+            DashboardView(authManager: authManager, dependentManager: dependentManager, notificationManager: notificationManager)
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("Home")
@@ -51,6 +52,7 @@ struct AuthenticatedView: View {
 struct DashboardView: View {
     @ObservedObject var authManager: AuthenticationManager
     @ObservedObject var dependentManager: DependentManager
+    @ObservedObject var notificationManager: NotificationManager
     @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var showIncomeView = false
     @State private var showExpenseView = false
@@ -88,11 +90,15 @@ struct DashboardView: View {
                                 .font(.system(size: 20))
                                 .foregroundColor(.monoPrimary)
                                 .overlay(
-                                    // Notification badge
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 8, height: 8)
-                                        .offset(x: 8, y: -8)
+                                    // Notification badge - only show if there are unread notifications
+                                    Group {
+                                        if notificationManager.hasUnreadNotifications {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 8, height: 8)
+                                                .offset(x: 8, y: -8)
+                                        }
+                                    }
                                 )
                         }
                     }

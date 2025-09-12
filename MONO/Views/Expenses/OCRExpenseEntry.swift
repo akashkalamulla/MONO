@@ -12,6 +12,7 @@ struct OCRExpenseEntry: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var coreDataStack = CoreDataStack.shared
     @StateObject private var ocrService = OCRService.shared
+    @StateObject private var notificationManager = NotificationManager.shared
     
     @State private var selectedImage: UIImage?
     @State private var showingImagePicker = false
@@ -399,13 +400,13 @@ struct OCRExpenseEntry: View {
         expense.category = selectedCategory
         expense.expenseDescription = description.isEmpty ? nil : description
         expense.date = selectedDate
-        expense.isRecurring = false
-        expense.recurringFrequency = nil
-        expense.isPaymentReminder = false
-        expense.reminderDate = nil
-        expense.reminderDayOfMonth = 0
-        expense.reminderFrequency = nil
-        expense.isReminderActive = false
+        expense.isRecurring = isRecurring
+        expense.recurringFrequency = isRecurring ? selectedFrequency.lowercased() : nil
+        expense.isPaymentReminder = isPaymentReminder
+        expense.reminderDate = (reminderFrequency == "Once" || reminderFrequency == "Yearly") ? reminderDate : nil
+        expense.reminderDayOfMonth = reminderFrequency == "Monthly" ? Int16(reminderDayOfMonth) : 0
+        expense.reminderFrequency = isPaymentReminder ? reminderFrequency : nil
+        expense.isReminderActive = isPaymentReminder
         expense.lastReminderSent = nil
         expense.userID = currentUser.id ?? UUID()
         expense.createdAt = Date()
@@ -415,11 +416,86 @@ struct OCRExpenseEntry: View {
         
         do {
             try context.save()
-            alertMessage = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved successfully from receipt scan!"
+            
+            // Schedule notifications if enabled
+            if isRecurring {
+                let frequency = convertStringToRecurringFrequency(selectedFrequency)
+                notificationManager.scheduleExpenseReminder(
+                    amount: amountValue,
+                    description: description.isEmpty ? nil : description,
+                    category: selectedCategory,
+                    date: selectedDate,
+                    isRecurring: true,
+                    frequency: frequency
+                )
+            }
+            
+            if isPaymentReminder {
+                let frequency = convertStringToReminderFrequency(reminderFrequency)
+                var reminderScheduleDate = reminderDate // ensure non-optional Date
+                
+                if reminderFrequency == "Monthly" {
+                    // Calculate next occurrence based on day of month
+                    var components = Calendar.current.dateComponents([.year, .month], from: Date())
+                    components.day = reminderDayOfMonth
+                    if let newDate = Calendar.current.date(from: components) {
+                        reminderScheduleDate = newDate
+                        
+                        // If the date has passed this month, schedule for next month
+                        if reminderScheduleDate < Date() {
+                            components.month = (components.month ?? 1) + 1
+                            reminderScheduleDate = Calendar.current.date(from: components) ?? Date()
+                        }
+                    }
+                }
+                
+                notificationManager.schedulePaymentReminder(
+                    amount: amountValue,
+                    description: "\(selectedCategory) payment",
+                    reminderDate: reminderScheduleDate,
+                    frequency: frequency
+                )
+            }
+            
+            var message = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved successfully from receipt scan!"
+            
+            if isRecurring || isPaymentReminder {
+                message += "\nReminder notifications have been set up."
+            }
+            
+            alertMessage = message
             showingAlert = true
         } catch {
             alertMessage = "Error saving expense: \(error.localizedDescription)"
             showingAlert = true
+        }
+    }
+    
+    private func convertStringToRecurringFrequency(_ frequency: String) -> String {
+        switch frequency {
+        case "Daily":
+            return "daily"
+        case "Weekly":
+            return "weekly"
+        case "Monthly":
+            return "monthly"
+        case "Yearly":
+            return "yearly"
+        default:
+            return "monthly"
+        }
+    }
+    
+    private func convertStringToReminderFrequency(_ frequency: String) -> String {
+        switch frequency {
+        case "Once":
+            return "once"
+        case "Monthly":
+            return "monthly"
+        case "Yearly":
+            return "yearly"
+        default:
+            return "monthly"
         }
     }
 }

@@ -66,6 +66,7 @@ struct OCRExpenseEntry: View {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
                     }
+                    .foregroundColor(Color.monoPrimary)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -73,6 +74,7 @@ struct OCRExpenseEntry: View {
                         Button("Help") {
                             showingHelp = true
                         }
+                        .foregroundColor(Color.monoPrimary)
                         
                         if selectedImage != nil && !isProcessingOCR {
                             Button("Save") {
@@ -138,7 +140,7 @@ struct OCRExpenseEntry: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(Color.blue)
+                        .background(Color.monoPrimary)
                         .cornerRadius(16)
                     }
                 }

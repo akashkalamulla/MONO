@@ -47,6 +47,11 @@ struct SimpleExpenseEntry: View {
     let frequencies = ["Daily", "Weekly", "Monthly", "Yearly"]
     let reminderFrequencies = ["Once", "Monthly", "Yearly"]
     
+    private var selectedDependentName: String {
+        guard let selectedId = selectedDependentId else { return "None" }
+        return dependentManager.dependents.first { $0.id == selectedId }?.fullName ?? "None"
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -105,6 +110,7 @@ struct SimpleExpenseEntry: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Amount")
                         .font(.headline)
+                        .foregroundColor(.monoPrimary)
                     
                     HStack {
                         Text("Rs.")
@@ -122,21 +128,46 @@ struct SimpleExpenseEntry: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Category")
                         .font(.headline)
+                        .foregroundColor(.monoPrimary)
                     
-                    Picker("Category", selection: $selectedCategory) {
+                    Menu {
                         ForEach(categories, id: \.self) { category in
-                            Text(category).tag(category)
+                            Button(action: {
+                                selectedCategory = category
+                            }) {
+                                Text(category)
+                                if selectedCategory == category {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
                         }
+                    } label: {
+                        HStack {
+                            Text(selectedCategory)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.monoSecondary)
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(Color.monoBackground)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.monoSeparator, lineWidth: 1)
+                        )
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
+                    .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Date")
                         .font(.headline)
+                        .foregroundColor(.monoPrimary)
                     
                     DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
                         .datePickerStyle(CompactDatePickerStyle())
@@ -149,6 +180,7 @@ struct SimpleExpenseEntry: View {
                     HStack {
                         Text("Recurring Expense")
                             .font(.headline)
+                            .foregroundColor(.monoPrimary)
                         
                         Spacer()
                         
@@ -184,6 +216,7 @@ struct SimpleExpenseEntry: View {
                     HStack {
                         Text("Payment Reminder")
                             .font(.headline)
+                            .foregroundColor(.monoPrimary)
                         
                         Spacer()
                         
@@ -245,6 +278,7 @@ struct SimpleExpenseEntry: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Description (Optional)")
                         .font(.headline)
+                        .foregroundColor(.monoPrimary)
                     
                     TextField("Enter description", text: $description)
                         .padding()
@@ -256,11 +290,13 @@ struct SimpleExpenseEntry: View {
                     HStack {
                         Text("Location (Optional)")
                             .font(.headline)
+                            .foregroundColor(.monoPrimary)
 
                         Spacer()
 
                         Button(action: { showMapPicker.toggle() }) {
                             Image(systemName: "mappin.and.ellipse")
+                                .foregroundColor(.monoPrimary)
                         }
                     }
 
@@ -282,6 +318,7 @@ struct SimpleExpenseEntry: View {
                     HStack {
                         Text("Associate with Dependent")
                             .font(.headline)
+                            .foregroundColor(.monoPrimary)
                         
                         Spacer()
                         
@@ -295,16 +332,43 @@ struct SimpleExpenseEntry: View {
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                             
-                            Picker("Select Dependent", selection: $selectedDependentId) {
-                                Text("None").tag(nil as UUID?)
-                                ForEach(dependentManager.dependents) { dependent in
-                                    Text(dependent.fullName).tag(dependent.id as UUID?)
+                            Menu {
+                                Button(action: { selectedDependentId = nil }) {
+                                    Text("None")
+                                    if selectedDependentId == nil {
+                                        Image(systemName: "checkmark")
+                                    }
                                 }
+
+                                ForEach(dependentManager.dependents) { dependent in
+                                    Button(action: { selectedDependentId = dependent.id }) {
+                                        Text(dependent.fullName)
+                                        if selectedDependentId == dependent.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedDependentName)
+                                        .font(.system(size: 17, weight: .medium))
+                                        .foregroundColor(.monoPrimary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.monoSecondary)
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(Color.monoBackground)
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.monoSeparator, lineWidth: 1)
+                                )
                             }
-                            .pickerStyle(MenuPickerStyle())
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
+                            .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
                         }
                         .transition(.opacity.combined(with: .move(edge: .top)))
                         .animation(.easeInOut(duration: 0.3), value: isForDependent)
@@ -327,7 +391,7 @@ struct SimpleExpenseEntry: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(amount.isEmpty ? Color.gray : Color.red)
+                        .background(amount.isEmpty ? Color.gray : Color.monoPrimary)
                         .cornerRadius(12)
                 }
                 .disabled(amount.isEmpty)
@@ -341,12 +405,14 @@ struct SimpleExpenseEntry: View {
                 Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
+                .foregroundColor(.monoPrimary)
             }
             
             ToolbarItem(placement: .primaryAction) {
                 Button("Help") {
                     showingHelp = true
                 }
+                .foregroundColor(.monoPrimary)
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -599,7 +665,7 @@ struct MapPickerView: View {
      
                 ZStack {
                     Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: pinnedCoordinate != nil ? [PinnedLocation(coordinate: pinnedCoordinate!)] : []) { location in
-                        MapPin(coordinate: location.coordinate, tint: .red)
+                            MapPin(coordinate: location.coordinate, tint: Color.monoPrimary)
                     }
                     .edgesIgnoringSafeArea(.bottom)
                     .onTapGesture { location in
@@ -612,7 +678,7 @@ struct MapPickerView: View {
                     if pinnedCoordinate == nil {
                         Image(systemName: "plus")
                             .font(.system(size: 20))
-                            .foregroundColor(.red)
+                            .foregroundColor(Color.monoPrimary)
                             .background(Circle().fill(Color.white).frame(width: 30, height: 30))
                     }
                 }

@@ -20,6 +20,7 @@ struct SimpleIncomeEntry: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var showingDatePicker = false
+    @State private var showingHelp = false
     
     let categories = ["Salary", "Freelance", "Business", "Investment", "Rental", "Other"]
     let frequencies = ["Weekly", "Bi-weekly", "Monthly", "Yearly"]
@@ -237,6 +238,18 @@ struct SimpleIncomeEntry: View {
                     presentationMode.wrappedValue.dismiss()
                 }
                 .foregroundColor(.monoPrimary)
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button("Help") {
+                    showingHelp = true
+                }
+                .foregroundColor(.monoPrimary)
+            }
+        }
+        .sheet(isPresented: $showingHelp) {
+            NavigationView {
+                IncomeHelpView()
             }
         }
             .alert("Income Saved", isPresented: $showingAlert) {

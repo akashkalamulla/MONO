@@ -4,6 +4,7 @@ import CoreData
 struct IncomeListView: View {
     @State private var incomes: [IncomeEntity] = []
     @State private var showingAddIncome = false
+    @State private var showingHelp = false
     @State private var totalIncome: Double = 0
     
     var body: some View {
@@ -34,6 +35,12 @@ struct IncomeListView: View {
             }
             .navigationTitle("Income")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Help") {
+                        showingHelp = true
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         showingAddIncome = true
@@ -46,6 +53,11 @@ struct IncomeListView: View {
                 loadIncomes()
             }) {
                 SimpleIncomeEntry()
+            }
+            .sheet(isPresented: $showingHelp) {
+                NavigationView {
+                    IncomeHelpView()
+                }
             }
             .onAppear {
                 loadIncomes()

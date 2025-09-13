@@ -227,9 +227,71 @@ class OCRService: ObservableObject {
     private func findBestAmount(from amounts: [(amount: Double, confidence: Float)]) -> (amount: Double, confidence: Float)? {
         guard !amounts.isEmpty else { return nil }
         
-        let sortedAmounts = amounts.sorted { $0.amount > $1.amount }
-        let highConfidenceAmounts = sortedAmounts.filter { $0.confidence > 0.7 }
+        // Remove duplicates by grouping similar amounts
+        var uniqueAmounts: [(amount: Double, confidence: Float)] = []
+        for (amount, confidence) in amounts {
+            let existing = uniqueAmounts.firstIndex { abs($0.amount - amount) < 0.01 }
+            if let index = existing {
+                // Keep the one with higher confidence
+                if confidence > uniqueAmounts[index].confidence {
+                    uniqueAmounts[index] = (amount, confidence)
+                }
+            } else {
+                uniqueAmounts.append((amount, confidence))
+            }
+        }
         
+        // Prefer amounts with proper decimal formatting (xx.yy)
+        let decimalAmounts = uniqueAmounts.filter { amount in
+            let amountStr = String(format: "%.2f", amount.amount)
+            return amountStr.contains(".") && !amountStr.hasSuffix(".00")
+        }
+        
+        // Prefer amounts in reasonable receipt ranges (10-10,000)
+        let reasonableAmounts = uniqueAmounts.filter { $0.amount >= 10 && $0.amount <= 10_000 }
+        
+        // Sort by confidence, then by reasonableness
+        let sortedAmounts = uniqueAmounts.sorted { first, second in
+            // First priority: confidence
+            if abs(first.confidence - second.confidence) > 0.1 {
+                return first.confidence > second.confidence
+            }
+            
+            // Second priority: proper decimal formatting
+            let firstHasDecimals = String(format: "%.2f", first.amount).contains(".") && !String(format: "%.2f", first.amount).hasSuffix(".00")
+            let secondHasDecimals = String(format: "%.2f", second.amount).contains(".") && !String(format: "%.2f", second.amount).hasSuffix(".00")
+            
+            if firstHasDecimals != secondHasDecimals {
+                return firstHasDecimals
+            }
+            
+            // Third priority: reasonable amount range
+            let firstIsReasonable = first.amount >= 10 && first.amount <= 10_000
+            let secondIsReasonable = second.amount >= 10 && second.amount <= 10_000
+            
+            if firstIsReasonable != secondIsReasonable {
+                return firstIsReasonable
+            }
+            
+            // Final tiebreaker: smaller amounts are more likely to be correct in case of OCR errors
+            return first.amount < second.amount
+        }
+        
+        // Return the best amount based on our sorting criteria
+        if !decimalAmounts.isEmpty && !reasonableAmounts.isEmpty {
+            // Look for amounts that are both decimal-formatted AND reasonable
+            let idealAmounts = decimalAmounts.filter { decimalAmount in
+                reasonableAmounts.contains { reasonableAmount in
+                    abs(decimalAmount.amount - reasonableAmount.amount) < 0.01
+                }
+            }
+            if !idealAmounts.isEmpty {
+                return idealAmounts.max { $0.confidence < $1.confidence }
+            }
+        }
+        
+        // Fall back to highest confidence amount that meets our criteria
+        let highConfidenceAmounts = sortedAmounts.filter { $0.confidence > 0.7 }
         if !highConfidenceAmounts.isEmpty {
             return highConfidenceAmounts.first
         } else {

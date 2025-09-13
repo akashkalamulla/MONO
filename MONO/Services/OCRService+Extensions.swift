@@ -211,15 +211,30 @@ extension OCRService {
         
         for line in linesToProcess {
             let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            let _ = trimmedLine.lowercased() // We'll use this for pattern matching below
+            let lowercaseLine = trimmedLine.lowercased()
             
             guard trimmedLine.count > 3 else { continue }
 
-            // Quick heuristics: skip lines that are likely phone numbers or dates
+            // Quick heuristics: skip lines that are likely phone numbers, dates, or reference numbers
             if containsPhoneOrDate(trimmedLine) { continue }
+            
+            // Skip lines that look like reference numbers, serial numbers, or IDs
+            if lowercaseLine.contains("no:") || 
+               lowercaseLine.contains("no.") || 
+               lowercaseLine.contains("ref:") || 
+               lowercaseLine.contains("id:") || 
+               lowercaseLine.contains("serial") ||
+               lowercaseLine.contains("transaction") ||
+               lowercaseLine.contains("receipt no") ||
+               lowercaseLine.contains("bill no") {
+                continue
+            }
+            
             let digitCount = trimmedLine.filter { $0.isNumber }.count
-            // If a line has many digits but no decimal point, it's likely a phone/serial number, not an amount
-            if digitCount >= 7 && !trimmedLine.contains(".") { continue }
+            // If a line has many digits but no decimal point and no currency symbol, it's likely a phone/serial number, not an amount
+            if digitCount >= 6 && !trimmedLine.contains(".") && !trimmedLine.contains("Rs") && !trimmedLine.contains("LKR") { 
+                continue 
+            }
             
             // Much more comprehensive patterns for amount detection with weighted confidence
             let patterns = [
@@ -227,11 +242,11 @@ extension OCRService {
                 (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 1.0),
                 (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*([0-9,]+\.[0-9]{2})"#, 0.98),
                 
-                // High confidence currency patterns
+                // High confidence currency patterns with decimal places (most likely actual amounts)
                 (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})\s*$"#, 0.95), // End of line currency with decimals
-                (#"[Rr][Ss]\.?\s*([0-9,]{1,3}(?:,[0-9]{3})*\.[0-9]{2})"#, 0.92), // Proper thousand separators
-                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.90),
-                (#"₨\s*([0-9,]+\.?[0-9]*)"#, 0.90),
+                (#"[Rr][Ss]\.?\s*([0-9,]{1,3}(?:,[0-9]{3})*\.[0-9]{2})"#, 0.95), // Proper thousand separators with decimals
+                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.93),
+                (#"₨\s*([0-9,]+\.[0-9]{2})"#, 0.93),
                 
                 // Medium-high confidence patterns
                 (#"(?i)(?:sub\s*total|subtotal)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.85),
@@ -241,24 +256,23 @@ extension OCRService {
                 (#"\b(?:pay|paid|payment|charge|fee)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.80),
                 (#"\b(?:balance|owing|due)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.78),
                 
-                // Generic currency patterns (lower confidence)
-                (#"[Rr][Ss]\.?\s*([0-9,]+)"#, 0.75),
-                (#"[Ll][Kk][Rr]\s*([0-9,]+)"#, 0.75),
+                // Generic currency patterns (lower confidence) - only with proper decimal formatting
+                (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})"#, 0.75),
+                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.75),
                 
-                // Numbers at end of lines (often totals in simple receipts)
+                // Numbers at end of lines with decimals (often totals in simple receipts)
                 (#".*?([0-9,]+\.[0-9]{2})\s*$"#, 0.70),
                 
-                // Large whole numbers (potential totals without decimals)
-                (#"\b([0-9,]{4,})\b"#, 0.65),
+                // Generic currency without decimals (much lower confidence)
+                (#"[Rr][Ss]\.?\s*([0-9,]{1,4})\b"#, 0.60), // Only 1-4 digit amounts without decimals
                 
                 // International currency patterns
-                (#"\$\s*([0-9,]+\.?[0-9]*)"#, 0.60),
-                (#"€\s*([0-9,]+\.?[0-9]*)"#, 0.60),
-                (#"£\s*([0-9,]+\.?[0-9]*)"#, 0.60),
+                (#"\$\s*([0-9,]+\.[0-9]{2})"#, 0.60),
+                (#"€\s*([0-9,]+\.[0-9]{2})"#, 0.60),
+                (#"£\s*([0-9,]+\.[0-9]{2})"#, 0.60),
                 
-                // Fallback patterns for poorly formatted receipts
-                (#"(?i)total.*?([0-9,]+\.?[0-9]*)"#, 0.55),
-                (#"(?i)amount.*?([0-9,]+\.?[0-9]*)"#, 0.50)
+                // Fallback patterns for poorly formatted receipts - only with proper context
+                (#"(?i)(?:total|amount).*?([0-9,]+\.[0-9]{2})"#, 0.55)
             ]
             
             for (pattern, patternConfidence) in patterns {
@@ -269,9 +283,21 @@ extension OCRService {
                     if let range = Range(match.range(at: 1), in: trimmedLine) {
                         let amountString = String(trimmedLine[range]).replacingOccurrences(of: ",", with: "")
                         if let amount = Double(amountString) {
-                            if amount >= 1 && amount <= 1_000_000 {
-                                let finalConfidence = confidence * Float(patternConfidence)
-                                amounts.append((amount: amount, confidence: finalConfidence))
+                            // Tighten the amount range validation
+                            if amount >= 1 && amount <= 500_000 { // Reduced upper limit from 1M to 500K
+                                var finalConfidence = confidence * Float(patternConfidence)
+                                
+                                // Boost confidence for amounts with proper decimal formatting (xx.yy)
+                                if amountString.contains(".") && amountString.split(separator: ".").last?.count == 2 {
+                                    finalConfidence *= 1.2
+                                }
+                                
+                                // Boost confidence for reasonable receipt amounts (10-10000)
+                                if amount >= 10 && amount <= 10000 {
+                                    finalConfidence *= 1.1
+                                }
+                                
+                                amounts.append((amount: amount, confidence: min(finalConfidence, 1.0)))
                             }
                         }
                     }

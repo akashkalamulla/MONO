@@ -9,6 +9,31 @@ import SwiftUI
 import MapKit
 import CoreData
 
+// Shared header control styling for the heatmap / list / badge controls
+fileprivate struct HeaderControlStyle: ViewModifier {
+    var isPrimary: Bool = false
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(height: 44)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        isPrimary ?
+                        LinearGradient(colors: [Color.red.opacity(0.8), Color.orange.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
+                        LinearGradient(colors: [Color.monoBackground, Color.monoBackground], startPoint: .leading, endPoint: .trailing)
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isPrimary ? Color.clear : Color.monoPrimary.opacity(0.3), lineWidth: 1)
+            )
+            .shadow(color: isPrimary ? Color.red.opacity(0.25) : Color.clear, radius: isPrimary ? 4 : 0, x: 0, y: isPrimary ? 2 : 0)
+    }
+}
+
 struct ExpenseLocationMapView: View {
     @StateObject private var coreDataStack = CoreDataStack.shared
     @State private var expenses: [ExpenseLocationData] = []
@@ -63,21 +88,7 @@ struct ExpenseLocationMapView: View {
                                     .font(.system(size: 14, weight: .medium))
                             }
                             .foregroundColor(showingHeatmap ? .white : .monoPrimary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .frame(minHeight: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(showingHeatmap ? 
-                                         LinearGradient(colors: [Color.red.opacity(0.8), Color.orange.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
-                                         LinearGradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
-                                    )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(showingHeatmap ? Color.clear : Color.monoPrimary.opacity(0.3), lineWidth: 1)
-                            )
-                            .shadow(color: showingHeatmap ? Color.red.opacity(0.3) : Color.clear, radius: 4, x: 0, y: 2)
+                            .modifier(HeaderControlStyle(isPrimary: showingHeatmap))
                         }
                         .buttonStyle(ScaleButtonStyle())
                         
@@ -94,17 +105,7 @@ struct ExpenseLocationMapView: View {
                                     .font(.system(size: 14, weight: .medium))
                             }
                             .foregroundColor(.monoPrimary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .frame(minHeight: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.monoPrimary.opacity(0.1))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.monoPrimary.opacity(0.3), lineWidth: 1)
-                            )
+                            .modifier(HeaderControlStyle(isPrimary: false))
                         }
                         .buttonStyle(ScaleButtonStyle())
                         
@@ -119,16 +120,7 @@ struct ExpenseLocationMapView: View {
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.gray)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.monoBackground)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.monoPrimary.opacity(0.2), lineWidth: 1)
-                        )
+                        .modifier(HeaderControlStyle(isPrimary: false))
                     }
                     .padding(.horizontal, 20)
                 }

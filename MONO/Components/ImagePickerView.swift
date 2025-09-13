@@ -151,7 +151,7 @@ struct ImageSelectionSheet: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.blue)
+                        .background(Color.monoPrimary)
                         .cornerRadius(12)
                     }
                     
@@ -164,14 +164,14 @@ struct ImageSelectionSheet: View {
                             Text("Choose from Library")
                                 .font(.headline)
                         }
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color.monoPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.blue.opacity(0.1))
+                        .background(Color.monoPrimary.opacity(0.08))
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.blue, lineWidth: 2)
+                                .stroke(Color.monoPrimary, lineWidth: 2)
                         )
                     }
                 }

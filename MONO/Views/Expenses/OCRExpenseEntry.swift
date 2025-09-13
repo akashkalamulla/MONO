@@ -216,7 +216,7 @@ struct OCRExpenseEntry: View {
                     HStack {
                         Text("Amount Detected:")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.monoPrimary)
                         Spacer()
                         Text("Rs. \(String(format: "%.2f", detectedAmount))")
                             .font(.headline)
@@ -228,12 +228,12 @@ struct OCRExpenseEntry: View {
                     HStack {
                         Text("Suggested Category:")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.monoPrimary)
                         Spacer()
                         Text(suggestedCategory)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.monoPrimary)
                     }
                 }
                 
@@ -264,28 +264,30 @@ struct OCRExpenseEntry: View {
     
     private var manualFormSection: some View {
         VStack(spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Amount")
-                    .font(.headline)
-                
-                HStack {
-                    Text("Rs.")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                    
-                    TextField("0.00", text: $amount)
-                        .font(.title2)
-                        .keyboardType(.decimalPad)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amount")
+                        .font(.headline)
+                        .foregroundColor(.monoPrimary)
+
+                    HStack {
+                        Text("Rs.")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+
+                        TextField("0.00", text: $amount)
+                            .font(.title2)
+                            .keyboardType(.decimalPad)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
                 }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
-            }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Category")
                     .font(.headline)
-                
+                    .foregroundColor(.monoPrimary)
+
                 Picker("Category", selection: $selectedCategory) {
                     ForEach(categories, id: \.self) { category in
                         Text(category).tag(category)
@@ -300,7 +302,8 @@ struct OCRExpenseEntry: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Description (Optional)")
                     .font(.headline)
-                
+                    .foregroundColor(.monoPrimary)
+
                 TextField("Enter description", text: $description)
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -310,7 +313,8 @@ struct OCRExpenseEntry: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Date")
                     .font(.headline)
-                
+                    .foregroundColor(.monoPrimary)
+
                 DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
                     .datePickerStyle(CompactDatePickerStyle())
                     .padding()

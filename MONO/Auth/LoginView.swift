@@ -52,7 +52,7 @@ struct LoginView: View {
                                 .padding(.vertical, 16)
                                 .background(
                                     LinearGradient(
-                                        gradient: Gradient(colors: [.blue, .blue.opacity(0.8)]),
+                                        gradient: Gradient(colors: [Color.monoPrimary, Color.monoPrimary.opacity(0.85)]),
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
@@ -114,16 +114,7 @@ struct LoginView: View {
                             .textFieldStyle(CustomTextFieldStyle())
                         }
                         
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                print("Forgot password tapped")
-                            }) {
-                                Text("Forgot Password?")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.monoPrimary)
-                            }
-                        }
+                        Spacer()
                     }
                     .padding(.horizontal, 30)
                     

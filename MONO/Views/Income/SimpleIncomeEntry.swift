@@ -108,7 +108,7 @@ struct SimpleIncomeEntry: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Date")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.monoPrimary)
                         .padding(.leading, 4)
                     
                     VStack {
@@ -118,7 +118,7 @@ struct SimpleIncomeEntry: View {
                             displayedComponents: .date
                         )
                         .datePickerStyle(CompactDatePickerStyle())
-                        .accentColor(.blue)
+                        .accentColor(Color.monoPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                     }
@@ -215,9 +215,9 @@ struct SimpleIncomeEntry: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(amount.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
+                        .background(amount.isEmpty ? Color.gray.opacity(0.5) : Color.monoPrimary)
                         .cornerRadius(28)
-                        .shadow(color: amount.isEmpty ? .clear : Color.blue.opacity(0.3), radius: 5, x: 0, y: 3)
+                        .shadow(color: amount.isEmpty ? .clear : Color.monoPrimary.opacity(0.3), radius: 5, x: 0, y: 3)
                 }
                 .disabled(amount.isEmpty)
                 .padding(.bottom, 24)

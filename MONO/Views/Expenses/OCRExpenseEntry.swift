@@ -71,10 +71,12 @@ struct OCRExpenseEntry: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        Button("Help") {
-                            showingHelp = true
+                        if selectedImage == nil {
+                            Button("Help") {
+                                showingHelp = true
+                            }
+                            .foregroundColor(Color.monoPrimary)
                         }
-                        .foregroundColor(Color.monoPrimary)
                         
                         if selectedImage != nil && !isProcessingOCR {
                             Button("Save") {

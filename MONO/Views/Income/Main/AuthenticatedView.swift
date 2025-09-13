@@ -486,7 +486,6 @@ struct BudgetView: View {
 struct ProfileView: View {
     @ObservedObject var authManager: AuthenticationManager
     @State private var showEditProfile = false
-    @State private var showDebugView = false
     @State private var showPrivacySecurity = false
     @State private var showHelpSupport = false
     @State private var showBackupView = false
@@ -550,12 +549,6 @@ struct ProfileView: View {
                     ProfileOption(icon: "arrow.clockwise", title: "Backup & Sync") {
                         showBackupView = true
                     }
-                    
-                    #if DEBUG
-                    ProfileOption(icon: "hammer.fill", title: "Debug Core Data") {
-                        showDebugView = true
-                    }
-                    #endif
                 }
                 .background(Color.white)
                 .cornerRadius(15)
@@ -586,9 +579,6 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView(authManager: authManager)
-        }
-        .sheet(isPresented: $showDebugView) {
-            CoreDataDebugView()
         }
         .sheet(isPresented: $showPrivacySecurity) {
             PrivacySecurityView()

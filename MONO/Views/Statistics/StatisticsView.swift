@@ -23,6 +23,7 @@ struct StatisticsView: View {
     
     @State private var incomes: [NSManagedObject] = []
     @State private var expenses: [NSManagedObject] = []
+    @State private var topSpendingSortAscending: Bool = false
 
     let periods = ["Day", "Week", "Month", "Year"]
     let types = ["Income", "Expense"]
@@ -174,7 +175,7 @@ struct StatisticsView: View {
     }
     
     private func generateTopSpendingFromIncomes(_ incomes: [NSManagedObject]) {
-        topSpending = incomes.compactMap { income in
+    topSpending = incomes.compactMap { income in
             guard let amount = income.value(forKey: "amount") as? Double,
                   let date = income.value(forKey: "date") as? Date,
                   let categoryName = income.value(forKey: "categoryName") as? String else {
@@ -194,11 +195,12 @@ struct StatisticsView: View {
                 color: .green,
                 isIncome: true
             )
-        }.sorted { $0.amount > $1.amount }
+    }
+    sortTopSpending()
     }
     
     private func generateTopSpendingFromExpenses(_ expenses: [NSManagedObject]) {
-        topSpending = expenses.compactMap { expense in
+    topSpending = expenses.compactMap { expense in
             guard let amount = expense.value(forKey: "amount") as? Double,
                   let date = expense.value(forKey: "date") as? Date,
                   let category = expense.value(forKey: "category") as? String else {
@@ -220,7 +222,16 @@ struct StatisticsView: View {
                 color: color,
                 isIncome: false
             )
-        }.sorted { $0.amount > $1.amount }
+        }
+        sortTopSpending()
+    }
+
+    private func sortTopSpending() {
+        if topSpendingSortAscending {
+            topSpending.sort { $0.amount < $1.amount }
+        } else {
+            topSpending.sort { $0.amount > $1.amount }
+        }
     }
     
     private func getExpenseCategoryIconAndColor(for category: String) -> (String, Color) {
@@ -602,12 +613,14 @@ struct StatisticsView: View {
                 Spacer()
                 
                 Button(action: {
-                    // Sort functionality
+                    // toggle sort order and apply
+                    topSpendingSortAscending.toggle()
+                    sortTopSpending()
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 14))
-                        Text("Sort")
+                        Text(topSpendingSortAscending ? "Sort ↑" : "Sort ↓")
                             .font(.system(size: 14, weight: .medium))
                     }
                     .foregroundColor(.monoPrimary)

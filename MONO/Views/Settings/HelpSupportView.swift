@@ -6,19 +6,14 @@
 //
 
 import SwiftUI
-import MessageUI
 
 struct HelpSupportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingFAQ = false
-    @State private var showingContactSupport = false
     @State private var showingUserGuide = false
-    @State private var showingReportBug = false
-    @State private var showingFeatureRequest = false
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     @State private var showingVideoTutorials = false
-    @State private var showingMailComposer = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var searchText = ""
@@ -65,57 +60,10 @@ struct HelpSupportView: View {
                     }
                     
               
-                    Section {
-                        QuickHelpRow(
-                            icon: "envelope.fill",
-                            iconColor: .blue,
-                            title: "Contact Support",
-                            subtitle: "Get help from our support team"
-                        ) {
-                            showingContactSupport = true
-                        }
-                        
-                        QuickHelpRow(
-                            icon: "phone.fill",
-                            iconColor: .green,
-                            title: "Call Support",
-                            subtitle: "Speak directly with support"
-                        ) {
-                            callSupport()
-                        }
-                        
-                        QuickHelpRow(
-                            icon: "message.fill",
-                            iconColor: .purple,
-                            title: "Live Chat",
-                            subtitle: "Chat with support agent"
-                        ) {
-                            
-                        }
-                    } header: {
-                        Text("Contact & Support")
-                    }
+                    // Contact & support entry removed — handled externally or by other feedback flows
                     
              
                     Section {
-                        QuickHelpRow(
-                            icon: "exclamationmark.triangle.fill",
-                            iconColor: .red,
-                            title: "Report a Bug",
-                            subtitle: "Help us improve by reporting issues"
-                        ) {
-                            showingReportBug = true
-                        }
-                        
-                        QuickHelpRow(
-                            icon: "lightbulb.fill",
-                            iconColor: .yellow,
-                            title: "Request a Feature",
-                            subtitle: "Suggest new features for MONO"
-                        ) {
-                            showingFeatureRequest = true
-                        }
-                        
                         QuickHelpRow(
                             icon: "star.fill",
                             iconColor: .orange,
@@ -192,17 +140,8 @@ struct HelpSupportView: View {
         .sheet(isPresented: $showingFAQ) {
             FAQView()
         }
-        .sheet(isPresented: $showingContactSupport) {
-            ContactSupportView()
-        }
         .sheet(isPresented: $showingUserGuide) {
             UserGuideView()
-        }
-        .sheet(isPresented: $showingReportBug) {
-            ReportBugView()
-        }
-        .sheet(isPresented: $showingFeatureRequest) {
-            FeatureRequestView()
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
@@ -221,21 +160,7 @@ struct HelpSupportView: View {
     }
     
 
-    private func callSupport() {
-        let phoneNumber = "1-800-MONO-APP"
-        guard let phoneURL = URL(string: "tel://18006666277") else {
-            alertMessage = "Unable to make phone calls on this device"
-            showingAlert = true
-            return
-        }
-        
-        if UIApplication.shared.canOpenURL(phoneURL) {
-            UIApplication.shared.open(phoneURL)
-        } else {
-            alertMessage = "Phone calls are not supported on this device"
-            showingAlert = true
-        }
-    }
+    // callSupport removed — phone support handled externally
     
     private func rateApp() {
         guard let appStoreURL = URL(string: "https://apps.apple.com/app/id123456789?action=write-review") else {
@@ -461,100 +386,7 @@ struct FAQItemView: View {
     }
 }
 
-struct ContactSupportView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var selectedCategory = "General"
-    @State private var subject = ""
-    @State private var message = ""
-    @State private var userEmail = ""
-    @State private var isLoading = false
-    @State private var showingAlert = false
-    @State private var alertMessage = ""
-    
-    private let supportCategories = ["General", "Technical Issue", "Billing", "Feature Request", "Bug Report", "Account"]
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    Picker("Category", selection: $selectedCategory) {
-                        ForEach(supportCategories, id: \.self) { category in
-                            Text(category).tag(category)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    Text("Support Category")
-                }
-                
-                Section {
-                    TextField("Your email address", text: $userEmail)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                    
-                    TextField("Subject", text: $subject)
-                } header: {
-                    Text("Contact Information")
-                }
-                
-                Section {
-                    TextField("Describe your issue or question...", text: $message, axis: .vertical)
-                        .lineLimit(5...)
-                } header: {
-                    Text("Message")
-                } footer: {
-                    Text("Please provide as much detail as possible to help us assist you better.")
-                }
-                
-                Section {
-                    Button(action: submitSupportRequest) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                            Text(isLoading ? "Sending..." : "Send Support Request")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .disabled(!isFormValid || isLoading)
-                }
-            }
-            .navigationTitle("Contact Support")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .alert("Support Request", isPresented: $showingAlert) {
-            Button("OK") {
-                if alertMessage.contains("sent") {
-                    dismiss()
-                }
-            }
-        } message: {
-            Text(alertMessage)
-        }
-    }
-    
-    private var isFormValid: Bool {
-        !userEmail.isEmpty && !subject.isEmpty && !message.isEmpty && userEmail.contains("@")
-    }
-    
-    private func submitSupportRequest() {
-        isLoading = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            isLoading = false
-            alertMessage = "Your support request has been sent successfully. We'll get back to you within 24 hours."
-            showingAlert = true
-        }
-    }
-}
+// ContactSupportView removed — contact flows handled externally or removed per request
 
 struct UserGuideView: View {
     @Environment(\.dismiss) private var dismiss
@@ -673,218 +505,7 @@ struct GuideItemView: View {
     }
 }
 
-struct ReportBugView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var bugTitle = ""
-    @State private var bugDescription = ""
-    @State private var stepsToReproduce = ""
-    @State private var selectedSeverity = "Medium"
-    @State private var includeSystemInfo = true
-    @State private var isLoading = false
-    @State private var showingAlert = false
-    @State private var alertMessage = ""
-    
-    private let severityLevels = ["Low", "Medium", "High", "Critical"]
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    TextField("Brief description of the bug", text: $bugTitle)
-                } header: {
-                    Text("Bug Title")
-                }
-                
-                Section {
-                    Picker("Severity", selection: $selectedSeverity) {
-                        ForEach(severityLevels, id: \.self) { severity in
-                            Text(severity).tag(severity)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                } header: {
-                    Text("Severity Level")
-                }
-                
-                Section {
-                    TextField("Describe what happened...", text: $bugDescription, axis: .vertical)
-                        .lineLimit(3...)
-                } header: {
-                    Text("Bug Description")
-                }
-                
-                Section {
-                    TextField("1. Step one\n2. Step two\n3. Step three...", text: $stepsToReproduce, axis: .vertical)
-                        .lineLimit(3...)
-                } header: {
-                    Text("Steps to Reproduce")
-                } footer: {
-                    Text("Please provide detailed steps to help us reproduce the issue.")
-                }
-                
-                Section {
-                    Toggle("Include system information", isOn: $includeSystemInfo)
-                } footer: {
-                    Text("This helps us understand your device configuration.")
-                }
-                
-                if includeSystemInfo {
-                    Section {
-                        AppInfoRow(label: "Device", value: UIDevice.current.model)
-                        AppInfoRow(label: "iOS Version", value: UIDevice.current.systemVersion)
-                        AppInfoRow(label: "App Version", value: "1.0.0")
-                    } header: {
-                        Text("System Information")
-                    }
-                }
-                
-                Section {
-                    Button(action: submitBugReport) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                            Text(isLoading ? "Submitting..." : "Submit Bug Report")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .disabled(!isFormValid || isLoading)
-                }
-            }
-            .navigationTitle("Report a Bug")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .alert("Bug Report", isPresented: $showingAlert) {
-            Button("OK") {
-                if alertMessage.contains("submitted") {
-                    dismiss()
-                }
-            }
-        } message: {
-            Text(alertMessage)
-        }
-    }
-    
-    private var isFormValid: Bool {
-        !bugTitle.isEmpty && !bugDescription.isEmpty
-    }
-    
-    private func submitBugReport() {
-        isLoading = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            isLoading = false
-            alertMessage = "Your bug report has been submitted successfully. Thank you for helping us improve MONO!"
-            showingAlert = true
-        }
-    }
-}
-
-struct FeatureRequestView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var featureTitle = ""
-    @State private var featureDescription = ""
-    @State private var useCase = ""
-    @State private var selectedPriority = "Medium"
-    @State private var isLoading = false
-    @State private var showingAlert = false
-    @State private var alertMessage = ""
-    
-    private let priorityLevels = ["Low", "Medium", "High"]
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    TextField("Feature name or title", text: $featureTitle)
-                } header: {
-                    Text("Feature Title")
-                }
-                
-                Section {
-                    Picker("Priority", selection: $selectedPriority) {
-                        ForEach(priorityLevels, id: \.self) { priority in
-                            Text(priority).tag(priority)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                } header: {
-                    Text("Priority Level")
-                }
-                
-                Section {
-                    TextField("Describe the feature you'd like to see...", text: $featureDescription, axis: .vertical)
-                        .lineLimit(3...)
-                } header: {
-                    Text("Feature Description")
-                }
-                
-                Section {
-                    TextField("How would this feature help you?", text: $useCase, axis: .vertical)
-                        .lineLimit(3...)
-                } header: {
-                    Text("Use Case")
-                } footer: {
-                    Text("Explain how this feature would improve your experience with MONO.")
-                }
-                
-                Section {
-                    Button(action: submitFeatureRequest) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                            Text(isLoading ? "Submitting..." : "Submit Feature Request")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .disabled(!isFormValid || isLoading)
-                }
-            }
-            .navigationTitle("Feature Request")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .alert("Feature Request", isPresented: $showingAlert) {
-            Button("OK") {
-                if alertMessage.contains("submitted") {
-                    dismiss()
-                }
-            }
-        } message: {
-            Text(alertMessage)
-        }
-    }
-    
-    private var isFormValid: Bool {
-        !featureTitle.isEmpty && !featureDescription.isEmpty
-    }
-    
-    private func submitFeatureRequest() {
-        isLoading = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            isLoading = false
-            alertMessage = "Your feature request has been submitted successfully. We'll consider it for future updates!"
-            showingAlert = true
-        }
-    }
-}
+// ReportBugView and FeatureRequestView removed per request
 
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) private var dismiss

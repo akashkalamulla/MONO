@@ -586,9 +586,6 @@ struct ProfileView: View {
         .sheet(isPresented: $showHelpSupport) {
             HelpSupportView()
         }
-        .sheet(isPresented: $showBackupView) {
-            BackupView(userEmail: authManager.currentUser?.email ?? "user@example.com")
-        }
     }
 }
 

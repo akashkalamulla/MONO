@@ -7,7 +7,7 @@ extension OCRService {
     
     // This extends the public API without conflicting with the private implementation
     func enhancedOCRProcessing(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
-        print("OCR Debug: Using enhanced OCR implementation with app-local temp file")
+        // Using enhanced OCR implementation with app-local temp file
 
         // Save image to app temp to avoid any FileProvider/security-scoped issues
         guard let tempURL = OCRFileHelper.saveImageToAppTemp(image) else {
@@ -308,7 +308,7 @@ extension OCRService {
     
     // Function to test OCR on a sample image
     func testOCRProcessingWithFixes(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
-        print("OCR Debug: Starting OCR test with fixed processing")
+        // Starting OCR test with fixed processing
         
         // Use a preprocessed image for better results
         let processedImage = preprocessImage(image) ?? image

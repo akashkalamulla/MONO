@@ -487,7 +487,6 @@ struct ProfileView: View {
     @ObservedObject var authManager: AuthenticationManager
     @State private var showEditProfile = false
     @State private var showDebugView = false
-    @State private var showOCRDebugView = false
     @State private var showPrivacySecurity = false
     @State private var showHelpSupport = false
     @State private var showBackupView = false
@@ -556,10 +555,6 @@ struct ProfileView: View {
                     ProfileOption(icon: "hammer.fill", title: "Debug Core Data") {
                         showDebugView = true
                     }
-                    
-                    ProfileOption(icon: "viewfinder.circle.fill", title: "Debug OCR") {
-                        showOCRDebugView = true
-                    }
                     #endif
                 }
                 .background(Color.white)
@@ -603,9 +598,6 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showBackupView) {
             BackupView(userEmail: authManager.currentUser?.email ?? "user@example.com")
-        }
-        .sheet(isPresented: $showOCRDebugView) {
-            OCRDebugView()
         }
     }
 }

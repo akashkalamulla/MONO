@@ -290,15 +290,38 @@ struct OCRExpenseEntry: View {
                     .font(.headline)
                     .foregroundColor(.monoPrimary)
 
-                Picker("Category", selection: $selectedCategory) {
+                Menu {
                     ForEach(categories, id: \.self) { category in
-                        Text(category).tag(category)
+                        Button(action: {
+                            selectedCategory = category
+                        }) {
+                            Text(category)
+                            if selectedCategory == category {
+                                Image(systemName: "checkmark")
+                            }
+                        }
                     }
+                } label: {
+                    HStack {
+                        Text(selectedCategory)
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.monoSecondary)
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .background(Color.monoBackground)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.monoSeparator, lineWidth: 1)
+                    )
                 }
-                .pickerStyle(MenuPickerStyle())
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                .shadow(color: .monoShadow.opacity(0.1), radius: 3, x: 0, y: 2)
             }
             
             VStack(alignment: .leading, spacing: 8) {

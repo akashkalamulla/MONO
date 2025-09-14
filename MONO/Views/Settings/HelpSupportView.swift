@@ -14,6 +14,7 @@ struct HelpSupportView: View {
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     @State private var showingVideoTutorials = false
+    @State private var showingAccountHelp = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var searchText = ""
@@ -84,7 +85,7 @@ struct HelpSupportView: View {
                             title: "Account Help",
                             subtitle: "Manage your account settings"
                         ) {
-                         
+                            showingAccountHelp = true
                         }
                         
                         QuickHelpRow(
@@ -151,6 +152,9 @@ struct HelpSupportView: View {
         }
         .sheet(isPresented: $showingVideoTutorials) {
             VideoTutorialsView()
+        }
+        .sheet(isPresented: $showingAccountHelp) {
+            AccountHelpView()
         }
         .alert("Support", isPresented: $showingAlert) {
             Button("OK") { }

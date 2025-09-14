@@ -102,12 +102,12 @@ struct VideoTutorialRow: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(Color.orange.opacity(0.2))
+                        .fill(Color.monoPrimary.opacity(0.2))
                         .frame(width: 60, height: 60)
                     
                     Image(systemName: tutorial.thumbnailName)
                         .font(.system(size: 28))
-                        .foregroundColor(.orange)
+                        .foregroundColor(.monoPrimary)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -137,9 +137,9 @@ struct VideoTutorialRow: View {
                 
                 Image(systemName: "play.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(.orange)
+                    .foregroundColor(.monoPrimary)
                     .padding(8)
-                    .background(Circle().fill(Color.orange.opacity(0.1)))
+                    .background(Circle().fill(Color.monoPrimary.opacity(0.1)))
             }
             .padding(.vertical, 4)
         }

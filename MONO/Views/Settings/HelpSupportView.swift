@@ -31,7 +31,7 @@ struct HelpSupportView: View {
                     Section {
                         QuickHelpRow(
                             icon: "questionmark.circle.fill",
-                            iconColor: .blue,
+                            iconColor: .monoPrimary,
                             title: "Frequently Asked Questions",
                             subtitle: "Find answers to common questions"
                         ) {
@@ -40,7 +40,7 @@ struct HelpSupportView: View {
                         
                         QuickHelpRow(
                             icon: "book.fill",
-                            iconColor: .green,
+                            iconColor: .monoPrimary,
                             title: "User Guide",
                             subtitle: "Learn how to use MONO effectively"
                         ) {
@@ -49,7 +49,7 @@ struct HelpSupportView: View {
                         
                         QuickHelpRow(
                             icon: "play.circle.fill",
-                            iconColor: .orange,
+                            iconColor: .monoPrimary,
                             title: "Video Tutorials",
                             subtitle: "Watch step-by-step guides"
                         ) {
@@ -66,7 +66,7 @@ struct HelpSupportView: View {
                     Section {
                         QuickHelpRow(
                             icon: "star.fill",
-                            iconColor: .orange,
+                            iconColor: .monoPrimary,
                             title: "Rate Our App",
                             subtitle: "Share your experience on the App Store"
                         ) {
@@ -80,7 +80,7 @@ struct HelpSupportView: View {
                     Section {
                         QuickHelpRow(
                             icon: "person.circle.fill",
-                            iconColor: .blue,
+                            iconColor: .monoPrimary,
                             title: "Account Help",
                             subtitle: "Manage your account settings"
                         ) {
@@ -89,7 +89,7 @@ struct HelpSupportView: View {
                         
                         QuickHelpRow(
                             icon: "shield.fill",
-                            iconColor: .green,
+                            iconColor: .monoPrimary,
                             title: "Privacy Policy",
                             subtitle: "Learn how we protect your data"
                         ) {
@@ -98,7 +98,7 @@ struct HelpSupportView: View {
                         
                         QuickHelpRow(
                             icon: "doc.text.fill",
-                            iconColor: .blue,
+                            iconColor: .monoPrimary,
                             title: "Terms of Service",
                             subtitle: "Read our terms and conditions"
                         ) {
@@ -116,7 +116,7 @@ struct HelpSupportView: View {
                         
                         QuickHelpRow(
                             icon: "info.circle.fill",
-                            iconColor: .blue,
+                            iconColor: .monoPrimary,
                             title: "What's New",
                             subtitle: "See the latest features and updates"
                         ) {
@@ -396,37 +396,37 @@ struct UserGuideView: View {
             title: "Getting Started",
             subtitle: "Set up your account and preferences",
             icon: "play.circle.fill",
-            color: .green
+                color: .monoPrimary
         ),
         GuideItem(
             title: "Managing Income",
             subtitle: "Track and categorize your income sources",
             icon: "dollarsign.circle.fill",
-            color: .blue
+                color: .monoPrimary
         ),
         GuideItem(
             title: "Tracking Expenses",
             subtitle: "Monitor and control your spending",
             icon: "minus.circle.fill",
-            color: .red
+                color: .monoPrimary
         ),
         GuideItem(
             title: "Adding Dependents",
             subtitle: "Include family members in your planning",
             icon: "person.2.circle.fill",
-            color: .purple
+                color: .monoPrimary
         ),
         GuideItem(
             title: "Security Features",
             subtitle: "Keep your data safe and secure",
             icon: "shield.fill",
-            color: .orange
+                color: .monoPrimary
         ),
         GuideItem(
             title: "Reports & Statistics",
             subtitle: "Analyze your financial data",
             icon: "chart.bar.fill",
-            color: .indigo
+                color: .monoPrimary
         )
     ]
     

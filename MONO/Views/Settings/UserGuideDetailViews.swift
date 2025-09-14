@@ -37,12 +37,12 @@ struct GuideStep: View {
         HStack(alignment: .top, spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.1))
+                    .fill(Color.monoPrimary.opacity(0.1))
                     .frame(width: 32, height: 32)
                 
                 Text("\(number)")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.monoPrimary)
             }
             
             VStack(alignment: .leading, spacing: 6) {
@@ -58,7 +58,7 @@ struct GuideStep: View {
                 if let iconName = iconName {
                     Image(systemName: iconName)
                         .font(.system(size: 28))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.monoPrimary)
                         .padding(.top, 4)
                 }
             }
@@ -102,7 +102,7 @@ struct GettingStartedView: View {
                 GuideHeader(
                     title: "Getting Started",
                     iconName: "play.circle.fill",
-                    iconColor: .green
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Welcome to MONO! Follow these steps to set up your account and start managing your finances effectively.")
@@ -134,7 +134,7 @@ struct GettingStartedView: View {
                 GuideInfoBox(
                     title: "Pro Tip",
                     content: "Take a few minutes to explore the app's navigation. The main tabs at the bottom provide quick access to all major features.",
-                    color: .green,
+                    color: .monoPrimary,
                     iconName: "lightbulb.fill"
                 )
                 
@@ -166,7 +166,7 @@ struct ManagingIncomeView: View {
                 GuideHeader(
                     title: "Managing Income",
                     iconName: "dollarsign.circle.fill",
-                    iconColor: .blue
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Track and categorize all your income sources to get a clear picture of your financial inflows.")
@@ -205,7 +205,7 @@ struct ManagingIncomeView: View {
                 GuideInfoBox(
                     title: "Income Insights",
                     content: "Use the Income Analysis view to see patterns in your earnings and identify opportunities for income growth.",
-                    color: .blue,
+                    color: .monoPrimary,
                     iconName: "chart.bar.fill"
                 )
                 
@@ -218,10 +218,10 @@ struct ManagingIncomeView: View {
                 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     CategoryPill(name: "Salary", color: .blue)
-                    CategoryPill(name: "Freelance", color: .purple)
-                    CategoryPill(name: "Investments", color: .green)
-                    CategoryPill(name: "Rental Income", color: .orange)
-                    CategoryPill(name: "Business", color: .red)
+                    CategoryPill(name: "Freelance", color: .monoPrimary)
+                    CategoryPill(name: "Investments", color: .monoPrimary)
+                    CategoryPill(name: "Rental Income", color: .monoPrimary)
+                    CategoryPill(name: "Business", color: .monoPrimary)
                     CategoryPill(name: "Other", color: .gray)
                 }
             }
@@ -238,7 +238,7 @@ struct TrackingExpensesView: View {
                 GuideHeader(
                     title: "Tracking Expenses",
                     iconName: "minus.circle.fill",
-                    iconColor: .red
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Monitor and control your spending by tracking all your expenses in one place.")
@@ -277,7 +277,7 @@ struct TrackingExpensesView: View {
                 GuideInfoBox(
                     title: "Smart Tip",
                     content: "Take photos of receipts right away - this makes expense tracking more accurate and helps you claim tax deductions if applicable.",
-                    color: .red,
+                    color: .monoPrimary,
                     iconName: "lightbulb.fill"
                 )
                 
@@ -312,7 +312,7 @@ struct AddingDependentsView: View {
                 GuideHeader(
                     title: "Adding Dependents",
                     iconName: "person.2.circle.fill",
-                    iconColor: .purple
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Include family members in your financial planning and track expenses for each person separately.")
@@ -351,7 +351,7 @@ struct AddingDependentsView: View {
                 GuideInfoBox(
                     title: "Family Planning",
                     content: "Use the Dependents feature to plan for future expenses like education, healthcare, and other family-related costs.",
-                    color: .purple,
+                    color: .monoPrimary,
                     iconName: "calendar.badge.clock"
                 )
                 
@@ -385,7 +385,7 @@ struct SecurityFeaturesView: View {
                 GuideHeader(
                     title: "Security Features",
                     iconName: "shield.fill",
-                    iconColor: .orange
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Keep your financial data safe and secure with MONO's built-in security features.")
@@ -424,7 +424,7 @@ struct SecurityFeaturesView: View {
                 GuideInfoBox(
                     title: "Security Reminder",
                     content: "MONO never stores your bank credentials. We use bank-level encryption to protect all your sensitive information.",
-                    color: .orange,
+                    color: .monoPrimary,
                     iconName: "exclamationmark.shield.fill"
                 )
                 
@@ -457,7 +457,7 @@ struct ReportsStatisticsView: View {
                 GuideHeader(
                     title: "Reports & Statistics",
                     iconName: "chart.bar.fill",
-                    iconColor: .indigo
+                    iconColor: .monoPrimary
                 )
                 
                 Text("Analyze your financial data with powerful reports and visual statistics to make informed decisions.")
@@ -496,7 +496,7 @@ struct ReportsStatisticsView: View {
                 GuideInfoBox(
                     title: "Data Insights",
                     content: "Look for the AI-powered insights feature that highlights unusual spending patterns and suggests ways to improve your financial health.",
-                    color: .indigo,
+                    color: .monoPrimary,
                     iconName: "sparkles"
                 )
                 
@@ -529,7 +529,7 @@ struct ChecklistItem: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+                .foregroundColor(.monoPrimary)
             
             Text(text)
                 .font(.body)
@@ -567,7 +567,7 @@ struct ReportTypePill: View {
         .foregroundColor(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Color.indigo)
+    .background(Color.monoPrimary)
         .cornerRadius(16)
     }
 }

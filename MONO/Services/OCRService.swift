@@ -227,6 +227,11 @@ class OCRService: ObservableObject {
     private func findBestAmount(from amounts: [(amount: Double, confidence: Float)]) -> (amount: Double, confidence: Float)? {
         guard !amounts.isEmpty else { return nil }
         
+        print("OCR: Finding best amount from \(amounts.count) candidates:")
+        for (amount, conf) in amounts {
+            print("  - Amount: \(amount), Confidence: \(conf)")
+        }
+        
         // Remove duplicates by grouping similar amounts
         var uniqueAmounts: [(amount: Double, confidence: Float)] = []
         for (amount, confidence) in amounts {
@@ -239,6 +244,14 @@ class OCRService: ObservableObject {
             } else {
                 uniqueAmounts.append((amount, confidence))
             }
+        }
+        
+        // Look for very high confidence amounts (boosted by TOTAL detection)
+        let veryHighConfidenceAmounts = uniqueAmounts.filter { $0.confidence > 1.5 }
+        if !veryHighConfidenceAmounts.isEmpty {
+            let best = veryHighConfidenceAmounts.max { $0.confidence < $1.confidence }!
+            print("OCR: Selected very high confidence amount: \(best.amount) with confidence \(best.confidence)")
+            return best
         }
         
         // Prefer amounts with proper decimal formatting (xx.yy)
@@ -286,16 +299,22 @@ class OCRService: ObservableObject {
                 }
             }
             if !idealAmounts.isEmpty {
-                return idealAmounts.max { $0.confidence < $1.confidence }
+                let best = idealAmounts.max { $0.confidence < $1.confidence }!
+                print("OCR: Selected ideal amount: \(best.amount) with confidence \(best.confidence)")
+                return best
             }
         }
         
         // Fall back to highest confidence amount that meets our criteria
         let highConfidenceAmounts = sortedAmounts.filter { $0.confidence > 0.7 }
         if !highConfidenceAmounts.isEmpty {
-            return highConfidenceAmounts.first
+            let best = highConfidenceAmounts.first!
+            print("OCR: Selected high confidence amount: \(best.amount) with confidence \(best.confidence)")
+            return best
         } else {
-            return sortedAmounts.first
+            let best = sortedAmounts.first!
+            print("OCR: Selected fallback amount: \(best.amount) with confidence \(best.confidence)")
+            return best
         }
     }
 

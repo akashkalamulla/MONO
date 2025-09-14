@@ -230,6 +230,19 @@ extension OCRService {
                 continue
             }
             
+            // HEAVILY filter out cash/payment/change lines - these are NOT the total bill amount
+            if lowercaseLine.contains("cash") ||
+               lowercaseLine.contains("balance") ||
+               lowercaseLine.contains("change") ||
+               lowercaseLine.contains("paid") ||
+               lowercaseLine.contains("tender") ||
+               lowercaseLine.contains("payment") ||
+               lowercaseLine.contains("received") ||
+               lowercaseLine.contains("given") {
+                print("OCR: Skipping cash/payment line: \(trimmedLine)")
+                continue
+            }
+            
             let digitCount = trimmedLine.filter { $0.isNumber }.count
             // If a line has many digits but no decimal point and no currency symbol, it's likely a phone/serial number, not an amount
             if digitCount >= 6 && !trimmedLine.contains(".") && !trimmedLine.contains("Rs") && !trimmedLine.contains("LKR") { 
@@ -239,26 +252,33 @@ extension OCRService {
             // Much more comprehensive patterns for amount detection with weighted confidence
             let patterns = [
                 // Highest confidence patterns with explicit total identifiers
+                (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 1.0),
                 (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 1.0),
                 (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*([0-9,]+\.[0-9]{2})"#, 0.98),
+                
+                // Very high confidence for LKR currency (Sri Lankan Rupees)
+                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.96),
+                (#"[Ll][Kk][Rr]\s*([0-9,]+)"#, 0.94),
                 
                 // High confidence currency patterns with decimal places (most likely actual amounts)
                 (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})\s*$"#, 0.95), // End of line currency with decimals
                 (#"[Rr][Ss]\.?\s*([0-9,]{1,3}(?:,[0-9]{3})*\.[0-9]{2})"#, 0.95), // Proper thousand separators with decimals
-                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.93),
                 (#"₨\s*([0-9,]+\.[0-9]{2})"#, 0.93),
                 
                 // Medium-high confidence patterns
+                (#"(?i)(?:sub\s*total|subtotal)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 0.90),
                 (#"(?i)(?:sub\s*total|subtotal)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.85),
+                (#"(?i)(?:amount|sum|price|cost)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 0.85),
                 (#"(?i)(?:amount|sum|price|cost)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.82),
                 
                 // Context-dependent patterns
+                (#"\b(?:pay|paid|payment|charge|fee)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 0.85),
                 (#"\b(?:pay|paid|payment|charge|fee)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.80),
+                (#"\b(?:balance|owing|due)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 0.83),
                 (#"\b(?:balance|owing|due)\s*[:\-=]?\s*[Rr][Ss]\.?\s*([0-9,]+\.?[0-9]*)"#, 0.78),
                 
                 // Generic currency patterns (lower confidence) - only with proper decimal formatting
                 (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})"#, 0.75),
-                (#"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#, 0.75),
                 
                 // Numbers at end of lines with decimals (often totals in simple receipts)
                 (#".*?([0-9,]+\.[0-9]{2})\s*$"#, 0.70),
@@ -287,6 +307,12 @@ extension OCRService {
                             if amount >= 1 && amount <= 500_000 { // Reduced upper limit from 1M to 500K
                                 var finalConfidence = confidence * Float(patternConfidence)
                                 
+                                // MASSIVE boost for lines containing "TOTAL" - this should be the bill total
+                                if lowercaseLine.contains("total") {
+                                    finalConfidence *= 2.0
+                                    print("OCR: TOTAL line detected with amount \(amount), boosted confidence to \(finalConfidence)")
+                                }
+                                
                                 // Boost confidence for amounts with proper decimal formatting (xx.yy)
                                 if amountString.contains(".") && amountString.split(separator: ".").last?.count == 2 {
                                     finalConfidence *= 1.2
@@ -297,7 +323,13 @@ extension OCRService {
                                     finalConfidence *= 1.1
                                 }
                                 
-                                amounts.append((amount: amount, confidence: min(finalConfidence, 1.0)))
+                                // Extra boost for LKR currency (Sri Lankan standard)
+                                if trimmedLine.contains("LKR") {
+                                    finalConfidence *= 1.3
+                                    print("OCR: LKR currency detected with amount \(amount), confidence: \(finalConfidence)")
+                                }
+                                
+                                amounts.append((amount: amount, confidence: min(finalConfidence, 2.0)))
                             }
                         }
                     }

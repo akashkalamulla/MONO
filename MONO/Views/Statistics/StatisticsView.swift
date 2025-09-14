@@ -19,7 +19,6 @@ struct StatisticsView: View {
     @State private var totalAmount: Double = 0
     @State private var currentUser: NSManagedObject?
     @State private var isLoading = false
-    // Insights feature removed
     
     @State private var incomes: [NSManagedObject] = []
     @State private var expenses: [NSManagedObject] = []
@@ -81,7 +80,6 @@ struct StatisticsView: View {
     
     private func loadRealData() {
         guard let user = currentUser else {
-            // Clear data when no user is found instead of showing sample data
             chartData = []
             topSpending = []
             totalAmount = 0
@@ -301,7 +299,6 @@ struct StatisticsView: View {
     
     private var enhancedControlsSection: some View {
         VStack(spacing: 16) {
-            // Period Selector
             VStack(spacing: 8) {
                 HStack {
                     Text("Time Period")
@@ -343,7 +340,6 @@ struct StatisticsView: View {
                 .padding(.horizontal, 20)
             }
             
-            // Type Selector with improved design
             HStack {
                 Text("Category")
                     .font(.system(size: 16, weight: .semibold))
@@ -474,8 +470,7 @@ struct StatisticsView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
-            // Enhanced Chart
+
             VStack(spacing: 12) {
                 ZStack {
                     // Background grid

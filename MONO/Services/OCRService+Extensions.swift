@@ -600,38 +600,88 @@ extension OCRService {
             return validateOCRResult(results[0])
         }
         
-        // Find the result with highest confidence amount
-        let resultsWithAmounts = results.filter { $0.amount != nil }
-        let bestAmountResult = resultsWithAmounts.max { $0.confidence < $1.confidence }
-        
         // Combine text from all results for better context
         let combinedText = results.map { $0.text }.joined(separator: "\n")
-        
+
         // Get the most confident category
         let categoriesWithConfidence = results.compactMap { result -> (String, Float)? in
             guard let category = result.suggestedCategory else { return nil }
             return (category, result.confidence)
         }
         let bestCategory = categoriesWithConfidence.max { $0.1 < $1.1 }?.0
-        
+
         // Get the most confident merchant
         let merchantsWithConfidence = results.compactMap { result -> (String, Float)? in
             guard let merchant = result.merchant else { return nil }
             return (merchant, result.confidence)
         }
         let bestMerchant = merchantsWithConfidence.max { $0.1 < $1.1 }?.0
-        
+
         // Get the most confident date
         let datesWithConfidence = results.compactMap { result -> (Date, Float)? in
             guard let date = result.extractedDate else { return nil }
             return (date, result.confidence)
         }
         let bestDate = datesWithConfidence.max { $0.1 < $1.1 }?.0
-        
+
         // Calculate average confidence
         let avgConfidence = results.map { $0.confidence }.reduce(0, +) / Float(results.count)
-        
-        let combinedResult = OCRResult(
+
+        // First, explicitly check lines containing the keyword "total" for a nearby currency/amount
+        let combinedLower = combinedText.lowercased()
+        let totalLines = combinedText.components(separatedBy: .newlines).filter { $0.lowercased().contains("total") }
+        for totalLine in totalLines {
+            // Try to find currency-prefixed numbers first (LKR, Rs, ₨), then fall back to decimal numbers
+            let totalPatterns = [
+                #"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#,
+                #"[Rr][Ss]\.?\n+\s*([0-9,]+\.[0-9]{2})"#,
+                #"([0-9,]+\.[0-9]{2})"#
+            ]
+
+            for pat in totalPatterns {
+                if let regex = try? NSRegularExpression(pattern: pat, options: [.caseInsensitive]) {
+                    let matches = regex.matches(in: totalLine, options: [], range: NSRange(location: 0, length: totalLine.utf16.count))
+                    if let m = matches.first, m.numberOfRanges >= 2, let r = Range(m.range(at: 1), in: totalLine) {
+                        let amtStr = String(totalLine[r]).replacingOccurrences(of: ",", with: "")
+                        if let amt = Double(amtStr) {
+                            print("OCR: Found explicit TOTAL line amount \(amt) in combinedText, returning it with high confidence")
+                            let combinedResult = OCRResult(
+                                amount: amt,
+                                text: combinedText,
+                                suggestedCategory: bestCategory,
+                                confidence: min(1.0, avgConfidence * 1.5),
+                                merchant: bestMerchant,
+                                extractedDate: bestDate
+                            )
+                            return validateOCRResult(combinedResult)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Try to extract amounts from the combined text first (this helps when one pass captures the "TOTAL" line clearly)
+        let combinedCandidates = extractAmountsAdvanced(from: combinedText, confidence: avgConfidence)
+        if !combinedCandidates.isEmpty {
+            if let bestCandidate = combinedCandidates.max(by: { $0.confidence < $1.confidence }) {
+                print("OCR: combineOCRResults selected combined candidate amount \(bestCandidate.amount) with confidence \(bestCandidate.confidence)")
+                let combinedResult = OCRResult(
+                    amount: bestCandidate.amount,
+                    text: combinedText,
+                    suggestedCategory: bestCategory,
+                    confidence: min(1.0, avgConfidence * bestCandidate.confidence),
+                    merchant: bestMerchant,
+                    extractedDate: bestDate
+                )
+                return validateOCRResult(combinedResult)
+            }
+        }
+
+        // Fallback: Find the result with highest confidence amount from individual passes
+        let resultsWithAmounts = results.filter { $0.amount != nil }
+        let bestAmountResult = resultsWithAmounts.max { $0.confidence < $1.confidence }
+
+        let finalCombinedResult = OCRResult(
             amount: bestAmountResult?.amount,
             text: combinedText,
             suggestedCategory: bestCategory,
@@ -639,8 +689,8 @@ extension OCRService {
             merchant: bestMerchant,
             extractedDate: bestDate
         )
-        
-        return validateOCRResult(combinedResult)
+
+        return validateOCRResult(finalCombinedResult)
     }
     
     // Additional preprocessing method specifically for high-contrast enhancement

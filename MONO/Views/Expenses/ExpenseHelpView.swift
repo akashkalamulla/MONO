@@ -254,9 +254,8 @@ struct ExpenseHelpView: View {
         let content = UNMutableNotificationContent()
         content.title = "Expense Reminder"
         content.subtitle = "MONO - Personal Finance"
-        content.body = "Don't forget to log your recent expenses and receipts!"
-        content.badge = 1
-        content.sound = UNNotificationSound.default
+    content.body = "Don't forget to log your recent expenses and receipts!"
+    content.sound = UNNotificationSound.default
         content.userInfo = ["category": "expense", "action": "add_expense"]
         
         

@@ -191,9 +191,8 @@ struct IncomeHelpView: View {
         let content = UNMutableNotificationContent()
         content.title = "Income Reminder"
         content.subtitle = "MONO - Personal Finance"
-        content.body = "Don't forget to log your income for this period!"
-        content.badge = 1
-        content.sound = UNNotificationSound.default
+    content.body = "Don't forget to log your income for this period!"
+    content.sound = UNNotificationSound.default
         content.userInfo = ["category": "income", "action": "add_income"]
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)

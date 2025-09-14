@@ -488,7 +488,6 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @State private var showPrivacySecurity = false
     @State private var showHelpSupport = false
-    @State private var showBackupView = false
     
     var body: some View {
         NavigationView {
@@ -546,9 +545,7 @@ struct ProfileView: View {
                     ProfileOption(icon: "questionmark.circle.fill", title: "Help & Support") {
                         showHelpSupport = true
                     }
-                    ProfileOption(icon: "arrow.clockwise", title: "Backup & Sync") {
-                        showBackupView = true
-                    }
+                    // Backup & Sync removed
                 }
                 .background(Color.white)
                 .cornerRadius(15)

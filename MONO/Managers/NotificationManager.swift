@@ -10,15 +10,55 @@ import UserNotifications
 import CoreData
 import SwiftUI
 
-class NotificationManager: ObservableObject {
+final class NotificationManager: ObservableObject {
+    // Sync any delivered notifications from the system into the in-app list on startup
+    func fetchDeliveredNotifications() {
+        UNUserNotificationCenter.current().getDeliveredNotifications { [weak self] delivered in
+            guard let self = self else { return }
+            print("NotificationManager: fetched \(delivered.count) delivered notifications from system")
+            var added = 0
+            for deliveredNotif in delivered {
+                let content = deliveredNotif.request.content
+                let title = content.title
+                let body = content.body
+                let date = deliveredNotif.date
+
+                // Create a notification entry that mirrors the delivered item
+                let appNotif = AppNotification(
+                    id: UUID(),
+                    title: title,
+                    message: body,
+                    timestamp: date,
+                    type: .reminder,
+                    isRead: false,
+                    scheduledDate: nil
+                )
+
+                // Avoid duplicates: check by exact title+message+timestamp fingerprint
+                if !self.notifications.contains(where: { $0.title == appNotif.title && $0.message == appNotif.message && abs($0.timestamp.timeIntervalSince(appNotif.timestamp)) < 1.0 }) {
+                    DispatchQueue.main.async {
+                        self.notifications.insert(appNotif, at: 0)
+                    }
+                    added += 1
+                }
+            }
+            if added > 0 {
+                DispatchQueue.main.async {
+                    self.updateUnreadStatus()
+                }
+            }
+        }
+    }
     static let shared = NotificationManager()
     
     @Published var notifications: [AppNotification] = []
     @Published var hasUnreadNotifications: Bool = false
     
     private init() {
-        loadNotifications()
-        requestNotificationPermission()
+    loadNotifications()
+    // Merge any delivered system notifications into the in-app list
+    fetchDeliveredNotifications()
+    requestNotificationPermission()
     }
     
     // MARK: - Notification Permission
@@ -37,7 +77,6 @@ class NotificationManager: ObservableObject {
         content.title = "Income Reminder"
         content.subtitle = "MONO - Personal Finance"
         content.body = "Time to log your income: \(description ?? "Rs. \(String(format: "%.2f", amount))")"
-        content.badge = 1
         content.sound = UNNotificationSound.default
         content.userInfo = [
             "type": "income_reminder",
@@ -69,7 +108,6 @@ class NotificationManager: ObservableObject {
         content.title = "Expense Reminder"
         content.subtitle = "MONO - Personal Finance"
         content.body = "Don't forget: \(description ?? "\(category) expense of Rs. \(String(format: "%.2f", amount))")"
-        content.badge = 1
         content.sound = UNNotificationSound.default
         content.userInfo = [
             "type": "expense_reminder",
@@ -102,7 +140,6 @@ class NotificationManager: ObservableObject {
         content.title = "Payment Due"
         content.subtitle = "MONO - Personal Finance"
         content.body = "Payment reminder: \(description ?? "Rs. \(String(format: "%.2f", amount))")"
-        content.badge = 1
         content.sound = UNNotificationSound.default
         content.userInfo = [
             "type": "payment_reminder",

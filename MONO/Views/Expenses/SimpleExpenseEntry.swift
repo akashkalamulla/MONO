@@ -24,6 +24,8 @@ struct SimpleExpenseEntry: View {
     @State private var reminderFrequency = "Monthly"
     @State private var reminderDate = Date()
     @State private var reminderDayOfMonth = 1
+    @State private var includeTime = false
+    @State private var reminderTime = Date()
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var isForDependent: Bool
@@ -261,6 +263,34 @@ struct SimpleExpenseEntry: View {
                                     }
                                     .pickerStyle(WheelPickerStyle())
                                     .frame(height: 100)
+                                }
+                            }
+                            
+                            // Time picker section
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Include Specific Time")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                    
+                                    Spacer()
+                                    
+                                    Toggle("", isOn: $includeTime)
+                                        .labelsHidden()
+                                }
+                                
+                                if includeTime {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Reminder Time")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        
+                                        DatePicker("Reminder Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
+                                            .datePickerStyle(WheelDatePickerStyle())
+                                            .frame(height: 120)
+                                    }
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                    .animation(.easeInOut(duration: 0.3), value: includeTime)
                                 }
                             }
                         }
@@ -529,6 +559,14 @@ struct SimpleExpenseEntry: View {
                     // Calculate next occurrence based on day of month
                     var components = Calendar.current.dateComponents([.year, .month], from: Date())
                     components.day = reminderDayOfMonth
+                    
+                    // Add time component if specified
+                    if includeTime {
+                        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
+                        components.hour = timeComponents.hour
+                        components.minute = timeComponents.minute
+                    }
+                    
                     if let newDate = Calendar.current.date(from: components) {
                         reminderScheduleDate = newDate
 
@@ -538,6 +576,16 @@ struct SimpleExpenseEntry: View {
                             reminderScheduleDate = Calendar.current.date(from: components) ?? Date()
                         }
                     }
+                } else if includeTime && reminderScheduleDate != nil {
+                    // For "Once" and "Yearly" types, combine date and time
+                    let dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: reminderScheduleDate!)
+                    let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
+                    
+                    var combinedComponents = dateComponents
+                    combinedComponents.hour = timeComponents.hour
+                    combinedComponents.minute = timeComponents.minute
+                    
+                    reminderScheduleDate = Calendar.current.date(from: combinedComponents) ?? reminderScheduleDate
                 }
 
                 notificationManager.schedulePaymentReminder(

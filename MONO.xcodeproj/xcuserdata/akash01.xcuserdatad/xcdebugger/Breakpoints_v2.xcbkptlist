@@ -20,20 +20,6 @@
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "02275915-945E-4AE1-BAF6-DE7D1B0960D6 - fc587078c8d8c174"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "MONO.OCRService.processOCRResults(_: Swift.Array&lt;__C.VNRecognizedTextObservation&gt;, completion: (Swift.Result&lt;MONO.OCRResult, Swift.Error&gt;) -&gt; ()) -&gt; ()"
-                  moduleName = "MONO.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/akash01/Documents/MONO/MONO/Services/OCRService.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "154"
-                  endingLineNumber = "154">
-               </Location>
-               <Location
                   uuid = "02275915-945E-4AE1-BAF6-DE7D1B0960D6 - fc587078c8d8c695"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"

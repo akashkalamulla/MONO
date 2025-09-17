@@ -12,8 +12,11 @@ struct DependentDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     let dependent: Dependent
     @ObservedObject var dependentManager: DependentManager
+    @StateObject private var reminderManager = DependentReminderManager()
     @State private var showingEditView = false
     @State private var showingDeleteAlert = false
+    @State private var showingReminders = false
+    @State private var showingAddReminder = false
     
     var body: some View {
         ScrollView {
@@ -87,6 +90,42 @@ struct DependentDetailView: View {
                             }
                         }
                     }
+                    
+                    // Custom Reminders Section
+                    InfoCard(title: "Custom Reminders") {
+                        VStack(spacing: 12) {
+                            let activeReminders = reminderManager.getActiveReminders(for: dependent.id)
+                            let upcomingReminders = reminderManager.getUpcomingReminders(for: dependent.id)
+                            let overdueReminders = reminderManager.getOverdueReminders(for: dependent.id)
+                            
+                            InfoRow(label: "Active Reminders", value: "\(activeReminders.count)")
+                            InfoRow(label: "Upcoming", value: "\(upcomingReminders.count)")
+                            InfoRow(label: "Overdue", value: "\(overdueReminders.count)")
+                            
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    showingReminders = true
+                                }) {
+                                    Text("View All")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(Color(red: 0.2, green: 0.6, blue: 0.6))
+                                }
+                                
+                                Button(action: {
+                                    showingAddReminder = true
+                                }) {
+                                    Text("Add Reminder")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color(red: 0.2, green: 0.6, blue: 0.6))
+                                        .cornerRadius(8)
+                                }
+                            }
+                            .padding(.top, 8)
+                        }
+                    }
                 }
                 .padding(.horizontal)
                 
@@ -154,6 +193,22 @@ struct DependentDetailView: View {
                 editView
             } else {
                 Text("Edit functionality coming soon")
+            }
+        }
+        .sheet(isPresented: $showingAddReminder) {
+            NavigationView {
+                AddDependentReminderView(
+                    reminderManager: reminderManager,
+                    dependent: dependent
+                )
+            }
+        }
+        .sheet(isPresented: $showingReminders) {
+            NavigationView {
+                DependentRemindersView(
+                    dependent: dependent,
+                    reminderManager: reminderManager
+                )
             }
         }
         .alert(isPresented: $showingDeleteAlert) {

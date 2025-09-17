@@ -26,6 +26,7 @@ struct OCRExpenseEntry: View {
     @State private var description: String = ""
     @State private var selectedCategory = "Food & Dining"
     @State private var selectedDate = Date()
+    @State private var selectedTime = Date()
     @State private var isRecurring = false
     @State private var selectedFrequency = "Monthly"
     @State private var isPaymentReminder = false
@@ -377,6 +378,20 @@ struct OCRExpenseEntry: View {
                     .cornerRadius(12)
             }
             
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Time")
+                    .font(.headline)
+                    .foregroundColor(.monoPrimary)
+                
+                // Keep the visible label above the picker and hide the DatePicker's internal label
+                DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .datePickerStyle(WheelDatePickerStyle())
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+            }
+            
             // Dependent Association Section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Associate with Dependent (Optional)")
@@ -665,7 +680,20 @@ struct OCRExpenseEntry: View {
         expense.amount = amountValue
         expense.category = selectedCategory
         expense.expenseDescription = description.isEmpty ? nil : description
-        expense.date = selectedDate
+        
+        // Combine selected date and time
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: selectedTime)
+        
+        var combinedComponents = DateComponents()
+        combinedComponents.year = dateComponents.year
+        combinedComponents.month = dateComponents.month
+        combinedComponents.day = dateComponents.day
+        combinedComponents.hour = timeComponents.hour
+        combinedComponents.minute = timeComponents.minute
+        
+        expense.date = calendar.date(from: combinedComponents) ?? selectedDate
         expense.isRecurring = isRecurring
         expense.recurringFrequency = isRecurring ? selectedFrequency.lowercased() : nil
         expense.isPaymentReminder = isPaymentReminder

@@ -9,24 +9,25 @@ import Foundation
 import SwiftUI
 import UserNotifications
 import CoreLocation
+import CoreData
 
 class DependentReminderManager: ObservableObject {
     @Published var reminders: [DependentReminder] = []
     @Published var isLoading = false
     
-    private let userDefaults = UserDefaults.standard
-    private let remindersKey = "DependentReminders"
+    private let coreDataStack = CoreDataStack.shared
     private let notificationCenter = UNUserNotificationCenter.current()
     
     init() {
         loadReminders()
     }
     
-    // MARK: - Data Persistence
+    // MARK: - Data Persistence with Core Data
     private func loadReminders() {
         isLoading = true
         defer { isLoading = false }
         
+        // For now, since Core Data model is incomplete, load from UserDefaults
         guard let data = userDefaults.data(forKey: remindersKey),
               let decodedReminders = try? JSONDecoder().decode([DependentReminder].self, from: data) else {
             reminders = []
@@ -36,12 +37,34 @@ class DependentReminderManager: ObservableObject {
         reminders = decodedReminders.sorted { $0.combinedDateTime < $1.combinedDateTime }
     }
     
+    private let userDefaults = UserDefaults.standard
+    private let remindersKey = "DependentReminders"
+    
+    // NOTE: Core Data model for DependentReminderEntity is currently incomplete in the project.
+    // The conversion helper that used to map entity fields to `DependentReminder` was removed
+    // to avoid referencing generated Core Data properties that don't exist yet. When the
+    // model includes the full set of attributes (id, date, isCompleted, createdAt, amount, etc.)
+    // re-add a conversion method here (or use DependentReminderEntity.toDependentReminder()).
+    
     private func saveReminders() {
+        // Save using UserDefaults for now since Core Data model is incomplete
         guard let data = try? JSONEncoder().encode(reminders) else { return }
         userDefaults.set(data, forKey: remindersKey)
     }
     
     // MARK: - Reminder Management
+    func addReminder(paymentName: String, amount: Double, date: Date, time: Date, location: ReminderLocation?, dependentId: UUID) {
+        let reminder = DependentReminder(
+            paymentName: paymentName,
+            amount: amount,
+            date: date,
+            time: time,
+            location: location,
+            dependentId: dependentId
+        )
+        addReminder(reminder)
+    }
+    
     func addReminder(_ reminder: DependentReminder) {
         var newReminder = reminder
         
@@ -129,6 +152,14 @@ class DependentReminderManager: ObservableObject {
     
     func getOverdueReminders(for dependentId: UUID) -> [DependentReminder] {
         return reminders.filter { $0.dependentId == dependentId && $0.isOverdue }
+    }
+    
+    func getRemindersWithLocation(for dependentId: UUID? = nil) -> [DependentReminder] {
+        let filteredReminders = dependentId != nil ? 
+            reminders.filter { $0.dependentId == dependentId! } : 
+            reminders
+        
+        return filteredReminders.filter { $0.location != nil }
     }
     
     // MARK: - Notification Scheduling

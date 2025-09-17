@@ -12,6 +12,19 @@
         <attribute name="relationship" attributeType="String"/>
         <attribute name="userID" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="expenses" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseEntity" inverseName="dependent" inverseEntity="ExpenseEntity"/>
+        <relationship name="reminders" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DependentReminderEntity" inverseName="dependent" inverseEntity="DependentReminderEntity"/>
+    </entity>
+    <entity name="DependentReminderEntity" representedClassName="DependentReminderEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="completedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isCompleted" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationLatitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="locationLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="locationName" attributeType="String"/>
+        <attribute name="notificationId" attributeType="String"/>
+        <relationship name="dependent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DependentEntity" inverseName="reminders" inverseEntity="DependentEntity"/>
     </entity>
     <entity name="ExpenseEntity" representedClassName="ExpenseEntity" syncable="YES" codeGenerationType="class">
         <attribute name="amount" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>

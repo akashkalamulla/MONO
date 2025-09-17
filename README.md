@@ -1,66 +1,145 @@
-# MONO iOS App
 
-A SwiftUI-based iOS application with a clean, modern design featuring a custom splash screen and main interface.
+## MONO — iOS Personal Finance (SwiftUI)
 
-## Project Structure
+MONO is a SwiftUI-based iOS app for personal finance and dependent management. It includes features such as reminders, expense/ income tracking, location-aware reminders (MapKit), and Core Data persistence.
+
+This README covers project layout, how to run locally, Core Data notes (migration), and developer tips.
+
+## Project layout (high level)
+
+Key folders and files (most important first):
 
 ```
 MONO/
-├── Views/
-│   ├── Splash/
-│   │   └── SplashView.swift          # Main splash screen with loading animation
-│   └── Main/
-│       └── MainView.swift            # Main app interface after splash
-├── Components/
-│   └── LoadingIndicator.swift        # Reusable loading animation component
-├── Utils/
-│   ├── Color+Extensions.swift        # Custom color palette and extensions
-├── Assets.xcassets/                  # App icons, images, and other assets
-├── MONOApp.swift                     # Main app entry point
-├── ContentView.swift                 # Legacy view (kept for reference)
-└── new.swift                         # App constants and configuration
+├─ MONOApp.swift                      # App entry point
+├─ CoreData/                           # Core Data stack & entity extensions
+│  ├─ CoreDataStack.swift
+│  ├─ DependentReminderEntity+Extensions.swift
+│  └─ ...
+├─ Managers/                           # Business logic / ObservableObjects
+│  └─ DependentReminderManager.swift
+├─ Components/                         # Reusable UI components
+│  └─ StandardLocationPicker.swift
+├─ Views/                              # Feature UI grouped by domain
+│  ├─ Dependents/
+│  │  └─ DependentRemindersView.swift
+│  └─ Expenses/
+├─ Models/                             # App domain models (structs)
+│  └─ DependentReminder.swift
+├─ Assets.xcassets/
+└─ MONO.xcodeproj / MONO.xcworkspace
 ```
 
 ## Features
 
-### Splash Screen
-- Clean white background with "mono" branding
-- Custom teal color scheme
-- Animated loading indicator with three dots
-- Automatic transition to main view after 2.5 seconds
-- Smooth animations and transitions
+- Reminders for dependents with date/time, optional location, and notification scheduling
+- Location picker with map search and reverse geocoding via `StandardLocationPicker`
+- Core Data persistence (entities for dependents, expenses, reminders)
+- Map preview for reminders with saved coordinates
+- Modular SwiftUI components and manager classes (ObservableObject)
 
-### Main Interface
-- Welcome screen with consistent branding
-- Clean, minimal design
-- Custom button styling
-- Extensible structure for adding more features
+## Quick start — open and run
 
-### Design System
-- **Primary Color**: Teal (#336666)
-- **Typography**: System fonts with custom sizing
-- **Animations**: Smooth transitions and loading states
-- **Layout**: Responsive design using SwiftUI
+1. Open the workspace in Xcode:
 
-## Color Palette
+```bash
+open MONO.xcworkspace
+```
 
-- `monoPrimary`: Teal (#336666) - Main brand color
-- `monoSecondary`: Darker teal (#2D4D4D) - Secondary actions
-- `monoBackground`: Light gray (#FAFAFA) - Background color
-- `monoText`: Dark gray (#333333) - Primary text
-- `monoTextLight`: Light gray (#999999) - Secondary text
+2. Select a simulator or device, set a development team for signing (see Signing notes), then Build & Run (⌘R).
 
-## Usage
+If you prefer command line build (useful for CI):
 
-The app starts with a splash screen displaying the "mono" logo and loading animation. After the loading completes, it transitions to the main interface where you can add your app's primary functionality.
+```bash
+# build for simulator
+xcodebuild -workspace MONO.xcworkspace -scheme MONO -sdk iphonesimulator -configuration Debug build
+```
 
-## Customization
+### Signing / Build notes
 
-- Modify colors in `Color+Extensions.swift`
-- Adjust timing and animations in `AppConstants.swift`
-- Add new views in the appropriate folders under `Views/`
-- Create reusable components in the `Components/` folder
+- Xcode requires a Development Team for device builds. In Xcode open project → target → Signing & Capabilities → select a Team.
+- For simulator builds you can leave automatic signing, but device builds require provisioning.
 
-## Development
+## Core Data — important notes and migration
 
-This project uses SwiftUI and follows iOS development best practices with a clean, organized file structure that's easy to maintain and extend.
+The app uses Core Data. The `DependentReminderEntity` currently stores reminder metadata and location coordinates.
+
+If you change the model you must create a new model version and enable lightweight migration:
+
+1. In Xcode, open `MONO.xcdatamodeld` → Editor → Add Model Version… → name it (e.g. `MONOv2`).
+2. Select the `.xcdatamodeld` container and use the File Inspector (right pane) → Model Version to set the new version as Current.
+3. Enable lightweight migration in `CoreDataStack.swift` (example):
+
+```swift
+let description = persistentContainer.persistentStoreDescriptions.first
+description?.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+description?.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+
+persistentContainer.loadPersistentStores { _, error in
+	if let error = error {
+		fatalError("Unresolved Core Data error: \(error)")
+	}
+}
+```
+
+4. Build and run. If migration fails, try uninstalling the app from the simulator before running (this removes the old store).
+
+Recommended `DependentReminderEntity` attributes (if you will restore full reminder features):
+
+- `id: UUID`
+- `paymentName: String`
+- `amount: Double`
+- `date: Date` (scheduled datetime)
+- `createdAt: Date`
+- `isCompleted: Bool`
+- `completedAt: Date?`
+- `notificationId: String?`
+- `locationName: String?`, `locationLatitude: Double`, `locationLongitude: Double`
+
+Add these exactly (or adapt code accordingly) so the app can reconstruct reminders and show map pins.
+
+## Where to look for reminder/location code
+
+- `Managers/DependentReminderManager.swift` — CRUD, notification scheduling, and (eventually) Core Data integration for reminders.
+- `CoreData/DependentReminderEntity+Extensions.swift` — mapping helpers between Core Data entity and `DependentReminder` model.
+- `Components/StandardLocationPicker.swift` — unified location picker used by expense/reminder forms.
+- `Views/Dependents/DependentRemindersView.swift` — UI showing reminders and small Map preview annotations.
+
+## Developer workflow / conventions
+
+- Use `ObservableObject` managers to hold app state and pass them into SwiftUI views via `@ObservedObject` / `@EnvironmentObject`.
+- Prefer small reusable components in `Components/` and keep views declarative.
+- Keep Core Data model keys and your entity extension helper names in sync — mismatches cause compile-time errors.
+
+## Debugging tips
+
+- If maps don’t show pins: verify the `locationLatitude`/`locationLongitude` values are being saved and loaded.
+- If reminders disappear after restart: confirm Core Data migration and that the entity contains the required fields.
+- If build fails with signing errors: open project in Xcode and select a Team in Signing & Capabilities.
+
+## Testing
+
+- Unit/UITests are located in `MONOTests/` and `MONOUITests/`. Run tests in Xcode via Product → Test or via:
+
+```bash
+xcodebuild test -workspace MONO.xcworkspace -scheme MONO -destination 'platform=iOS Simulator,name=iPhone 15'
+```
+
+## Contributing
+
+- Follow the repository branch strategy; create feature branches off `newdev-main`.
+- Run the app and tests locally before opening a pull request. Keep changes small and focused.
+
+## Useful files
+
+- `CoreData/CoreDataStack.swift` — persistent container config
+- `Managers/DependentReminderManager.swift` — reminder business logic
+- `Models/DependentReminder.swift` — in-memory reminder model
+
+## Contact / Notes
+
+If you need help with Core Data attributes or migration I can add the Core Data attribute changes programmatically or update the mapping helpers. When modifying the model, create a new model version and enable lightweight migration as shown above.
+
+---
+
+Thanks for working on MONO — this README is a living document; update it as features and architecture evolve.

@@ -30,12 +30,12 @@ struct SimpleExpenseEntry: View {
     @State private var alertMessage = ""
     @State private var isForDependent: Bool
     @State private var selectedDependentId: UUID?
-    @State private var selectedPlacemark: CLPlacemark?
-    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
-    @State private var showMapPicker = false
-    @State private var locationName: String = ""
     @State private var showingOCREntry = false
     @State private var showingHelp = false
+    
+    // Location related states - standardized
+    @State private var includeLocation = false
+    @State private var selectedLocation: ReminderLocation?
     
     var dependentManager = DependentManager()
     
@@ -316,33 +316,8 @@ struct SimpleExpenseEntry: View {
                         .cornerRadius(12)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Location (Optional)")
-                            .font(.headline)
-                            .foregroundColor(.monoPrimary)
-
-                        Spacer()
-
-                        Button(action: { showMapPicker.toggle() }) {
-                            Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.monoPrimary)
-                        }
-                    }
-
-                    if !locationName.isEmpty {
-                        Text(locationName)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    } else {
-                        Text("No location selected")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                // Location Section - standardized
+                StandardLocationPicker(includeLocation: $includeLocation, selectedLocation: $selectedLocation)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -457,12 +432,6 @@ struct SimpleExpenseEntry: View {
         } message: {
             Text(alertMessage)
         }
-        .sheet(isPresented: $showMapPicker) {
-            MapPickerView(region: $region) { placemark in
-                selectedPlacemark = placemark
-                locationName = placemark.name ?? placemark.locality ?? "Selected location"
-            }
-        }
         .fullScreenCover(isPresented: $showingOCREntry) {
             OCRExpenseEntry()
         }
@@ -525,14 +494,11 @@ struct SimpleExpenseEntry: View {
             }
         }
 
-        if let placemark = selectedPlacemark {
-            expense.setValue(placemark.name ?? locationName, forKey: "locationName")
-            if let coord = placemark.location?.coordinate {
-                expense.setValue(coord.latitude, forKey: "latitude")
-                expense.setValue(coord.longitude, forKey: "longitude")
-            }
-        } else if !locationName.isEmpty {
-            expense.setValue(locationName, forKey: "locationName")
+        // Handle location data - standardized
+        if includeLocation, let location = selectedLocation {
+            expense.setValue(location.name, forKey: "locationName")
+            expense.setValue(location.coordinate.latitude, forKey: "latitude")
+            expense.setValue(location.coordinate.longitude, forKey: "longitude")
         }
         
         do {

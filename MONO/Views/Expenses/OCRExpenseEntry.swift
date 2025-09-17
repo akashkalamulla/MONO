@@ -40,11 +40,9 @@ struct OCRExpenseEntry: View {
     @State private var locationName: String = ""
     @State private var showingHelp = false
     
-    // Location related states
-    @State private var selectedLocation: String = ""
-    @State private var useCurrentLocation = false
-    @State private var showingLocationPicker = false
-    @State private var selectedPlacemark: CLPlacemark?
+    // Location related states - standardized
+    @State private var includeLocation = false
+    @State private var selectedLocation: ReminderLocation?
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Colombo, Sri Lanka
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
@@ -113,19 +111,6 @@ struct OCRExpenseEntry: View {
         }
         .sheet(isPresented: $showingImagePicker) {
             ImageSelectionSheet(selectedImage: $selectedImage, showingSheet: $showingImagePicker)
-        }
-        .sheet(isPresented: $showingLocationPicker) {
-            MapPickerView(region: $region, onSelect: { placemark in
-                selectedPlacemark = placemark
-                if let name = placemark.name {
-                    selectedLocation = name
-                } else if let address = placemark.thoroughfare {
-                    selectedLocation = address
-                } else {
-                    selectedLocation = "Selected Location"
-                }
-                useCurrentLocation = false
-            })
         }
         .onChange(of: selectedImage) { image in
             if let image = image {
@@ -544,58 +529,7 @@ struct OCRExpenseEntry: View {
             .cornerRadius(12)
             
             // Location Section
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Location (Optional)")
-                    .font(.headline)
-                    .foregroundColor(.monoPrimary)
-                
-                VStack(spacing: 12) {
-                    // Current Location Toggle
-                    HStack {
-                        Toggle("Use Current Location", isOn: $useCurrentLocation)
-                            .toggleStyle(SwitchToggleStyle(tint: Color.monoPrimary))
-                        
-                        if useCurrentLocation {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.monoPrimary)
-                                .font(.caption)
-                        }
-                    }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-                    
-                    // Manual Location Selection
-                    if !useCurrentLocation {
-                        Button(action: {
-                            showingLocationPicker = true
-                        }) {
-                            HStack {
-                                Image(systemName: "map")
-                                    .foregroundColor(.monoPrimary)
-                                
-                                Text(selectedLocation.isEmpty ? "Select Location" : selectedLocation)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(selectedLocation.isEmpty ? .gray : .primary)
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-            }
+            StandardLocationPicker(includeLocation: $includeLocation, selectedLocation: $selectedLocation)
         }
     }
     
@@ -727,93 +661,11 @@ struct OCRExpenseEntry: View {
             }
         }
         
-        // Handle location data
-        if useCurrentLocation {
-            // Get current location
-            getCurrentLocationData { locationResult in
-                DispatchQueue.main.async {
-                    self.saveExpenseWithLocation(expense: expense, locationResult: locationResult)
-                }
-            }
-        } else if let placemark = selectedPlacemark {
-            // Use selected location
-            if let name = placemark.name {
-                expense.setValue(name, forKey: "locationName")
-            } else if let thoroughfare = placemark.thoroughfare {
-                expense.setValue(thoroughfare, forKey: "locationName")
-            } else {
-                expense.setValue(selectedLocation, forKey: "locationName")
-            }
-            
-            if let coord = placemark.location?.coordinate {
-                expense.setValue(coord.latitude, forKey: "latitude")
-                expense.setValue(coord.longitude, forKey: "longitude")
-            }
-            
-            finalizeExpenseSave(expense: expense)
-        } else if !selectedLocation.isEmpty {
-            // Use location name only
-            expense.setValue(selectedLocation, forKey: "locationName")
-            finalizeExpenseSave(expense: expense)
-        } else {
-            // No location
-            finalizeExpenseSave(expense: expense)
-        }
-    }
-    
-    private func getCurrentLocationData(completion: @escaping ((String, CLLocationCoordinate2D)?) -> Void) {
-        let locationManager = CLLocationManager()
-        
-        // Check authorization status
-        switch locationManager.authorizationStatus {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-            completion(nil)
-            return
-        case .denied, .restricted:
-            completion(nil)
-            return
-        case .authorizedWhenInUse, .authorizedAlways:
-            break
-        @unknown default:
-            completion(nil)
-            return
-        }
-        
-        // Get current location
-        locationManager.requestLocation()
-        
-        // For simplicity, using geocoder directly
-        let geocoder = CLGeocoder()
-        locationManager.startUpdatingLocation()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            if let location = locationManager.location {
-                geocoder.reverseGeocodeLocation(location) { placemarks, error in
-                    if let placemark = placemarks?.first {
-                        var locationName = "Current Location"
-                        if let name = placemark.name {
-                            locationName = name
-                        } else if let thoroughfare = placemark.thoroughfare {
-                            locationName = thoroughfare
-                        }
-                        completion((locationName, location.coordinate))
-                    } else {
-                        completion(("Current Location", location.coordinate))
-                    }
-                }
-            } else {
-                completion(nil)
-            }
-            locationManager.stopUpdatingLocation()
-        }
-    }
-    
-    private func saveExpenseWithLocation(expense: ExpenseEntity, locationResult: (String, CLLocationCoordinate2D)?) {
-        if let (locationName, coordinate) = locationResult {
-            expense.setValue(locationName, forKey: "locationName")
-            expense.setValue(coordinate.latitude, forKey: "latitude")
-            expense.setValue(coordinate.longitude, forKey: "longitude")
+        // Handle location data - standardized
+        if includeLocation, let location = selectedLocation {
+            expense.setValue(location.name, forKey: "locationName")
+            expense.setValue(location.coordinate.latitude, forKey: "latitude")
+            expense.setValue(location.coordinate.longitude, forKey: "longitude")
         }
         
         finalizeExpenseSave(expense: expense)

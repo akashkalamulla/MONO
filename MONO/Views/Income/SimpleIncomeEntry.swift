@@ -292,7 +292,7 @@ struct SimpleIncomeEntry: View {
             income.categoryId = "salary"
         case "Freelance":
             income.categoryColor = "#2196F3"
-            income.categoryIcon = "laptopcomputer"
+            income.categoryIcon = "person.badge.plus"
             income.categoryId = "freelance"
         case "Business":
             income.categoryColor = "#FF9800"

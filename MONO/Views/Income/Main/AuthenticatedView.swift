@@ -488,6 +488,7 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @State private var showPrivacySecurity = false
     @State private var showHelpSupport = false
+    @State private var showNotifications = false
     
     var body: some View {
         NavigationView {
@@ -538,7 +539,9 @@ struct ProfileView: View {
                     ProfileOption(icon: "person.fill", title: "Edit Profile") {
                         showEditProfile = true
                     }
-                    ProfileOption(icon: "bell.fill", title: "Notifications") { }
+                    ProfileOption(icon: "bell.fill", title: "Notifications") {
+                        showNotifications = true
+                    }
                     ProfileOption(icon: "lock.fill", title: "Privacy & Security") {
                         showPrivacySecurity = true
                     }
@@ -576,6 +579,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView(authManager: authManager)
+        }
+        .sheet(isPresented: $showNotifications) {
+            NotificationView()
         }
         .sheet(isPresented: $showPrivacySecurity) {
             PrivacySecurityView()

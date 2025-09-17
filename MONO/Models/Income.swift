@@ -22,7 +22,7 @@ struct IncomeCategory: Identifiable, Codable {
     
     static let defaultCategories: [IncomeCategory] = [
         IncomeCategory(id: "salary", name: "Salary", icon: "dollarsign.circle.fill", color: "#4CAF50"),
-        IncomeCategory(id: "freelance", name: "Freelance", icon: "laptopcomputer", color: "#2196F3"),
+        IncomeCategory(id: "freelance", name: "Freelance", icon: "person.badge.plus", color: "#2196F3"),
         IncomeCategory(id: "business", name: "Business", icon: "building.2.fill", color: "#FF9800"),
         IncomeCategory(id: "investment", name: "Investment", icon: "chart.line.uptrend.xyaxis", color: "#9C27B0"),
         IncomeCategory(id: "rental", name: "Rental", icon: "house.fill", color: "#795548"),

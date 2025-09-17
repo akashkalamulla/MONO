@@ -6,12 +6,10 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 struct IncomeHelpView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var showingNotificationAlert = false
-    @State private var notificationMessage = ""
+    
     
     var body: some View {
         ScrollView {
@@ -89,31 +87,7 @@ struct IncomeHelpView: View {
                 }
                 .padding(.vertical, 8)
                 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Quick Actions")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                    
-                    Button(action: {
-                        setupIncomeReminder()
-                    }) {
-                        HStack {
-                            Image(systemName: "app.badge")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)
-                            
-                            Text("Set Income Reminder")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(Color(red: 0.2, green: 0.6, blue: 0.6))
-                        .cornerRadius(8)
-                    }
-                    .padding(.bottom, 8)
-                }
-                .padding(.vertical, 8)
+                // Quick Actions removed - income reminders are not used
                     
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Income Categories")
@@ -127,7 +101,7 @@ struct IncomeHelpView: View {
                     )
                     
                     categoryItem(
-                        icon: "laptop",
+                        icon: "person.badge.plus",
                         title: "Freelance",
                         description: "Income from freelance work, consulting, or contract jobs"
                     )
@@ -167,48 +141,10 @@ struct IncomeHelpView: View {
         #endif
         .background(Color(red: 0.98, green: 0.98, blue: 0.98))
         .edgesIgnoringSafeArea(.bottom)
-        .alert("Income Reminder", isPresented: $showingNotificationAlert) {
-            Button("OK") { }
-        } message: {
-            Text(notificationMessage)
-        }
+        
     }
     
-    private func setupIncomeReminder() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            DispatchQueue.main.async {
-                if granted {
-                    self.scheduleIncomeReminder()
-                } else {
-                    self.notificationMessage = "Please enable notifications in Settings to receive income reminders."
-                    self.showingNotificationAlert = true
-                }
-            }
-        }
-    }
     
-    private func scheduleIncomeReminder() {
-        let content = UNMutableNotificationContent()
-        content.title = "Income Reminder"
-        content.subtitle = "MONO - Personal Finance"
-    content.body = "Don't forget to log your income for this period!"
-    content.sound = UNNotificationSound.default
-        content.userInfo = ["category": "income", "action": "add_income"]
-        
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
-        let request = UNNotificationRequest(identifier: "income_reminder_demo", content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.notificationMessage = "Failed to schedule reminder: \(error.localizedDescription)"
-                } else {
-                    self.notificationMessage = "Income reminder set! You'll receive a notification in 10 seconds."
-                }
-                self.showingNotificationAlert = true
-            }
-        }
-    }
     }
     
     private func instructionCard(number: String, title: String, description: String) -> some View {

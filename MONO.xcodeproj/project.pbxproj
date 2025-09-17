@@ -419,6 +419,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enable Face ID to securely access your financial data and protect your privacy";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "MONO needs your location to automatically tag expenses and provide location-based insights for your spending patterns.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -448,6 +449,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enable Face ID to securely access your financial data and protect your privacy";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "MONO needs your location to automatically tag expenses and provide location-based insights for your spending patterns.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

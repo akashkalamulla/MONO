@@ -7,6 +7,8 @@
 
 import SwiftUI
 import CoreData
+import CoreLocation
+import MapKit
 
 struct OCRExpenseEntry: View {
     @Environment(\.presentationMode) var presentationMode
@@ -36,6 +38,16 @@ struct OCRExpenseEntry: View {
     @State private var selectedDependentId: UUID?
     @State private var locationName: String = ""
     @State private var showingHelp = false
+    
+    // Location related states
+    @State private var selectedLocation: String = ""
+    @State private var useCurrentLocation = false
+    @State private var showingLocationPicker = false
+    @State private var selectedPlacemark: CLPlacemark?
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Colombo, Sri Lanka
+        span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+    )
     
     var dependentManager = DependentManager()
     
@@ -95,6 +107,19 @@ struct OCRExpenseEntry: View {
         }
         .sheet(isPresented: $showingImagePicker) {
             ImageSelectionSheet(selectedImage: $selectedImage, showingSheet: $showingImagePicker)
+        }
+        .sheet(isPresented: $showingLocationPicker) {
+            MapPickerView(region: $region, onSelect: { placemark in
+                selectedPlacemark = placemark
+                if let name = placemark.name {
+                    selectedLocation = name
+                } else if let address = placemark.thoroughfare {
+                    selectedLocation = address
+                } else {
+                    selectedLocation = "Selected Location"
+                }
+                useCurrentLocation = false
+            })
         }
         .onChange(of: selectedImage) { image in
             if let image = image {
@@ -346,6 +371,60 @@ struct OCRExpenseEntry: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
             }
+            
+            // Location Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Location (Optional)")
+                    .font(.headline)
+                    .foregroundColor(.monoPrimary)
+                
+                VStack(spacing: 12) {
+                    // Current Location Toggle
+                    HStack {
+                        Toggle("Use Current Location", isOn: $useCurrentLocation)
+                            .toggleStyle(SwitchToggleStyle(tint: Color.monoPrimary))
+                        
+                        if useCurrentLocation {
+                            Image(systemName: "location.fill")
+                                .foregroundColor(.monoPrimary)
+                                .font(.caption)
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                    
+                    // Manual Location Selection
+                    if !useCurrentLocation {
+                        Button(action: {
+                            showingLocationPicker = true
+                        }) {
+                            HStack {
+                                Image(systemName: "map")
+                                    .foregroundColor(.monoPrimary)
+                                
+                                Text(selectedLocation.isEmpty ? "Select Location" : selectedLocation)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(selectedLocation.isEmpty ? .gray : .primary)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
         }
     }
     
@@ -444,15 +523,107 @@ struct OCRExpenseEntry: View {
         expense.updatedAt = Date()
         expense.user = currentUser
         
+        // Handle location data
+        if useCurrentLocation {
+            // Get current location
+            getCurrentLocationData { locationResult in
+                DispatchQueue.main.async {
+                    self.saveExpenseWithLocation(expense: expense, locationResult: locationResult)
+                }
+            }
+        } else if let placemark = selectedPlacemark {
+            // Use selected location
+            if let name = placemark.name {
+                expense.setValue(name, forKey: "locationName")
+            } else if let thoroughfare = placemark.thoroughfare {
+                expense.setValue(thoroughfare, forKey: "locationName")
+            } else {
+                expense.setValue(selectedLocation, forKey: "locationName")
+            }
+            
+            if let coord = placemark.location?.coordinate {
+                expense.setValue(coord.latitude, forKey: "latitude")
+                expense.setValue(coord.longitude, forKey: "longitude")
+            }
+            
+            finalizeExpenseSave(expense: expense)
+        } else if !selectedLocation.isEmpty {
+            // Use location name only
+            expense.setValue(selectedLocation, forKey: "locationName")
+            finalizeExpenseSave(expense: expense)
+        } else {
+            // No location
+            finalizeExpenseSave(expense: expense)
+        }
+    }
+    
+    private func getCurrentLocationData(completion: @escaping ((String, CLLocationCoordinate2D)?) -> Void) {
+        let locationManager = CLLocationManager()
         
+        // Check authorization status
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+            completion(nil)
+            return
+        case .denied, .restricted:
+            completion(nil)
+            return
+        case .authorizedWhenInUse, .authorizedAlways:
+            break
+        @unknown default:
+            completion(nil)
+            return
+        }
+        
+        // Get current location
+        locationManager.requestLocation()
+        
+        // For simplicity, using geocoder directly
+        let geocoder = CLGeocoder()
+        locationManager.startUpdatingLocation()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            if let location = locationManager.location {
+                geocoder.reverseGeocodeLocation(location) { placemarks, error in
+                    if let placemark = placemarks?.first {
+                        var locationName = "Current Location"
+                        if let name = placemark.name {
+                            locationName = name
+                        } else if let thoroughfare = placemark.thoroughfare {
+                            locationName = thoroughfare
+                        }
+                        completion((locationName, location.coordinate))
+                    } else {
+                        completion(("Current Location", location.coordinate))
+                    }
+                }
+            } else {
+                completion(nil)
+            }
+            locationManager.stopUpdatingLocation()
+        }
+    }
+    
+    private func saveExpenseWithLocation(expense: ExpenseEntity, locationResult: (String, CLLocationCoordinate2D)?) {
+        if let (locationName, coordinate) = locationResult {
+            expense.setValue(locationName, forKey: "locationName")
+            expense.setValue(coordinate.latitude, forKey: "latitude")
+            expense.setValue(coordinate.longitude, forKey: "longitude")
+        }
+        
+        finalizeExpenseSave(expense: expense)
+    }
+    
+    private func finalizeExpenseSave(expense: ExpenseEntity) {
         do {
-            try context.save()
+            try coreDataStack.context.save()
             
             // Schedule notifications if enabled
             if isRecurring {
                 let frequency = convertStringToRecurringFrequency(selectedFrequency)
                 notificationManager.scheduleExpenseReminder(
-                    amount: amountValue,
+                    amount: expense.amount,
                     description: description.isEmpty ? nil : description,
                     category: selectedCategory,
                     date: selectedDate,
@@ -463,16 +634,14 @@ struct OCRExpenseEntry: View {
             
             if isPaymentReminder {
                 let frequency = convertStringToReminderFrequency(reminderFrequency)
-                var reminderScheduleDate = reminderDate // ensure non-optional Date
+                var reminderScheduleDate = reminderDate
                 
                 if reminderFrequency == "Monthly" {
-                    // Calculate next occurrence based on day of month
                     var components = Calendar.current.dateComponents([.year, .month], from: Date())
                     components.day = reminderDayOfMonth
                     if let newDate = Calendar.current.date(from: components) {
                         reminderScheduleDate = newDate
                         
-                        // If the date has passed this month, schedule for next month
                         if reminderScheduleDate < Date() {
                             components.month = (components.month ?? 1) + 1
                             reminderScheduleDate = Calendar.current.date(from: components) ?? Date()
@@ -481,14 +650,18 @@ struct OCRExpenseEntry: View {
                 }
                 
                 notificationManager.schedulePaymentReminder(
-                    amount: amountValue,
+                    amount: expense.amount,
                     description: "\(selectedCategory) payment",
                     reminderDate: reminderScheduleDate,
                     frequency: frequency
                 )
             }
             
-            var message = "Expense of Rs. \(String(format: "%.2f", amountValue)) saved successfully from receipt scan!"
+            var message = "Expense of Rs. \(String(format: "%.2f", expense.amount)) saved successfully from receipt scan!"
+            
+            if let locationName = expense.value(forKey: "locationName") as? String {
+                message += "\nLocation: \(locationName)"
+            }
             
             if isRecurring || isPaymentReminder {
                 message += "\nReminder notifications have been set up."
@@ -536,3 +709,5 @@ struct OCRExpenseEntry_Previews: PreviewProvider {
         OCRExpenseEntry()
     }
 }
+
+

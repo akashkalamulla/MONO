@@ -105,7 +105,6 @@ struct ReminderLocation: Identifiable, Codable {
     }
 }
 
-// MARK: - Reminder Status Extensions
 extension DependentReminder {
     enum Status {
         case upcoming

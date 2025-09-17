@@ -9,7 +9,6 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
-// MARK: - Standardized Location Selection UI Component
 struct StandardLocationPicker: View {
     @Binding var includeLocation: Bool
     @Binding var selectedLocation: ReminderLocation?
@@ -101,7 +100,6 @@ struct StandardLocationPicker: View {
     }
 }
 
-// MARK: - Standardized Location Picker Modal
 struct StandardLocationPickerView: View {
     @Environment(\.presentationMode) var presentationMode
     @Binding var region: MKCoordinateRegion
@@ -242,7 +240,6 @@ struct StandardLocationPickerView: View {
     
     private func selectLocationFromMap(at tapLocation: CGPoint) {
         // This is a simplified implementation
-        // In a real app, you'd convert the tap location to coordinates and reverse geocode
         let coordinate = region.center
         
         let geocoder = CLGeocoder()

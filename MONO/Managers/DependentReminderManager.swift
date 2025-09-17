@@ -22,7 +22,6 @@ class DependentReminderManager: ObservableObject {
         loadReminders()
     }
     
-    // MARK: - Data Persistence with Core Data
     private func loadReminders() {
         isLoading = true
         defer { isLoading = false }
@@ -40,11 +39,6 @@ class DependentReminderManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let remindersKey = "DependentReminders"
     
-    // NOTE: Core Data model for DependentReminderEntity is currently incomplete in the project.
-    // The conversion helper that used to map entity fields to `DependentReminder` was removed
-    // to avoid referencing generated Core Data properties that don't exist yet. When the
-    // model includes the full set of attributes (id, date, isCompleted, createdAt, amount, etc.)
-    // re-add a conversion method here (or use DependentReminderEntity.toDependentReminder()).
     
     private func saveReminders() {
         // Save using UserDefaults for now since Core Data model is incomplete
@@ -52,7 +46,6 @@ class DependentReminderManager: ObservableObject {
         userDefaults.set(data, forKey: remindersKey)
     }
     
-    // MARK: - Reminder Management
     func addReminder(paymentName: String, amount: Double, date: Date, time: Date, location: ReminderLocation?, dependentId: UUID) {
         let reminder = DependentReminder(
             paymentName: paymentName,
@@ -121,7 +114,6 @@ class DependentReminderManager: ObservableObject {
         completedReminder.completedAt = Date()
         completedReminder.notificationId = nil
         
-        // Remove location when completed (as requested)
         completedReminder.location = nil
         
         reminders[index] = completedReminder
@@ -162,7 +154,6 @@ class DependentReminderManager: ObservableObject {
         return filteredReminders.filter { $0.location != nil }
     }
     
-    // MARK: - Notification Scheduling
     private func scheduleNotification(for reminder: DependentReminder, completion: @escaping (String?) -> Void) {
         let content = UNMutableNotificationContent()
         content.title = "Payment Reminder"
@@ -202,7 +193,6 @@ class DependentReminderManager: ObservableObject {
         }
     }
     
-    // MARK: - Helper Methods
     func cleanup() {
         // Remove completed reminders older than 30 days
         let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()

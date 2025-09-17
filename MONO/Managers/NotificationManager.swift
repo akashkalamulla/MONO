@@ -11,7 +11,7 @@ import CoreData
 import SwiftUI
 
 final class NotificationManager: ObservableObject {
-    // Sync any delivered notifications from the system into the in-app list on startup
+ 
     func fetchDeliveredNotifications() {
         UNUserNotificationCenter.current().getDeliveredNotifications { [weak self] delivered in
             guard let self = self else { return }
@@ -23,7 +23,7 @@ final class NotificationManager: ObservableObject {
                 let body = content.body
                 let date = deliveredNotif.date
 
-                // Create a notification entry that mirrors the delivered item
+
                 let appNotif = AppNotification(
                     id: UUID(),
                     title: title,
@@ -61,7 +61,6 @@ final class NotificationManager: ObservableObject {
     requestNotificationPermission()
     }
     
-    // MARK: - Notification Permission
     func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error {
@@ -71,7 +70,6 @@ final class NotificationManager: ObservableObject {
         }
     }
     
-    // MARK: - Schedule Notifications
     func scheduleIncomeReminder(amount: Double, description: String?, date: Date, isRecurring: Bool, frequency: String?) {
         let content = UNMutableNotificationContent()
         content.title = "Income Reminder"
@@ -166,7 +164,6 @@ final class NotificationManager: ObservableObject {
         )
     }
     
-    // MARK: - Private Scheduling Methods
     private func scheduleOneTimeNotification(content: UNMutableNotificationContent, identifier: String, date: Date) {
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
@@ -209,7 +206,6 @@ final class NotificationManager: ObservableObject {
         }
     }
     
-    // MARK: - Local Notification Management
     func addNotification(title: String, message: String, type: NotificationType, scheduledDate: Date? = nil) {
         let notification = AppNotification(
             id: UUID(),
@@ -259,7 +255,6 @@ final class NotificationManager: ObservableObject {
         hasUnreadNotifications = notifications.contains { !$0.isRead }
     }
     
-    // MARK: - Persistence
     private func saveNotifications() {
         if let encoded = try? JSONEncoder().encode(notifications) {
             UserDefaults.standard.set(encoded, forKey: "saved_notifications")
@@ -276,7 +271,6 @@ final class NotificationManager: ObservableObject {
         }
     }
     
-    // MARK: - Demo/Testing
     func addSampleNotifications() {
         let sampleNotifications = [
             AppNotification(
@@ -313,7 +307,6 @@ final class NotificationManager: ObservableObject {
     }
 }
 
-// MARK: - Data Models
 struct AppNotification: Identifiable, Codable {
     let id: UUID
     let title: String

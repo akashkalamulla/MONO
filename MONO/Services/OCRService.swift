@@ -31,14 +31,11 @@ class OCRService: ObservableObject {
     
     // Flag to indicate if enhanced OCR processing is available
     private(set) var hasEnhancedOCR = false
-    
-    // Testing implementation for improved OCR
+
     var testOCRProcessingWithFixes: ((UIImage, @escaping (Result<OCRResult, Error>) -> Void) -> Void)?
     
     private init() {
-    // The enhanced OCR implementation is provided via an extension file
-    // and is available at compile time in this target. Enable it so
-    // callers use the app-local temp file flow (avoids FileProvider issues).
+
     hasEnhancedOCR = true
     print("OCRService: enhancedOCR enabled")
     }
@@ -58,7 +55,6 @@ class OCRService: ObservableObject {
             }
         }
 
-        // Fallback to direct cgImage if app-copy failed
         if finalCGImage == nil {
             finalCGImage = processedImage.cgImage
         }
@@ -71,7 +67,7 @@ class OCRService: ObservableObject {
         }
 
         let request = VNRecognizeTextRequest { [weak self] (request, error) in
-            // Remove the temporary file as soon as we have results (best-effort)
+ 
             if let t = tempURL { OCRFileHelper.removeTempFile(t) }
 
             if let error = error {
@@ -232,12 +228,12 @@ class OCRService: ObservableObject {
             print("  - Amount: \(amount), Confidence: \(conf)")
         }
         
-        // Remove duplicates by grouping similar amounts
+
         var uniqueAmounts: [(amount: Double, confidence: Float)] = []
         for (amount, confidence) in amounts {
             let existing = uniqueAmounts.firstIndex { abs($0.amount - amount) < 0.01 }
             if let index = existing {
-                // Keep the one with higher confidence
+        
                 if confidence > uniqueAmounts[index].confidence {
                     uniqueAmounts[index] = (amount, confidence)
                 }
@@ -246,7 +242,7 @@ class OCRService: ObservableObject {
             }
         }
         
-        // Look for very high confidence amounts (boosted by TOTAL detection)
+
         let veryHighConfidenceAmounts = uniqueAmounts.filter { $0.confidence > 1.5 }
         if !veryHighConfidenceAmounts.isEmpty {
             let best = veryHighConfidenceAmounts.max { $0.confidence < $1.confidence }!
@@ -265,12 +261,12 @@ class OCRService: ObservableObject {
         
         // Sort by confidence, then by reasonableness
         let sortedAmounts = uniqueAmounts.sorted { first, second in
-            // First priority: confidence
+
             if abs(first.confidence - second.confidence) > 0.1 {
                 return first.confidence > second.confidence
             }
             
-            // Second priority: proper decimal formatting
+       
             let firstHasDecimals = String(format: "%.2f", first.amount).contains(".") && !String(format: "%.2f", first.amount).hasSuffix(".00")
             let secondHasDecimals = String(format: "%.2f", second.amount).contains(".") && !String(format: "%.2f", second.amount).hasSuffix(".00")
             
@@ -286,13 +282,13 @@ class OCRService: ObservableObject {
                 return firstIsReasonable
             }
             
-            // Final tiebreaker: smaller amounts are more likely to be correct in case of OCR errors
+    
             return first.amount < second.amount
         }
         
         // Return the best amount based on our sorting criteria
         if !decimalAmounts.isEmpty && !reasonableAmounts.isEmpty {
-            // Look for amounts that are both decimal-formatted AND reasonable
+ 
             let idealAmounts = decimalAmounts.filter { decimalAmount in
                 reasonableAmounts.contains { reasonableAmount in
                     abs(decimalAmount.amount - reasonableAmount.amount) < 0.01

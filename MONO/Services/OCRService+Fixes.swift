@@ -2,28 +2,25 @@ import Foundation
 import Vision
 import UIKit
 
-// Extension to fix OCR service issues
+
 extension OCRService {
     
     // This extends the public API without conflicting with the private implementation
     func enhancedOCRProcessing(_ image: UIImage, completion: @escaping (Result<OCRResult, Error>) -> Void) {
-        // Using enhanced OCR implementation with app-local temp file
 
-        // Save image to app temp to avoid any FileProvider/security-scoped issues
         guard let tempURL = OCRFileHelper.saveImageToAppTemp(image) else {
             print("OCR Debug: Failed to save image to app temp")
             DispatchQueue.main.async { completion(.failure(OCRError.invalidImage)) }
             return
         }
 
-        // Process on background queue
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else {
                 OCRFileHelper.removeTempFile(tempURL)
                 return
             }
 
-            // Load the image back from our sandbox copy
+
             guard let loaded = OCRFileHelper.loadImageFromAppURL(tempURL) else {
                 print("OCR Debug: Failed to load image from temp URL")
                 OCRFileHelper.removeTempFile(tempURL)
@@ -41,7 +38,7 @@ extension OCRService {
 
             // Build request
             let request = VNRecognizeTextRequest { [weak self] (request, error) in
-                // Clean up temp file as soon as we have results
+
                 OCRFileHelper.removeTempFile(tempURL)
 
                 guard let self = self else { return }
@@ -57,7 +54,6 @@ extension OCRService {
                     return
                 }
 
-                // Process results on background queue and return on main
                 self.improvedProcessOCRResults(observations) { result in
                     DispatchQueue.main.async { completion(result) }
                 }
@@ -89,25 +85,23 @@ extension OCRService {
         guard !amounts.isEmpty else { return nil }
         
         print("OCR Debug: Finding best amount from \(amounts.count) candidates")
-        
-        // Sort amounts by confidence first, then by value
+
         let sortedByConfidence = amounts.sorted { $0.confidence > $1.confidence }
         let highConfidenceAmounts = sortedByConfidence.filter { $0.confidence > 0.7 }
         
         if !highConfidenceAmounts.isEmpty {
-            // For high confidence amounts, prefer larger values
             let bestHighConfidence = highConfidenceAmounts.sorted { $0.amount > $1.amount }.first
             print("OCR Debug: Selected high confidence amount: \(bestHighConfidence?.amount ?? 0)")
             return bestHighConfidence
         } else {
-            // If no high confidence amounts, take the largest amount with reasonable confidence
+
             let reasonableAmounts = amounts.filter { $0.confidence > 0.5 }.sorted { $0.amount > $1.amount }
             if !reasonableAmounts.isEmpty {
                 print("OCR Debug: Selected reasonable confidence amount: \(reasonableAmounts.first?.amount ?? 0)")
                 return reasonableAmounts.first
             }
             
-            // Last resort: take the largest value
+  
             let largestAmount = amounts.sorted { $0.amount > $1.amount }.first
             print("OCR Debug: Selected largest amount: \(largestAmount?.amount ?? 0)")
             return largestAmount
@@ -118,20 +112,20 @@ extension OCRService {
     func improvedExtractAmounts(from text: String, confidence: Float) -> [(amount: Double, confidence: Float)] {
         let amountString = text
         
-        // First check if this is actually an amount string
+  
         let digitCount = amountString.filter { $0.isNumber || $0 == "." }.count
         let totalCount = amountString.count
         
-        // If it doesn't have enough digits or has too many characters, skip it
+
         if digitCount < 1 || totalCount > 15 {
             print("OCR Debug: Skipping unlikely amount string: \(amountString)")
             return []
         }
         
-        // Log the attempted parse
+
         print("OCR Debug: Attempting to parse amount from: \(amountString)")
         
-        // Clean the string from potential OCR errors
+
         var cleanedString = amountString
             .replacingOccurrences(of: "O", with: "0")
             .replacingOccurrences(of: "o", with: "0")
@@ -145,13 +139,8 @@ extension OCRService {
         
         // Simple pattern for detecting amounts - match anything with digits and possibly decimal points
         let patterns = [
-            // Match currency symbol followed by digits
             #"(?:[Rr][Ss]\.?\s*|₨\s*|\$\s*|[Ll][Kk][Rr]\s*)([0-9,]+\.?[0-9]*)"#,
-            
-            // Match digits followed by decimal point
             #"([0-9,]+\.[0-9]{2})"#,
-            
-            // Match large numbers that might be amounts
             #"([0-9,]{3,})"#
         ]
         
@@ -170,7 +159,6 @@ extension OCRService {
                     print("OCR Debug: Extracted potential amount string: \(extractedString)")
                     
                     if let amount = Double(extractedString) {
-                        // Only accept reasonable amounts (between 1 and 1 million)
                         if amount >= 1 && amount <= 1_000_000 {
                             print("OCR Debug: Valid amount found: \(amount)")
                             amounts.append((amount: amount, confidence: confidence))
@@ -186,7 +174,6 @@ extension OCRService {
         
         // If standard patterns failed, try one last approach - look for digits
         if amounts.isEmpty {
-            // Extract all digit sequences as a last resort
             if let regex = try? NSRegularExpression(pattern: #"([0-9]+)"#, options: []) {
                 let matches = regex.matches(in: cleanedString, options: [], range: NSRange(location: 0, length: cleanedString.utf16.count))
                 
@@ -195,7 +182,7 @@ extension OCRService {
                         let digitString = String(cleanedString[range])
                         if let amount = Double(digitString), amount >= 10 {
                             print("OCR Debug: Found digits as amount: \(amount)")
-                            // Lower confidence for this method
+
                             amounts.append((amount: amount, confidence: confidence * 0.7))
                         }
                     }

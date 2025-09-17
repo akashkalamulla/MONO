@@ -2,8 +2,7 @@ import Foundation
 import UIKit
 
 struct OCRFileHelper {
-    /// Save UIImage to a temporary file inside the app sandbox and return the file URL.
-    /// Returns nil on failure.
+
     static func saveImageToAppTemp(_ image: UIImage, compressionQuality: CGFloat = 0.9) -> URL? {
         let fileName = "ocr_\(UUID().uuidString).jpg"
         let tmp = FileManager.default.temporaryDirectory
@@ -23,14 +22,14 @@ struct OCRFileHelper {
         }
     }
 
-    /// Load a UIImage from a file URL inside the app sandbox.
+
     static func loadImageFromAppURL(_ url: URL) -> UIImage? {
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
         return UIImage(data: data)
     }
 
-    /// Convert UIImage to CGImage; fall back to rendering if needed.
+
     static func cgImageFrom(_ image: UIImage) -> CGImage? {
         if let cg = image.cgImage { return cg }
 
@@ -41,7 +40,7 @@ struct OCRFileHelper {
         return rendered.cgImage
     }
 
-    /// Remove the temporary file (best-effort)
+
     static func removeTempFile(_ url: URL) {
         do { try FileManager.default.removeItem(at: url) } catch { /* ignore */ }
     }

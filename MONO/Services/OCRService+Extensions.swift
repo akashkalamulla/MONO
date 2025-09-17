@@ -28,12 +28,12 @@ extension OCRService {
         
         var brightness: Float = 0.5
         if let averageColor = averageFilter.outputImage {
-            // Extract brightness from the average color
+
             let colorSpace = CGColorSpaceCreateDeviceRGB()
             if let avgCGImage = context.createCGImage(averageColor, from: averageColor.extent) {
                 let data = avgCGImage.dataProvider?.data
                 let bytes = CFDataGetBytePtr(data!)
-                brightness = Float(bytes![0]) / 255.0 // Red channel as brightness approximation
+                brightness = Float(bytes![0]) / 255.0
             }
         }
         
@@ -51,7 +51,7 @@ extension OCRService {
         // Analyze image quality first
         let quality = analyzeImageQuality(image)
         
-        // Create a high-performance context
+
         let options = [CIContextOption.useSoftwareRenderer: false, 
                       CIContextOption.priorityRequestLow: false]
         let context = CIContext(options: options)
@@ -61,16 +61,14 @@ extension OCRService {
         
         // Apply adaptive preprocessing based on image quality
         if quality.brightness < 0.4 {
-            // Image is too dark - boost exposure more aggressively
             if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
                 exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
-                exposureFilter.setValue(1.0, forKey: kCIInputEVKey) // Higher exposure boost
+                exposureFilter.setValue(1.0, forKey: kCIInputEVKey)
                 if let output = exposureFilter.outputImage {
                     processedImage = output
                 }
             }
         } else if quality.brightness > 0.7 {
-            // Image is too bright - reduce exposure
             if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
                 exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
                 exposureFilter.setValue(-0.3, forKey: kCIInputEVKey) // Reduce exposure
@@ -79,7 +77,6 @@ extension OCRService {
                 }
             }
         } else {
-            // Normal lighting - standard exposure adjustment
             if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
                 exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
                 exposureFilter.setValue(0.5, forKey: kCIInputEVKey)
@@ -89,7 +86,6 @@ extension OCRService {
             }
         }
         
-        // Apply unsharp mask for better edge detection (adaptive strength)
         if let unsharpMaskFilter = CIFilter(name: "CIUnsharpMask") {
             unsharpMaskFilter.setValue(processedImage, forKey: kCIInputImageKey)
             unsharpMaskFilter.setValue(quality.sharpness < 0.6 ? 2.0 : 1.5, forKey: kCIInputRadiusKey)
@@ -151,7 +147,6 @@ extension OCRService {
         var totalLines: [String] = []
         var amountLines: [String] = []
         
-        // First pass - identify special lines
         for line in lines {
             let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
             let lowercaseLine = trimmedLine.lowercased()
@@ -186,7 +181,7 @@ extension OCRService {
             // Quick heuristics: skip lines that are likely phone numbers, dates, or reference numbers
             if containsPhoneOrDate(trimmedLine) { continue }
             
-            // Skip lines that look like reference numbers, serial numbers, or IDs
+
             if lowercaseLine.contains("no:") || 
                lowercaseLine.contains("no.") || 
                lowercaseLine.contains("ref:") || 
@@ -198,7 +193,7 @@ extension OCRService {
                 continue
             }
             
-            // HEAVILY filter out cash/payment/change lines - these are NOT the total bill amount
+      
             if lowercaseLine.contains("cash") ||
                lowercaseLine.contains("balance") ||
                lowercaseLine.contains("change") ||
@@ -229,8 +224,8 @@ extension OCRService {
                 (#"[Ll][Kk][Rr]\s*([0-9,]+)"#, 0.94),
                 
                 // High confidence currency patterns with decimal places (most likely actual amounts)
-                (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})\s*$"#, 0.95), // End of line currency with decimals
-                (#"[Rr][Ss]\.?\s*([0-9,]{1,3}(?:,[0-9]{3})*\.[0-9]{2})"#, 0.95), // Proper thousand separators with decimals
+                (#"[Rr][Ss]\.?\s*([0-9,]+\.[0-9]{2})\s*$"#, 0.95),
+                (#"[Rr][Ss]\.?\s*([0-9,]{1,3}(?:,[0-9]{3})*\.[0-9]{2})"#, 0.95),
                 (#"₨\s*([0-9,]+\.[0-9]{2})"#, 0.93),
                 
                 // Medium-high confidence patterns
@@ -272,10 +267,10 @@ extension OCRService {
                         let amountString = String(trimmedLine[range]).replacingOccurrences(of: ",", with: "")
                         if let amount = Double(amountString) {
                             // Tighten the amount range validation
-                            if amount >= 1 && amount <= 500_000 { // Reduced upper limit from 1M to 500K
+                            if amount >= 1 && amount <= 500_000 {
                                 var finalConfidence = confidence * Float(patternConfidence)
                                 
-                                // MASSIVE boost for lines containing "TOTAL" - this should be the bill total
+                            
                                 if lowercaseLine.contains("total") {
                                     finalConfidence *= 2.0
                                     print("OCR: TOTAL line detected with amount \(amount), boosted confidence to \(finalConfidence)")
@@ -308,7 +303,7 @@ extension OCRService {
         return amounts
     }
 
-    // Use NSDataDetector to quickly detect phone numbers or dates in a line
+ 
     func containsPhoneOrDate(_ text: String) -> Bool {
         do {
             let types = NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.date.rawValue
@@ -320,7 +315,6 @@ extension OCRService {
                 }
             }
         } catch {
-            // If detector fails, don't block processing
             return false
         }
         return false
@@ -455,11 +449,11 @@ extension OCRService {
         
         // Create Vision request to detect rectangles (like receipts)
         let request = VNDetectRectanglesRequest()
-        request.minimumAspectRatio = 0.3 // Receipts are usually taller than wide
+        request.minimumAspectRatio = 0.3
         request.maximumAspectRatio = 0.9
-        request.minimumSize = 0.3 // Rectangle should be at least 30% of the image
-        request.maximumObservations = 1 // Just find the most prominent rectangle
-        request.quadratureTolerance = 10.0 // Allow some deviation from perfect rectangle
+        request.minimumSize = 0.3
+        request.maximumObservations = 1
+        request.quadratureTolerance = 10.0
         
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         
@@ -477,14 +471,11 @@ extension OCRService {
             let topRight = rectangle.topRight
             let bottomLeft = rectangle.bottomLeft
             let bottomRight = rectangle.bottomRight
-            
-            // Convert normalized coordinates to image coordinates
+    
             let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-            
-            // Create CIImage for perspective correction
+
             let ciImage = CIImage(cgImage: cgImage)
-            
-            // Apply perspective correction using CIPerspectiveCorrection filter
+  
             let filter = CIFilter.perspectiveCorrection()
             filter.inputImage = ciImage
             filter.topLeft = CGPoint(x: topLeft.x * imageSize.width, y: (1 - topLeft.y) * imageSize.height)
@@ -492,12 +483,12 @@ extension OCRService {
             filter.bottomLeft = CGPoint(x: bottomLeft.x * imageSize.width, y: (1 - bottomLeft.y) * imageSize.height)
             filter.bottomRight = CGPoint(x: bottomRight.x * imageSize.width, y: (1 - bottomRight.y) * imageSize.height)
             
-            // Get corrected image
+
             guard let outputCIImage = filter.outputImage else {
                 return nil
             }
             
-            // Convert back to UIImage
+
             let context = CIContext(options: nil)
             guard let outputCGImage = context.createCGImage(outputCIImage, from: outputCIImage.extent) else {
                 return nil
@@ -515,7 +506,6 @@ extension OCRService {
         var allResults: [OCRResult] = []
         let dispatchGroup = DispatchGroup()
         
-        // Pass 1: Standard preprocessing
         dispatchGroup.enter()
         self.processImage(image) { result in
             if case .success(let ocrResult) = result {
@@ -551,7 +541,6 @@ extension OCRService {
             dispatchGroup.leave()
         }
         
-        // Combine results when all passes complete
         dispatchGroup.notify(queue: .main) {
             let bestResult = self.combineOCRResults(allResults)
             completion(.success(bestResult))
@@ -568,38 +557,37 @@ extension OCRService {
             return validateOCRResult(results[0])
         }
         
-        // Combine text from all results for better context
+
         let combinedText = results.map { $0.text }.joined(separator: "\n")
 
-        // Get the most confident category
+
         let categoriesWithConfidence = results.compactMap { result -> (String, Float)? in
             guard let category = result.suggestedCategory else { return nil }
             return (category, result.confidence)
         }
         let bestCategory = categoriesWithConfidence.max { $0.1 < $1.1 }?.0
 
-        // Get the most confident merchant
+
         let merchantsWithConfidence = results.compactMap { result -> (String, Float)? in
             guard let merchant = result.merchant else { return nil }
             return (merchant, result.confidence)
         }
         let bestMerchant = merchantsWithConfidence.max { $0.1 < $1.1 }?.0
 
-        // Get the most confident date
+
         let datesWithConfidence = results.compactMap { result -> (Date, Float)? in
             guard let date = result.extractedDate else { return nil }
             return (date, result.confidence)
         }
         let bestDate = datesWithConfidence.max { $0.1 < $1.1 }?.0
 
-        // Calculate average confidence
+
         let avgConfidence = results.map { $0.confidence }.reduce(0, +) / Float(results.count)
 
-        // First, explicitly check lines containing the keyword "total" for a nearby currency/amount
         let combinedLower = combinedText.lowercased()
         let totalLines = combinedText.components(separatedBy: .newlines).filter { $0.lowercased().contains("total") }
         for totalLine in totalLines {
-            // Try to find currency-prefixed numbers first (LKR, Rs, ₨), then fall back to decimal numbers
+         
             let totalPatterns = [
                 #"[Ll][Kk][Rr]\s*([0-9,]+\.[0-9]{2})"#,
                 #"[Rr][Ss]\.?\n+\s*([0-9,]+\.[0-9]{2})"#,
@@ -628,7 +616,6 @@ extension OCRService {
             }
         }
 
-        // Try to extract amounts from the combined text first (this helps when one pass captures the "TOTAL" line clearly)
         let combinedCandidates = extractAmountsAdvanced(from: combinedText, confidence: avgConfidence)
         if !combinedCandidates.isEmpty {
             if let bestCandidate = combinedCandidates.max(by: { $0.confidence < $1.confidence }) {
@@ -645,7 +632,6 @@ extension OCRService {
             }
         }
 
-        // Fallback: Find the result with highest confidence amount from individual passes
         let resultsWithAmounts = results.filter { $0.amount != nil }
         let bestAmountResult = resultsWithAmounts.max { $0.confidence < $1.confidence }
 
@@ -673,8 +659,8 @@ extension OCRService {
         // Apply high contrast settings
         if let contrastFilter = CIFilter(name: "CIColorControls") {
             contrastFilter.setValue(processedImage, forKey: kCIInputImageKey)
-            contrastFilter.setValue(2.0, forKey: kCIInputContrastKey) // Very high contrast
-            contrastFilter.setValue(-0.1, forKey: kCIInputBrightnessKey) // Slightly darker
+            contrastFilter.setValue(2.0, forKey: kCIInputContrastKey)
+            contrastFilter.setValue(-0.1, forKey: kCIInputBrightnessKey)
             if let output = contrastFilter.outputImage {
                 processedImage = output
             }
@@ -706,20 +692,20 @@ extension OCRService {
         if let amount = result.amount {
             // Flag suspicious amounts
             if amount > 1_000_000 {
-                adjustedConfidence *= 0.3 // Very likely an error
+                adjustedConfidence *= 0.3
             } else if amount > 100_000 {
-                adjustedConfidence *= 0.6 // Possibly an error
+                adjustedConfidence *= 0.6
             } else if amount < 1 {
-                adjustedConfidence *= 0.4 // Very small amounts are often errors
+                adjustedConfidence *= 0.4
             } else if amount < 10 && result.confidence > 0.8 {
-                // Small amounts with high confidence might be item codes
+                
                 adjustedConfidence *= 0.6
             }
             
             // Check if amount has proper decimal formatting
             let amountStr = String(format: "%.2f", amount)
             if amountStr.hasSuffix(".00") && amount > 50 {
-                adjustedConfidence *= 1.1 // Round amounts are often totals
+                adjustedConfidence *= 1.1
             }
         }
         
@@ -761,7 +747,7 @@ extension OCRService {
         // Penalize if text looks like noise
         let wordCount = words.filter { $0.count > 2 }.count
         if wordCount < 3 {
-            contentQualityMultiplier *= 0.7 // Very little meaningful text
+            contentQualityMultiplier *= 0.7 
         } else if wordCount < 6 {
             contentQualityMultiplier *= 0.85
         }

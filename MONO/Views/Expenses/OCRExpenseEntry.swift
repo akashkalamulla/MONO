@@ -55,6 +55,11 @@ struct OCRExpenseEntry: View {
     let frequencies = ["Daily", "Weekly", "Monthly", "Yearly"]
     let reminderFrequencies = ["Once", "Monthly", "Yearly"]
     
+    private var selectedDependentName: String {
+        guard let selectedId = selectedDependentId else { return "None" }
+        return dependentManager.dependents.first { $0.id == selectedId }?.fullName ?? "None"
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -372,6 +377,157 @@ struct OCRExpenseEntry: View {
                     .cornerRadius(12)
             }
             
+            // Dependent Association Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Associate with Dependent (Optional)")
+                    .font(.headline)
+                    .foregroundColor(.monoPrimary)
+                
+                Menu {
+                    Button(action: {
+                        isForDependent = false
+                        selectedDependentId = nil
+                    }) {
+                        HStack {
+                            Text("None")
+                            if !isForDependent {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                    
+                    ForEach(dependentManager.dependents) { dependent in
+                        Button(action: {
+                            isForDependent = true
+                            selectedDependentId = dependent.id
+                        }) {
+                            HStack {
+                                Text(dependent.fullName)
+                                if selectedDependentId == dependent.id {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "person.2")
+                            .foregroundColor(.monoPrimary)
+                        
+                        Text(selectedDependentName)
+                            .font(.system(size: 16))
+                            .foregroundColor(selectedDependentName == "None" ? .gray : .primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            
+            // Recurring Expense Section
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Recurring Expense")
+                        .font(.headline)
+                        .foregroundColor(.monoPrimary)
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: $isRecurring)
+                        .labelsHidden()
+                }
+                
+                if isRecurring {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Frequency")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
+                        Picker("Frequency", selection: $selectedFrequency) {
+                            ForEach(frequencies, id: \.self) { frequency in
+                                Text(frequency).tag(frequency)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .animation(.easeInOut(duration: 0.3), value: isRecurring)
+                }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            
+            // Payment Reminder Section
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Payment Reminder")
+                        .font(.headline)
+                        .foregroundColor(.monoPrimary)
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: $isPaymentReminder)
+                        .labelsHidden()
+                }
+                
+                if isPaymentReminder {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Reminder Type")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
+                        Picker("Reminder Type", selection: $reminderFrequency) {
+                            ForEach(reminderFrequencies, id: \.self) { frequency in
+                                Text(frequency).tag(frequency)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        
+                        if reminderFrequency == "Once" || reminderFrequency == "Yearly" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Reminder Date")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                
+                                DatePicker("Reminder Date", selection: $reminderDate, displayedComponents: .date)
+                                    .datePickerStyle(CompactDatePickerStyle())
+                            }
+                        }
+                        
+                        if reminderFrequency == "Monthly" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Day of Month")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                
+                                Stepper(value: $reminderDayOfMonth, in: 1...28) {
+                                    Text("Day \(reminderDayOfMonth)")
+                                }
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .animation(.easeInOut(duration: 0.3), value: isPaymentReminder)
+                }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            
             // Location Section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Location (Optional)")
@@ -523,6 +679,26 @@ struct OCRExpenseEntry: View {
         expense.updatedAt = Date()
         expense.user = currentUser
         
+        // Associate with dependent if selected
+        if isForDependent && selectedDependentId != nil {
+            expense.setValue(selectedDependentId, forKey: "dependentID")
+            
+            // Set dependent relationship in Core Data
+            let context = coreDataStack.context
+            let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "DependentEntity")
+            fetchRequest.predicate = NSPredicate(format: "id == %@", selectedDependentId! as CVarArg)
+            fetchRequest.fetchLimit = 1
+            
+            do {
+                let results = try context.fetch(fetchRequest)
+                if let dependentEntity = results.first {
+                    expense.setValue(dependentEntity, forKey: "dependent")
+                }
+            } catch {
+                print("Error setting dependent relationship: \(error)")
+            }
+        }
+        
         // Handle location data
         if useCurrentLocation {
             // Get current location
@@ -622,9 +798,23 @@ struct OCRExpenseEntry: View {
             // Schedule notifications if enabled
             if isRecurring {
                 let frequency = convertStringToRecurringFrequency(selectedFrequency)
+                var reminderDescription = description.isEmpty ? nil : description
+                
+                // Add dependent information to reminder if associated
+                if isForDependent && selectedDependentId != nil {
+                    if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
+                        let dependentInfo = "for \(dependent.firstName)"
+                        if let existingDesc = reminderDescription {
+                            reminderDescription = "\(existingDesc) (\(dependentInfo))"
+                        } else {
+                            reminderDescription = "\(selectedCategory) expense \(dependentInfo)"
+                        }
+                    }
+                }
+                
                 notificationManager.scheduleExpenseReminder(
                     amount: expense.amount,
-                    description: description.isEmpty ? nil : description,
+                    description: reminderDescription,
                     category: selectedCategory,
                     date: selectedDate,
                     isRecurring: true,
@@ -649,9 +839,18 @@ struct OCRExpenseEntry: View {
                     }
                 }
                 
+                var paymentDescription = "\(selectedCategory) payment"
+                
+                // Add dependent information to payment reminder if associated
+                if isForDependent && selectedDependentId != nil {
+                    if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
+                        paymentDescription = "\(selectedCategory) payment for \(dependent.firstName)"
+                    }
+                }
+                
                 notificationManager.schedulePaymentReminder(
                     amount: expense.amount,
-                    description: "\(selectedCategory) payment",
+                    description: paymentDescription,
                     reminderDate: reminderScheduleDate,
                     frequency: frequency
                 )
@@ -659,12 +858,25 @@ struct OCRExpenseEntry: View {
             
             var message = "Expense of Rs. \(String(format: "%.2f", expense.amount)) saved successfully from receipt scan!"
             
+            if isForDependent && selectedDependentId != nil {
+                if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
+                    message += "\nAssociated with: \(dependent.fullName)"
+                }
+            }
+            
             if let locationName = expense.value(forKey: "locationName") as? String {
                 message += "\nLocation: \(locationName)"
             }
             
             if isRecurring || isPaymentReminder {
                 message += "\nReminder notifications have been set up."
+                
+                // Add dependent-specific reminder context
+                if isForDependent && selectedDependentId != nil {
+                    if let dependent = dependentManager.dependents.first(where: { $0.id == selectedDependentId }) {
+                        message += "\nReminders will include \(dependent.firstName)'s name for easy identification."
+                    }
+                }
             }
             
             alertMessage = message

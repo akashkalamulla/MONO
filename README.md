@@ -1,6 +1,12 @@
 
 ## MONO — iOS Personal Finance (SwiftUI)
 
+Compatibility
+-------------
+
+- Swift version: 5.9
+- iOS deployment target: 15.2
+
 MONO is a SwiftUI-based iOS app for personal finance and dependent management. It includes features such as reminders, expense/ income tracking, location-aware reminders (MapKit), and Core Data persistence.
 
 This README covers project layout, how to run locally, Core Data notes (migration), and developer tips.
@@ -39,7 +45,6 @@ MONO/
 │   ├── Expense.swift
 │   ├── Income.swift
 │   └── User.swift
-... (MONO.xcdatamodeld removed from listing)
 ├── Services/
 │   ├── Colors.swift
 │   ├── OCRFileHelper.swift
@@ -97,11 +102,6 @@ If you prefer command line build (useful for CI):
 # build for simulator
 xcodebuild -workspace MONO.xcworkspace -scheme MONO -sdk iphonesimulator -configuration Debug build
 ```
-
-### Signing / Build notes
-
-- Xcode requires a Development Team for device builds. In Xcode open project → target → Signing & Capabilities → select a Team.
-- For simulator builds you can leave automatic signing, but device builds require provisioning.
 
 ## Core Data — important notes and migration
 

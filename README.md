@@ -141,6 +141,104 @@ Recommended `DependentReminderEntity` attributes (if you will restore full remin
 
 Add these exactly (or adapt code accordingly) so the app can reconstruct reminders and show map pins.
 
+Detailed Core Data implementation
+--------------------------------
+
+Core Data in MONO is split across two responsibilities:
+
+- Persistent container and context management (`CoreDataStack.swift`)
+- Entity <-> Model mapping helpers (in `CoreDataModels.swift` and `*EntityModel.swift` files)
+
+CoreDataStack (location: `CoreData/CoreDataStack.swift`)
+- Creates the NSPersistentContainer with the `MONO` model
+- Configures lightweight migration options (see example above)
+- Exposes a `context` for read/write operations, and helper methods like `save()`, `fetchUser(by:)`, `createUser(...)`, `loginUser(_:)`, `logoutAllUsers()`, etc.
+- Ensure `persistentContainer.viewContext.automaticallyMergesChangesFromParent = true` is set when doing background operations.
+
+Entity mapping and helper files
+- `CoreDataModels.swift` contains Codable/extension helpers to convert between Core Data entities and in-memory models used in views and managers.
+- Specific entity model files (e.g. `DependentEntityModel.swift`, `DependentReminderEntityModel.swift`, `IncomeEntityModel.swift`, `UserEntityModel.swift`) provide typed accessors and initializers for the corresponding entities.
+
+Recommended Core Data entities and attributes
+- DependentEntity
+	- id: UUID (indexed)
+	- firstName: String
+	- lastName: String
+	- relationship: String
+	- dateOfBirth: Date
+	- phoneNumber: String?
+	- email: String?
+	- isActive: Bool
+	- dateAdded: Date
+	- userId: UUID
+
+- DependentReminderEntity
+	- id: UUID (indexed)
+	- title: String
+	- amount: Double
+	- date: Date
+	- isCompleted: Bool
+	- completedAt: Date?
+	- notificationId: String?
+	- locationName: String?
+	- locationLatitude: Double
+	- locationLongitude: Double
+	- createdAt: Date
+
+- IncomeEntity
+	- id: UUID (indexed)
+	- amount: Double
+	- categoryId: String
+	- categoryName: String
+	- descriptionText: String?
+	- date: Date
+	- isRecurring: Bool
+	- recurrenceFrequency: String? (store rawValue)
+	- createdAt: Date
+
+- ExpenseEntity
+	- id: UUID (indexed)
+	- amount: Double
+	- categoryId: String
+	- descriptionText: String?
+	- date: Date
+	- isRecurring: Bool
+	- reminderDate: Date?
+	- isPaymentReminder: Bool
+	- reminderFrequency: String?
+	- locationName: String?
+	- latitude: Double?
+	- longitude: Double?
+	- userId: UUID
+	- dependentId: UUID?
+	- createdAt: Date
+
+- UserEntity
+	- id: UUID (indexed)
+	- firstName: String
+	- lastName: String
+	- email: String (indexed, unique)
+	- phoneNumber: String?
+	- password: String? (hashed)
+	- dateCreated: Date
+	- isLoggedIn: Bool
+
+Mapping recommendations and usage
+- Keep attribute names in Core Data consistent with the helpers in `CoreDataModels.swift` to avoid mapping bugs.
+- For enums (recurrence frequency, payment reminder frequency), store the `rawValue` as String in the entity and map back to enums in the model initializers.
+- Use UUIDs for primary keys and index them where you frequently query by id.
+- Store images or large binaries in the file system and reference them via a filename or store small blobs in `Data` attributes only when necessary.
+
+Concurrency and background operations
+- For background imports (e.g., importing many expenses), create a new background context via `persistentContainer.newBackgroundContext()` and perform saves on that context. Merge changes to the view context using `NSManagedObjectContext.mergeChanges(fromContextDidSave:)` or by setting `automaticallyMergesChangesFromParent`.
+
+Testing and fixtures
+- `MONOTests/data.json` contains sample incomes and categories used by unit tests. You can use `JSONDecoder` to load fixtures and seed an in-memory Core Data store for tests.
+
+Debugging tips
+- If migrations fail, check the model version in the `.xcdatamodeld` and confirm you created a new model version before changing attributes.
+- Use `po` on managed objects in the debugger to inspect attributes during runtime.
+
 ## Where to look for reminder/location code
 
 - `Managers/DependentReminderManager.swift` — CRUD, notification scheduling, and (eventually) Core Data integration for reminders.

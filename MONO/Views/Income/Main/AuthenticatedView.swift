@@ -182,10 +182,10 @@ struct DashboardView: View {
                                     HStack(spacing: 12) {
                                         ForEach(dependentManager.dependents.filter { $0.isActive }.prefix(5)) { dependent in
                                             DependentSummaryCard(dependent: dependent) {
-                                                print("🔄 [DashboardView] Tapping dependent: \(dependent.firstName)")
+                                                print("Tapping dependent: \(dependent.firstName)")
                                                 selectedDependent = dependent
                                                 showDependentDetail = true
-                                                print("🔄 [DashboardView] showDependentDetail set to: \(showDependentDetail)")
+                                                print("showDependentDetail set to: \(showDependentDetail)")
                                             }
                                         }
                                     }
@@ -317,14 +317,14 @@ struct DashboardView: View {
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if isAuthenticated, let currentUser = authManager.currentUser {
-                print("🔄 [AuthenticatedView] User authenticated, loading dependents for user: \(currentUser.id)")
+                print("User authenticated, loading dependents for user: \(currentUser.id)")
                 dependentManager.loadDependents(for: currentUser.id)
                 loadFinancialData()
             }
         }
         .onChange(of: authManager.currentUser?.id) { _, userId in
             if let userId = userId {
-                print("🔄 [AuthenticatedView] Current user changed, loading dependents for user: \(userId)")
+                print("Current user changed, loading dependents for user: \(userId)")
                 dependentManager.loadDependents(for: userId)
                 loadFinancialData()
             }
@@ -657,7 +657,7 @@ struct DependentSummaryCard: View {
         .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .onTapGesture {
-            print("🔄 [DependentCard] Tapped dependent: \(dependent.firstName)")
+            print("Tapped dependent: \(dependent.firstName)")
             onTap()
         }
         .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in

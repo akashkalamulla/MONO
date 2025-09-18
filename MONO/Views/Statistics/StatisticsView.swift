@@ -788,7 +788,7 @@ struct StatisticsView: View {
     }
 }
 
-// MARK: - Data Models
+// Data Models
 struct ChartDataPoint: Identifiable {
     let id = UUID()
     let date: Date
@@ -817,7 +817,7 @@ struct TopSpendingItem: Identifiable {
     }
 }
 
-// MARK: - Enhanced UI Components
+//Enhanced UI Components
 
 // Scale Button Style for better interactions
 struct ScaleButtonStyle: ButtonStyle {

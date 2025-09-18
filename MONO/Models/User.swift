@@ -73,17 +73,17 @@ class AuthenticationManager: ObservableObject {
     }
     
     private func checkForLoggedInUser() {
-        print("🔐 [AuthManager] Checking for logged-in user...")
+        print("Checking for logged-in user...")
         
         if let userEntity = coreDataStack.fetchCurrentUser() {
             let user = User(from: userEntity)
             self.currentUser = user
-            print("🔐 [AuthManager] Found logged-in user: \(user.email)")
+            print("Found logged-in user: \(user.email)")
             
             self.isAuthenticated = false
-            print("🔐 [AuthManager] User found but not authenticated - will show login with Face ID option")
+            print("User found but not authenticated - will show login with Face ID option")
         } else {
-            print("🔐 [AuthManager] No logged-in user found")
+            print("No logged-in user found")
         }
     }
     
@@ -244,10 +244,10 @@ class AuthenticationManager: ObservableObject {
     }
     
     func loginWithBiometric() {
-        print("🔐 [AuthManager] loginWithBiometric called")
+        print(" loginWithBiometric called")
         
         if let userEntity = coreDataStack.fetchCurrentUser() {
-            print("🔐 [AuthManager] Found currently logged in user: \(userEntity.email ?? "unknown")")
+            print(" Found currently logged in user: \(userEntity.email ?? "unknown")")
             
             coreDataStack.loginUser(userEntity) 
             
@@ -255,7 +255,7 @@ class AuthenticationManager: ObservableObject {
             self.isAuthenticated = true
             self.errorMessage = nil
             
-            print("🔐 [AuthManager] Biometric login successful")
+            print(" Biometric login successful")
             return
         }
         
@@ -266,7 +266,7 @@ class AuthenticationManager: ObservableObject {
         do {
             let users = try coreDataStack.context.fetch(request)
             if let userEntity = users.first {
-                print("🔐 [AuthManager] Found most recent user for biometric login: \(userEntity.email ?? "unknown")")
+                print(" Found most recent user for biometric login: \(userEntity.email ?? "unknown")")
                 
                 coreDataStack.loginUser(userEntity)
                 
@@ -274,13 +274,13 @@ class AuthenticationManager: ObservableObject {
                 self.isAuthenticated = true
                 self.errorMessage = nil
                 
-                print("🔐 [AuthManager] Biometric login successful")
+                print(" Biometric login successful")
             } else {
-                print("🔐 [AuthManager] No users found for biometric login")
+                print("No users found for biometric login")
                 self.errorMessage = "No user account found for biometric authentication"
             }
         } catch {
-            print("🔐 [AuthManager] Error fetching user for biometric login: \(error)")
+            print(" Error fetching user for biometric login: \(error)")
             self.errorMessage = "Error accessing user account"
         }
     }

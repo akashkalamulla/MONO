@@ -14,7 +14,7 @@ struct StandardLocationPicker: View {
     @Binding var selectedLocation: ReminderLocation?
     @State private var showingLocationPicker = false
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), // Colombo, Sri Lanka
+        center: CLLocationCoordinate2D(latitude: 6.9271, longitude: 79.8612), 
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
     )
     

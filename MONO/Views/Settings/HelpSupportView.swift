@@ -59,11 +59,8 @@ struct HelpSupportView: View {
                     } header: {
                         Text("Quick Help")
                     }
+                
                     
-              
-                    // Contact & support entry removed — handled externally or by other feedback flows
-                    
-             
                     Section {
                         QuickHelpRow(
                             icon: "star.fill",
@@ -390,7 +387,7 @@ struct FAQItemView: View {
     }
 }
 
-// ContactSupportView removed — contact flows handled externally or removed per request
+// ContactSupportView removed 
 
 struct UserGuideView: View {
     @Environment(\.dismiss) private var dismiss

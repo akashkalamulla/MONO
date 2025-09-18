@@ -20,7 +20,7 @@ struct PrivacySecurityView: View {
                             Text("Use \(biometricManager.biometricTypeDescription) to quickly and securely access your account.")
                             
                             #if targetEnvironment(simulator)
-                            Text("⚠️ Simulator Mode: Face ID simulation enabled for testing")
+                            Text(" Face ID simulation enabled for testing")
                                 .foregroundColor(.orange)
                                 .font(.caption)
                             #endif

@@ -126,7 +126,7 @@ struct IncomeRowView: View {
                         .foregroundColor(.secondary)
                     
                     if income.isRecurring {
-                        Text("• Recurring")
+                        Text("Recurring")
                             .font(.system(size: 12))
                             .foregroundColor(.blue)
                     }

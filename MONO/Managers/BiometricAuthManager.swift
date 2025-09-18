@@ -46,7 +46,7 @@ class BiometricAuthManager: ObservableObject {
             errorMessage = ""
         } else if isSimulator {
     
-            print("🔐 [BiometricAuth] Simulator detected - Face ID simulation will be available")
+            print("Simulator detected - Face ID simulation will be available")
             isAvailable = true
             biometricType = .faceID
             errorMessage = ""
@@ -128,16 +128,16 @@ class BiometricAuthManager: ObservableObject {
         context.localizedFallbackTitle = "Use Passcode"
         
         if isSimulator {
-            print("🔐 [BiometricAuth] Simulator detected - triggering Face ID authentication")
-            print("🔐 [BiometricAuth] Reason: \(reason)")
+            print("Simulator detected - triggering Face ID authentication")
+            print("Reason: \(reason)")
         }
         
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
             DispatchQueue.main.async {
                 if self.isSimulator {
-                    print("🔐 [BiometricAuth] Authentication result - Success: \(success)")
+                    print("Authentication result - Success: \(success)")
                     if let error = error {
-                        print("🔐 [BiometricAuth] Error: \(error.localizedDescription)")
+                        print("Error: \(error.localizedDescription)")
                     }
                 }
                 

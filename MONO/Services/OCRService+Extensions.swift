@@ -15,7 +15,7 @@ extension OCRService {
         let ciImage = CIImage(cgImage: cgImage)
         let context = CIContext(options: nil)
         
-        // Sample a smaller region for performance
+
         let sampleRect = CGRect(x: ciImage.extent.width * 0.25, 
                                y: ciImage.extent.height * 0.25,
                                width: ciImage.extent.width * 0.5, 
@@ -143,7 +143,6 @@ extension OCRService {
         var amounts: [(amount: Double, confidence: Float)] = []
         let lines = text.components(separatedBy: .newlines)
         
-        // Keep track of lines with "total" keywords to boost their confidence
         var totalLines: [String] = []
         var amountLines: [String] = []
         
@@ -178,7 +177,6 @@ extension OCRService {
             
             guard trimmedLine.count > 3 else { continue }
 
-            // Quick heuristics: skip lines that are likely phone numbers, dates, or reference numbers
             if containsPhoneOrDate(trimmedLine) { continue }
             
 
@@ -212,7 +210,7 @@ extension OCRService {
                 continue 
             }
             
-            // Much more comprehensive patterns for amount detection with weighted confidence
+            // patterns
             let patterns = [
                 // Highest confidence patterns with explicit total identifiers
                 (#"(?i)(?:total|grand\s*total|bill\s*total|amount\s*due|amount\s*payable|final\s*amount|to\s*pay|net\s*total|balance\s*due)\s*[:\-=]?\s*[Ll][Kk][Rr]\s*([0-9,]+\.?[0-9]*)"#, 1.0),

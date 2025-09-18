@@ -12,15 +12,6 @@ MONO/
 ├── MONOApp.swift                     # App entry point
 ├── new.swift                         # Additional app configuration
 ├── Assets.xcassets/                  # App assets and resources
-│   ├── Contents.json
-│   ├── AccentColor.colorset/
-│   │   └── Contents.json
-│   ├── AppIcon.appiconset/
-│   │   ├── ChatGPT Image Sep 13, 2025 at 04_59_34 PM.png
-│   │   └── Contents.json
-│   └── getstarted.imageset/
-│       ├── Contents.json
-│       └── Image.png
 ├── Auth/
 │   ├── EditProfileView.swift
 │   ├── LoginView.swift
@@ -48,10 +39,7 @@ MONO/
 │   ├── Expense.swift
 │   ├── Income.swift
 │   └── User.swift
-├── MONO.xcdatamodeld/
-│   ├── Contents.json
-│   └── MONO.xcdatamodel/
-│       └── contents
+... (MONO.xcdatamodeld removed from listing)
 ├── Services/
 │   ├── Colors.swift
 │   ├── OCRFileHelper.swift

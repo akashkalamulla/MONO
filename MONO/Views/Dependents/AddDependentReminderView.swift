@@ -409,8 +409,7 @@ struct LocationPickerView: View {
     }
     
     private func selectLocationFromMap(at tapLocation: CGPoint) {
-        // This is a simplified implementation
-        // In a real app, you'd convert the tap location to coordinates and reverse geocode
+
         let coordinate = region.center
         
         let geocoder = CLGeocoder()

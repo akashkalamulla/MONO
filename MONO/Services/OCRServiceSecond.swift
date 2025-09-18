@@ -71,7 +71,7 @@ extension OCRService {
         } else if quality.brightness > 0.7 {
             if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
                 exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
-                exposureFilter.setValue(-0.3, forKey: kCIInputEVKey) // Reduce exposure
+                exposureFilter.setValue(-0.3, forKey: kCIInputEVKey)
                 if let output = exposureFilter.outputImage {
                     processedImage = output
                 }
@@ -205,7 +205,6 @@ extension OCRService {
             }
             
             let digitCount = trimmedLine.filter { $0.isNumber }.count
-            // If a line has many digits but no decimal point and no currency symbol, it's likely a phone/serial number, not an amount
             if digitCount >= 6 && !trimmedLine.contains(".") && !trimmedLine.contains("Rs") && !trimmedLine.contains("LKR") { 
                 continue 
             }
@@ -512,7 +511,7 @@ extension OCRService {
             dispatchGroup.leave()
         }
         
-        // Pass 2: High contrast version for poor lighting
+        //High contrast version for poor lighting
         dispatchGroup.enter()
         if let enhancedImage = self.createEnhancedContrastImage(image) {
             self.processImage(enhancedImage) { result in
@@ -525,7 +524,7 @@ extension OCRService {
             dispatchGroup.leave()
         }
         
-        // Pass 3: Perspective corrected version (if different from original)
+        //Perspective corrected version (if different from original)
         dispatchGroup.enter()
         if let perspectiveCorrected = self.detectReceiptAndCorrectPerspective(image),
            perspectiveCorrected != image {
@@ -545,7 +544,6 @@ extension OCRService {
         }
     }
     
-    // Combine multiple OCR results to get the best possible outcome
     private func combineOCRResults(_ results: [OCRResult]) -> OCRResult {
         guard !results.isEmpty else {
             return OCRResult(amount: nil, text: "", suggestedCategory: nil, confidence: 0.0, merchant: nil, extractedDate: nil)
@@ -645,7 +643,7 @@ extension OCRService {
         return validateOCRResult(finalCombinedResult)
     }
     
-    // Additional preprocessing method specifically for high-contrast enhancement
+    // Additional preprocessing
     private func createEnhancedContrastImage(_ image: UIImage) -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
         
@@ -683,12 +681,9 @@ extension OCRService {
         var validatedResult = result
         var adjustedConfidence = result.confidence
         
-        // Clean and validate the extracted text
         let cleanedText = cleanExtractedText(result.text)
         
-        // Validate amount with smart heuristics
         if let amount = result.amount {
-            // Flag suspicious amounts
             if amount > 1_000_000 {
                 adjustedConfidence *= 0.3
             } else if amount > 100_000 {
@@ -711,19 +706,15 @@ extension OCRService {
         let lowercaseText = cleanedText.lowercased()
         let words = lowercaseText.components(separatedBy: .whitespacesAndNewlines)
         
-        // Strong receipt indicators
         let strongReceiptKeywords = ["receipt", "invoice", "bill", "total", "tax", "payment", "cash", "card"]
         let strongKeywordCount = strongReceiptKeywords.filter { lowercaseText.contains($0) }.count
         
-        // Weak receipt indicators
         let weakReceiptKeywords = ["date", "time", "thank you", "customer", "change", "subtotal", "amount"]
         let weakKeywordCount = weakReceiptKeywords.filter { lowercaseText.contains($0) }.count
         
-        // Business/merchant indicators
         let businessKeywords = ["store", "shop", "restaurant", "cafe", "ltd", "pvt", "inc", "corp", "llc"]
         let businessKeywordCount = businessKeywords.filter { lowercaseText.contains($0) }.count
         
-        // Calculate content quality score
         var contentQualityMultiplier: Float = 1.0
         
         if strongKeywordCount >= 3 {
@@ -750,7 +741,7 @@ extension OCRService {
             contentQualityMultiplier *= 0.85
         }
         
-        // Check for date-time patterns (receipts usually have them)
+        // Check for date-time patterns 
         let dateTimePatterns = [
             #"\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}\b"#,
             #"\b\d{1,2}:\d{2}\b"#,

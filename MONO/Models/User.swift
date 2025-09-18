@@ -176,7 +176,7 @@ class AuthenticationManager: ObservableObject {
         self.isAuthenticated = true
         self.isLoading = false
     }
-    
+    // logout
     func logout() {
         coreDataStack.logoutAllUsers()
         

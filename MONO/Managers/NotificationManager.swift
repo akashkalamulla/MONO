@@ -34,7 +34,7 @@ final class NotificationManager: ObservableObject {
                     scheduledDate: nil
                 )
 
-                // Avoid duplicates: check by exact title+message+timestamp fingerprint
+                // Avoid duplicates
                 if !self.notifications.contains(where: { $0.title == appNotif.title && $0.message == appNotif.message && abs($0.timestamp.timeIntervalSince(appNotif.timestamp)) < 1.0 }) {
                     DispatchQueue.main.async {
                         self.notifications.insert(appNotif, at: 0)

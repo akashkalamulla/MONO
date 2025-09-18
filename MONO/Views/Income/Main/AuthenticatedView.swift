@@ -90,7 +90,7 @@ struct DashboardView: View {
                                 .font(.system(size: 20))
                                 .foregroundColor(.monoPrimary)
                                 .overlay(
-                                    // Notification badge - only show if there are unread notifications
+                                    // Notification badge
                                     Group {
                                         if notificationManager.hasUnreadNotifications {
                                             Circle()
@@ -280,7 +280,7 @@ struct DashboardView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Second row - Full width Add Dependent button
+                        // Second row 
                         Button(action: { showAddDependent = true }) {
                             VStack(spacing: 8) {
                                 Image(systemName: "person.2.badge.plus")

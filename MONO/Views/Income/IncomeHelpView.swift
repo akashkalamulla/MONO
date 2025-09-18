@@ -87,7 +87,7 @@ struct IncomeHelpView: View {
                 }
                 .padding(.vertical, 8)
                 
-                // Quick Actions removed - income reminders are not used
+                // Quick Actions removed 
                     
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Income Categories")

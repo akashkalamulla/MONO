@@ -220,12 +220,11 @@ extension OCRService {
                 
                 allText += text + "\n"
                 
-                // Get all candidates for this observation (safely)
+                // Get all candidates for this observation
                 let candidateCount = min(3, observation.topCandidates(3).count)
                 let alternatives = observation.topCandidates(candidateCount).map { $0.string }
                 allCandidates.append(contentsOf: alternatives)
-                
-                // Debug info
+            
                 print("OCR Debug: Observation text: \(text) (confidence: \(topCandidate.confidence))")
             }
         
@@ -245,13 +244,12 @@ extension OCRService {
             
             for line in lines {
                 if !line.isEmpty {
-                    // Try to extract amounts from each line
                     let lineAmounts = improvedExtractAmounts(from: line, confidence: 0.8)
                     detectedAmounts.append(contentsOf: lineAmounts)
                 }
             }
             
-            // Process individual words for amounts (in case amounts span multiple observations)
+            // Process individual words for amounts 
             let words = combinedText.components(separatedBy: .whitespacesAndNewlines)
             for word in words {
                 if !word.isEmpty && word.rangeOfCharacter(from: CharacterSet.decimalDigits) != nil {

@@ -260,11 +260,80 @@ Debugging tips
 
 ## Testing
 
-- Unit/UITests are located in `MONOTests/` and `MONOUITests/`. Run tests in Xcode via Product → Test or via:
+Unit and UI tests live in the `MONOTests/` and `MONOUITests/` targets.
+
+Quick commands
+- Run all tests in Xcode: Product → Test (⌘U).
+- Run all tests from terminal (simulator):
 
 ```bash
 xcodebuild test -workspace MONO.xcworkspace -scheme MONO -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
+
+- Run a single test class or method from terminal (useful for iteration):
+
+```bash
+# Run one test class
+xcodebuild test -workspace MONO.xcworkspace -scheme MONO -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MONOTests/SimpleIncomeTests
+
+# Run one test method
+xcodebuild test -workspace MONO.xcworkspace -scheme MONO -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MONOTests/SimpleIncomeTests/testCanCreateIncome
+```
+
+Fixtures and seeding Core Data
+- `MONOTests/data.json` contains sample data (incomes, categories, mockUser). Use it to seed an in-memory Core Data store for unit tests so tests stay fast and deterministic.
+
+Example: create an in-memory NSPersistentContainer for tests
+
+```swift
+// In your test target
+import CoreData
+
+func makeInMemoryContainer() -> NSPersistentContainer {
+	let container = NSPersistentContainer(name: "MONO")
+	let description = NSPersistentStoreDescription()
+	description.type = NSInMemoryStoreType
+	container.persistentStoreDescriptions = [description]
+	container.loadPersistentStores { _, error in
+		if let error = error {
+			fatalError("Failed to load in-memory store: \(error)")
+		}
+	}
+	container.viewContext.automaticallyMergesChangesFromParent = true
+	return container
+}
+```
+
+Loading JSON fixtures in tests
+
+```swift
+func loadFixture<T: Decodable>(_ filename: String, as type: T.Type) -> T {
+	let bundle = Bundle(for: Self.self)
+	let url = bundle.url(forResource: filename, withExtension: "json")!
+	let data = try! Data(contentsOf: url)
+	return try! JSONDecoder().decode(T.self, from: data)
+}
+// Example usage: let fixtures = loadFixture("data", as: FixtureRoot.self)
+```
+
+Best practices and tips
+- Use the in-memory store for unit tests; avoid touching the app's disk store.
+- Mock `UserDefaults` by injecting a test-friendly suite: `UserDefaults(suiteName: "test-suite")`.
+- For async code (network, Core Data background saves, DispatchQueue), use `XCTestExpectation` and `wait(for:timeout:)`.
+- Keep tests small and isolated: one assertion per logical behavior where possible.
+- Use `-only-testing` when iterating locally to speed up feedback loops.
+
+Testing UI
+- UI tests live under `MONOUITests/` and run against a simulator/device. Use `XCUIApplication()` and accessibility identifiers to locate UI elements.
+
+CI tips
+- On CI (GitHub Actions, Bitrise, etc.) run `xcodebuild test` with a recent simulator image. Ensure the macOS runner has the matching Xcode version and simulator runtime.
+
+Common pitfalls
+- Deployment target mismatch between test target and simulator can fail test runs — ensure the test target deployment target <= simulator runtime.
+- If Core Data migrations cause intermittent failures on CI, run tests against an in-memory store or wipe derived data between runs.
+
+If you'd like, I can add a ready-to-copy test helper file (`Tests/TestHelpers/InMemoryCoreData.swift`) that creates the in-memory container and a fixture loader. Would you like that added to the repo?
 
 ## Contributing
 

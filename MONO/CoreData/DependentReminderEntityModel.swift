@@ -1,5 +1,5 @@
 //
-//  DependentReminderEntity+Extensions.swift
+//  DependentReminderEntityModel.swift
 //  MONO
 //
 //  Created by Akash01 on 2025-09-17.

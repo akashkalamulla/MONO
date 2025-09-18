@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA017AA12E7BFAB6007CE63C /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = CA017AA02E7BFAB6007CE63C /* AsyncAlgorithms */; };
 		CA930C392E6EBAD8007AF115 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = CA930C382E6EBAD8007AF115 /* FirebaseAI */; };
 		CA930C3B2E6EBAD8007AF115 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CA930C3A2E6EBAD8007AF115 /* FirebaseAnalytics */; };
 		CA930C3D2E6EBAD8007AF115 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = CA930C3C2E6EBAD8007AF115 /* FirebaseAnalyticsCore */; };
@@ -65,6 +66,7 @@
 				CA930C3D2E6EBAD8007AF115 /* FirebaseAnalyticsCore in Frameworks */,
 				CA930C412E6EBAD8007AF115 /* FirebaseAppCheck in Frameworks */,
 				CA930C392E6EBAD8007AF115 /* FirebaseAI in Frameworks */,
+				CA017AA12E7BFAB6007CE63C /* AsyncAlgorithms in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +132,7 @@
 				CA930C3C2E6EBAD8007AF115 /* FirebaseAnalyticsCore */,
 				CA930C3E2E6EBAD8007AF115 /* FirebaseAnalyticsIdentitySupport */,
 				CA930C402E6EBAD8007AF115 /* FirebaseAppCheck */,
+				CA017AA02E7BFAB6007CE63C /* AsyncAlgorithms */,
 			);
 			productName = MONO;
 			productReference = CA5590D52E4F18B800333127 /* MONO.app */;
@@ -215,6 +218,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CA930C372E6EBAD8007AF115 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CA017A9F2E7BFAB6007CE63C /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA5590D62E4F18B800333127 /* Products */;
@@ -476,7 +480,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = akash.MONOTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -494,7 +498,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = akash.MONOTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -579,6 +583,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CA017A9F2E7BFAB6007CE63C /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-async-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
 		CA930C372E6EBAD8007AF115 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -590,6 +602,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CA017AA02E7BFAB6007CE63C /* AsyncAlgorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA017A9F2E7BFAB6007CE63C /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
+			productName = AsyncAlgorithms;
+		};
 		CA930C382E6EBAD8007AF115 /* FirebaseAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CA930C372E6EBAD8007AF115 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

@@ -1,0 +1,54 @@
+{
+  "testIncomes": [
+    {
+      "id": "1",
+      "amount": 1000.0,
+      "description": "Salary payment",
+      "date": "2024-01-15T09:00:00Z"
+    },
+    {
+      "id": "2",
+      "amount": 500.0,
+      "description": "Freelance work",
+      "date": "2024-01-20T14:30:00Z"
+    },
+    {
+      "id": "3",
+      "amount": 750.0,
+      "description": null,
+      "date": "2024-01-25T10:15:00Z"
+    },
+    {
+      "id": "4",
+      "amount": 2000.0,
+      "description": "Monthly salary",
+      "date": "2024-02-01T08:00:00Z"
+    },
+    {
+      "id": "5",
+      "amount": 300.0,
+      "description": "Side job",
+      "date": "2024-02-05T16:45:00Z"
+    },
+    {
+      "id": "6",
+      "amount": 0.0,
+      "description": "No income",
+      "date": "2024-02-10T12:00:00Z"
+    }
+  ],
+  "testCategories": [
+    "Salary",
+    "Bonus",
+    "Freelance",
+    "Side job",
+    "Investment",
+    "Other"
+  ],
+  "mockUser": {
+    "id": "test-user-1",
+    "name": "Test User",
+    "totalIncome": 4550.0,
+    "currency": "USD"
+  }
+}

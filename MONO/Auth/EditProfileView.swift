@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 
+//Edit profile View
 struct EditProfileView: View {
     @ObservedObject var authManager: AuthenticationManager
     @Environment(\.dismiss) private var dismiss

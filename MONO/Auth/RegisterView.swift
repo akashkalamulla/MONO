@@ -255,7 +255,7 @@ struct RegisterView: View {
             }
         }
     }
-    
+    //passwd match
     private var passwordsMatch: Bool {
         password == confirmPassword && !password.isEmpty
     }

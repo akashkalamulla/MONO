@@ -96,7 +96,7 @@ struct LoginView: View {
                             Text("Password")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.monoPrimary)
-                            
+                            //pasword shoo
                             HStack {
                                 if showPassword {
                                     TextField("Enter your password", text: $password)
@@ -152,7 +152,7 @@ struct LoginView: View {
                     .buttonStyle(PrimaryButtonStyle())
                     .padding(.horizontal, 30)
                     
-                
+                // create new account part
                     HStack(spacing: 4) {
                         Text("Don't have an account?")
                             .font(.system(size: 14))
@@ -193,18 +193,18 @@ struct LoginView: View {
     private var isFormValid: Bool {
         !email.isEmpty && email.contains("@") && password.count >= 6
     }
-    
+    // face id authentication 
     private func authenticateWithFaceID() {
-        print("🔐 [LoginView] Face ID button tapped")
+        print("Face ID button tapped")
         
         biometricManager.authenticateUser(reason: "Sign in to your account with \(biometricManager.biometricTypeDescription)") { success, error in
             DispatchQueue.main.async {
                 if success {
-                    print("🔐 [LoginView] Face ID authentication successful")
+                    print("Face ID authentication successful")
                     // Sign in with the last logged-in user
                     authManager.loginWithBiometric()
                 } else {
-                    print("🔐 [LoginView] Face ID authentication failed: \(error ?? "Unknown error")")
+                    print("Face ID authentication failed: \(error ?? "Unknown error")")
                     authManager.errorMessage = error ?? "Biometric authentication failed"
                 }
             }

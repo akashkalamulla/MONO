@@ -5,29 +5,110 @@ MONO is a SwiftUI-based iOS app for personal finance and dependent management. I
 
 This README covers project layout, how to run locally, Core Data notes (migration), and developer tips.
 
-## Project layout (high level)
-
-Key folders and files (most important first):
+## Project layout (complete file structure)
 
 ```
 MONO/
-├─ MONOApp.swift                      # App entry point
-├─ CoreData/                           # Core Data stack & entity extensions
-│  ├─ CoreDataStack.swift
-│  ├─ DependentReminderEntity+Extensions.swift
-│  └─ ...
-├─ Managers/                           # Business logic / ObservableObjects
-│  └─ DependentReminderManager.swift
-├─ Components/                         # Reusable UI components
-│  └─ StandardLocationPicker.swift
-├─ Views/                              # Feature UI grouped by domain
-│  ├─ Dependents/
-│  │  └─ DependentRemindersView.swift
-│  └─ Expenses/
-├─ Models/                             # App domain models (structs)
-│  └─ DependentReminder.swift
-├─ Assets.xcassets/
-└─ MONO.xcodeproj / MONO.xcworkspace
+├── README.md
+├── MONO/
+│   ├── MONOApp.swift                     # App entry point
+│   ├── new.swift                         # Additional app configuration
+│   ├── Assets.xcassets/                  # App assets and resources
+│   │   ├── Contents.json
+│   │   ├── AccentColor.colorset/
+│   │   │   └── Contents.json
+│   │   ├── AppIcon.appiconset/
+│   │   │   ├── ChatGPT Image Sep 13, 2025 at 04_59_34 PM.png
+│   │   │   └── Contents.json
+│   │   └── getstarted.imageset/
+│   │       ├── Contents.json
+│   │       └── Image.png
+│   ├── Auth/                             # Authentication views
+│   │   ├── EditProfileView.swift
+│   │   ├── LoginView.swift
+│   │   └── RegisterView.swift
+│   ├── Components/                       # Reusable UI components
+│   │   ├── ButtonStyles.swift
+│   │   ├── ImagePickerView.swift
+│   │   ├── ImageSelectionSheet.swift
+│   │   ├── LoadingIndicator.swift
+│   │   └── StandardLocationPicker.swift
+│   ├── CoreData/                         # Core Data stack & entity models
+│   │   ├── CoreDataModels.swift
+│   │   ├── CoreDataStack.swift
+│   │   ├── DependentEntityModel.swift
+│   │   ├── DependentReminderEntityModel.swift
+│   │   ├── IncomeEntityModel.swift
+│   │   └── UserEntityModel.swift
+│   ├── Managers/                         # Business logic / ObservableObjects
+│   │   ├── BiometricAuthManager.swift
+│   │   ├── DependentReminderManager.swift
+│   │   └── NotificationManager.swift
+│   ├── Models/                           # App domain models (structs)
+│   │   ├── Dependent.swift
+│   │   ├── DependentReminder.swift
+│   │   ├── Expense.swift
+│   │   ├── Income.swift
+│   │   └── User.swift
+│   ├── MONO.xcdatamodeld/               # Core Data model
+│   │   ├── Contents.json
+│   │   └── MONO.xcdatamodel/
+│   │       └── contents
+│   ├── Services/                         # Utility services
+│   │   ├── Colors.swift
+│   │   ├── OCRFileHelper.swift
+│   │   ├── OCRService.swift
+│   │   ├── OCRServiceErrorFixes.swift
+│   │   └── OCRServiceSecond.swift
+│   └── Views/                           # Feature UI grouped by domain
+│       ├── FinanceView.swift
+│       ├── NotificationView.swift
+│       ├── Dependents/                  # Dependent management views
+│       │   ├── AddDependentReminderView.swift
+│       │   ├── AddDependentView.swift
+│       │   ├── DependentDetailView.swift
+│       │   ├── DependentExpensesPlaceholderView.swift
+│       │   ├── DependentExpensesView.swift
+│       │   ├── DependentHelpView.swift
+│       │   ├── DependentRemindersView.swift
+│       │   ├── DependentsView.swift
+│       │   └── EditDependentView.swift
+│       ├── Expenses/                    # Expense tracking views
+│       │   ├── ExpenseHelpView.swift
+│       │   ├── ExpenseListView.swift
+│       │   ├── ExpenseLocationComponents.swift
+│       │   ├── ExpenseLocationListView.swift
+│       │   ├── ExpenseLocationMapView.swift
+│       │   ├── OCRExpenseEntry.swift
+│       │   └── SharedLocationComponents.swift
+│       ├── Income/                      # Income tracking views
+│       ├── Settings/                    # App settings views
+│       ├── Splash/                      # Splash screen views
+│       └── Statistics/                  # Statistics and analytics views
+├── MONO.xcodeproj/                      # Xcode project files
+│   ├── project.pbxproj
+│   ├── project.xcworkspace/
+│   │   ├── contents.xcworkspacedata
+│   │   ├── xcshareddata/
+│   │   └── xcuserdata/
+│   └── xcuserdata/
+│       └── akash01.xcuserdatad/
+├── MONOTests/                           # Unit tests
+│   ├── ColorAndCategoryTests.swift
+│   ├── data.json                        # Test data
+│   ├── DependentTests.swift
+│   ├── IncomeAddingTests.swift
+│   ├── IncomeTests.swift
+│   ├── MONOTests.swift
+│   ├── SimpleColorAndCategoryTests.swift
+│   ├── SimpleDependentTests.swift
+│   ├── SimpleIncomeTests.swift
+│   ├── SimpleUserTests.swift
+│   └── UserTests.swift
+├── MONOUITests/                         # UI tests
+│   ├── MONOUITests.swift
+│   └── MONOUITestsLaunchTests.swift
+└── MyAppunittest/                       # Additional test directory
 ```
 
 ## Features
